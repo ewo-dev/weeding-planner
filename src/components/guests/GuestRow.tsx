@@ -4,6 +4,7 @@ import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { guestDragId } from '@/components/editor/dnd'
 import { IconButton } from '@/components/ui/IconButton'
+import { X } from 'lucide-react'
 
 interface GuestRowProps {
   guest: Guest
@@ -31,10 +32,12 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
     data: { kind: 'guest', guestId: guest.id },
   })
 
+  const initial = guest.name.trim().charAt(0).toUpperCase() || '?'
+
   return (
     <li
-      className={`flex items-center gap-1 rounded ${
-        selected ? 'bg-brand-soft' : 'hover:bg-surface'
+      className={`group flex items-center gap-1 rounded-lg border border-transparent transition-colors ${
+        selected ? 'bg-brand-soft border-brand/20' : 'hover:bg-surface-muted hover:border-border'
       }`}
     >
       <button
@@ -44,21 +47,26 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         {...listeners}
         {...attributes}
         aria-pressed={selected}
-        className="flex min-h-[44px] min-w-0 flex-1 touch-none flex-col justify-center px-3 py-1.5 text-left"
+        className="flex min-h-[48px] min-w-0 flex-1 touch-none items-center gap-3 px-3 py-1.5 text-left"
       >
-        <span className="block truncate text-sm font-medium text-text">{guest.name}</span>
-        {(guest.group ?? tableName) && (
-          <span className="block truncate text-xs text-text-muted">
-            {[guest.group, tableName].filter(Boolean).join(' · ')}
-          </span>
-        )}
+        <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface border border-border text-sm font-semibold text-text">
+          {initial}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-medium text-text">{guest.name}</span>
+          {(guest.group ?? tableName) && (
+            <span className="block truncate text-xs text-text-muted">
+              {[guest.group, tableName].filter(Boolean).join(' · ')}
+            </span>
+          )}
+        </span>
       </button>
       {hasConflict && (
         <span
           role="img"
           aria-label={`Conflit de placement pour ${guest.name}`}
           title="Conflit de placement — voir les contraintes"
-          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"
         >
           !
         </span>
@@ -68,7 +76,8 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         onClick={() => onRemove(guest.id)}
         label={`Supprimer ${guest.name}`}
         title={`Supprimer ${guest.name}`}
-        icon="×"
+        icon={<X className="h-5 w-5" />}
+        className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0"
       />
     </li>
   )

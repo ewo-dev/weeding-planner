@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { X, Info, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react'
 import { Button } from './Button'
 import { IconButton } from './IconButton'
 
@@ -39,11 +40,18 @@ const MAX_TOASTS = 3
 
 let nextToastId = 0
 
-const KIND_TEXT: Record<ToastKind, string> = {
-  info: 'text-info',
-  success: 'text-success',
-  warning: 'text-warning',
-  error: 'text-danger',
+const KIND_ICONS: Record<ToastKind, ReactNode> = {
+  info: <Info className="h-4 w-4" aria-hidden="true" />,
+  success: <CheckCircle className="h-4 w-4" aria-hidden="true" />,
+  warning: <AlertTriangle className="h-4 w-4" aria-hidden="true" />,
+  error: <AlertCircle className="h-4 w-4" aria-hidden="true" />,
+}
+
+const KIND_STYLES: Record<ToastKind, string> = {
+  info: 'border-info/30 bg-info/10 text-info',
+  success: 'border-success/30 bg-success/10 text-success',
+  warning: 'border-accent/30 bg-accent-soft text-warning',
+  error: 'border-danger/30 bg-danger/10 text-danger',
 }
 
 /**
@@ -96,16 +104,16 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           {toasts.map((toast) => (
             <div
               key={toast.id}
-              className="flex items-center gap-2 rounded-lg border border-border bg-surface-raised p-3 shadow-lg"
+              className={`flex items-center gap-3 rounded-xl border p-3 shadow-lg ${KIND_STYLES[toast.kind]}`}
             >
-              <p className={`min-w-0 flex-1 text-sm font-medium ${KIND_TEXT[toast.kind]}`}>
-                {toast.message}
-              </p>
+              {KIND_ICONS[toast.kind]}
+              <p className="min-w-0 flex-1 text-sm font-medium">{toast.message}</p>
               {toast.actions?.map((action) => (
                 <Button
                   key={action.label}
                   type="button"
-                  variant="secondary"
+                  variant="ghost"
+                  size="sm"
                   onClick={() => {
                     action.onAction?.()
                     dismiss(toast.id)
@@ -117,8 +125,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <IconButton
                 type="button"
                 label="Fermer la notification"
-                icon="×"
+                icon={<X className="h-5 w-5" />}
                 onClick={() => dismiss(toast.id)}
+                className="text-current hover:bg-black/5"
               />
             </div>
           ))}

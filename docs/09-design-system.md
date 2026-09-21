@@ -24,6 +24,7 @@ The components themselves are inventoried in `07-components.md`. This document i
 * **Familiar** — components use recognizable patterns. No novel interaction metaphors.
 * **Accessible by default** — contrast, focus, hit targets, and keyboard parity are non-negotiable.
 * **Print parity** — the on-screen design works on a printed page without redesign.
+* **Wedding identity** — warm, elegant, and understated; never generic SaaS or cliché template.
 
 ---
 
@@ -55,45 +56,55 @@ We use a small palette organized by role. Tokens are semantic, not raw values.
 
 ### Surfaces
 
-| Token             | Usage                       | Light    | Dark     |
-| ----------------- | --------------------------- | -------- | -------- |
-| `bg`              | App background              | `white`  | `slate-950` |
-| `surface`         | Cards, panels               | `slate-50`| `slate-900` |
-| `surface-raised`  | Modals, popovers            | `white`  | `slate-800` |
-| `border`          | Hairlines                   | `slate-200`| `slate-800` |
+| Token             | Usage                       | Light         | Dark         |
+| ----------------- | --------------------------- | ------------- | ------------ |
+| `bg`              | App background              | `#F8F6F1`     | `#1C1B18`    |
+| `surface`         | Cards, panels               | `#FFFFFF`     | `#23221F`    |
+| `surface-raised`  | Modals, popovers, sidebars  | `#FDFCFA`     | `#2A2926`    |
+| `surface-muted`   | Hover/soft backgrounds      | `#F5F3EE`     | `#32312E`    |
+| `border`          | Hairlines                   | `#E5E1D8`     | `#3D3C38`    |
 
 ### Text
 
 | Token             | Usage                       | Light    | Dark     |
 | ----------------- | --------------------------- | -------- | -------- |
-| `text`            | Default body text           | `slate-900`| `slate-100` |
-| `text-muted`      | Secondary text              | `slate-500`| `slate-400` |
-| `text-inverse`    | On dark/colored backgrounds | `white`  | `slate-950` |
+| `text`            | Default body text           | `#2F302B`| `#F2F0EB`|
+| `text-muted`      | Secondary text              | `#77776E`| `#A8A59B`|
+| `text-inverse`    | On dark/colored backgrounds | `#FFFFFF`| `#1C1B18`|
 
 ### Brand
 
 | Token             | Usage                       | Value (light) |
 | ----------------- | --------------------------- | ------------- |
-| `brand`           | Primary actions, focus      | `indigo-600`  |
-| `brand-hover`     | Hover state                 | `indigo-700`  |
-| `brand-soft`      | Selected background tints   | `indigo-50`   |
+| `brand`           | Primary actions, focus      | `#68745D`     |
+| `brand-hover`     | Hover state                 | `#56614D`     |
+| `brand-soft`      | Selected background tints   | `rgba(104,116,93,0.10)` |
+| `brand-muted`     | Subtle brand backgrounds    | `rgba(104,116,93,0.06)` |
+
+### Accent
+
+| Token             | Usage                       | Value (light) |
+| ----------------- | --------------------------- | ------------- |
+| `accent`          | Champagne-gold highlights   | `#C8A978`     |
+| `accent-hover`    | Hover state                 | `#B89868`     |
+| `accent-soft`     | Soft gold backgrounds       | `rgba(200,169,120,0.14)` |
 
 ### Status
 
 | Token             | Usage                       | Value       |
 | ----------------- | --------------------------- | ----------- |
-| `success`         | Confirmation                | `emerald-600` |
-| `warning`         | Soft warning (preferences)  | `amber-500` |
-| `danger`          | Mandatory conflict          | `rose-600`  |
-| `info`            | Neutral information         | `sky-600`   |
+| `success`         | Confirmation                | `#5E7A5E`   |
+| `warning`         | Soft warning (preferences)  | `#B89A6A`   |
+| `danger`          | Mandatory conflict          | `#A65D57`   |
+| `info`            | Neutral information         | `#6F7D8D`   |
 
 ### Constraint accents (used in `ConstraintRow`)
 
 | Token             | Meaning                     | Value        |
 | ----------------- | --------------------------- | ------------ |
-| `constraint-must` | `must_together`             | `emerald-600` |
-| `constraint-pref` | `prefer_together`           | `sky-600`    |
-| `constraint-no`   | `must_not_together`         | `rose-600`   |
+| `constraint-must` | `must_together`             | `#5E7A5E`    |
+| `constraint-pref` | `prefer_together`           | `#6F7D8D`    |
+| `constraint-no`   | `must_not_together`         | `#A65D57`    |
 
 Rules:
 
@@ -114,7 +125,7 @@ Tailwind's default scale is used, with the convention:
 | `3`           | 12   | Inside `Input`, inside `Button`            |
 | `4`           | 16   | Panel padding (mobile)                     |
 | `6`           | 24   | Section spacing                            |
-| `8`           | 32   | Panel padding (desktop), card padding       |
+| `8`           | 32   | Panel padding (desktop), card padding      |
 
 A 4-px base unit keeps the rhythm consistent.
 
@@ -125,16 +136,16 @@ A 4-px base unit keeps the rhythm consistent.
 Two families:
 
 * **Sans** — `Inter` (or the system sans fallback).
-* **Display** — `Inter` with a slightly tighter tracking for the entry headline only.
+* **Display** — `Cormorant Garamond` for elegant headings.
 
 ### Scale
 
 | Token        | Size / line-height | Usage                          |
 | ------------ | ------------------ | ------------------------------ |
-| `text-xs`    | 12 / 16            | Helper text, table of contents |
+| `text-xs`    | 12 / 16            | Helper text, stat labels       |
 | `text-sm`    | 14 / 20            | Default for chips, body        |
 | `text-base`  | 16 / 24            | Default body, paragraphs       |
-| `text-lg`    | 18 / 28            | Card titles                    |
+| `text-lg`    | 18 / 28            | Card titles, panel headings    |
 | `text-xl`    | 20 / 28            | Section headers                |
 | `text-2xl`   | 24 / 32            | Page title                     |
 | `text-3xl`   | 30 / 36            | Hero / entry headline          |
@@ -144,6 +155,7 @@ Rules:
 * Default body is `text-base`.
 * Never use `text-xs` for primary information.
 * Long names (guest, table) truncate with `text-ellipsis` after 1 line in compact contexts.
+* Display headings use a slightly lighter weight and refined tracking.
 
 ---
 
@@ -151,10 +163,12 @@ Rules:
 
 | Token       | px   | Usage                              |
 | ----------- | ---- | ---------------------------------- |
-| `rounded-sm`| 4    | Inputs, chips                      |
+| `rounded-sm`| 4    | Inputs, badges                     |
 | `rounded`   | 8    | Buttons, cards                     |
 | `rounded-lg`| 12   | Modals, panels                     |
-| `rounded-full` | 9999 | Avatars, seat chips               |
+| `rounded-xl`| 16   | Large cards, print sheets          |
+| `rounded-2xl`| 20  | Hero surfaces                      |
+| `rounded-full` | 9999 | Avatars, seat chips, table surfaces |
 
 ---
 
@@ -164,8 +178,9 @@ Two elevation levels only:
 
 | Token        | Usage                                |
 | ------------ | ------------------------------------ |
-| `shadow-sm`  | Hover on cards, focus on chips       |
-| `shadow-lg`  | Modals, drag overlays                |
+| `shadow-sm`  | Buttons, raised inputs, hover on cards |
+| `shadow`     | Cards, toolbars                      |
+| `shadow-lg`  | Modals, drag overlays, toasts        |
 
 No drop shadows on the seating editor canvas itself — tables and seats have a subtle border instead, so the plan reads cleanly.
 
@@ -228,18 +243,19 @@ The editor is usable as a single-column portrait layout from the smallest suppor
 ### Button
 
 * Sizes: `sm` (32 px), `md` (40 px), `lg` (48 px). Mobile default is `md`.
-* Padding: `px-3` (`sm`), `px-4` (`md`), `px-5` (`lg`).
-* Radius: `rounded`.
+* Padding: `px-3` (`sm`), `px-5` (`md`), `px-6` (`lg`).
+* Radius: `rounded-md`.
 * Variants:
-  * `primary` — `bg-brand text-text-inverse`, optional pointer hover `bg-brand-hover`.
-  * `secondary` — `bg-surface border border-border text-text`, optional pointer hover `bg-surface-raised`.
-  * `ghost` — transparent, optional pointer hover `bg-surface`.
-  * `danger` — `bg-danger text-text-inverse`.
+  * `primary` — `bg-brand text-text-inverse shadow-sm`, optional pointer hover `bg-brand-hover hover:shadow`.
+  * `secondary` — `border border-border bg-surface text-text shadow-sm`, optional pointer hover `bg-surface-muted hover:border-border`.
+  * `ghost` — transparent, optional pointer hover `bg-surface-muted`.
+  * `danger` — `bg-danger text-text-inverse shadow-sm`, optional pointer hover `bg-danger/90`.
 
 ### Input
 
-* Height: 40 px (`md`).
+* Height: 44 px (`md`).
 * Border: `border-border`, focus `border-brand ring-2 ring-brand-soft`.
+* Background: `bg-surface`, focus `bg-surface-raised`.
 * Error: `border-danger`, error message in `text-danger text-sm` below.
 * Always pairs with a `<label>` (visually hidden if compact).
 
@@ -248,21 +264,24 @@ The editor is usable as a single-column portrait layout from the smallest suppor
 * Height: 28 px.
 * Padding: `px-2`.
 * Radius: `rounded-full` for guests, `rounded-sm` for badges.
-* Background: `bg-surface`.
-* Selected: `bg-brand-soft border-brand`.
+* Background: `bg-surface-muted` for neutral badges.
+* Selected: `bg-brand-soft border-brand/20`.
 
 ### Card (TableCard, PanelCard)
 
 * Padding: `p-4` mobile, `p-6` desktop.
-* Radius: `rounded-lg`.
-* Background: `bg-surface-raised`.
+* Radius: `rounded-xl`.
+* Background: `bg-surface`.
 * Border: `border border-border`.
+* Shadow: `shadow-sm` on hover.
 
 ### Modal
 
 * Max width: `max-w-md` (forms) or `max-w-lg` (reports).
-* Padding: `p-6`.
-* Backdrop: `bg-black/40`.
+* Padding: `p-5`.
+* Backdrop: `bg-text/25` with `backdrop-blur-[2px]`.
+* Mobile: slides up from bottom with a drag handle; `rounded-t-xl`.
+* Desktop: centered with `rounded-xl`.
 
 ---
 
@@ -270,12 +289,12 @@ The editor is usable as a single-column portrait layout from the smallest suppor
 
 The canvas is the most visual surface. Specific rules:
 
-* Workspace background: `bg` (page background) with a faint dotted grid (`bg-[radial-gradient(...)]`) for spatial anchoring.
-* Tables: white surface with a 1-px `border-border`. Selected: 2-px `border-brand`.
-* Round tables: visual seat ring of small circles. The number of circles equals `capacity`.
-* Rectangle tables: row of seat slots below the table label.
-* Empty seats: 12-px outlined circle, `border-border`.
-* Filled seats: filled circle with the guest's initial, `bg-brand text-text-inverse` (color optionally varied by group — see § 14).
+* Workspace background: `bg` (warm ivory) with a faint warm grid (`bg-[radial-gradient(...)]`) for spatial anchoring.
+* Tables: white surface with a 1-px `border-border` and `shadow-sm`. Selected: 2-px `ring-brand`.
+* Round tables: circular table surface with a ring of seat slots around the edge.
+* Rectangle tables: long rounded table surface with seat slots below.
+* Empty seats: 12-px outlined circle, `border-border bg-surface`.
+* Filled seats: filled circle with the guest's initial, `bg-brand text-text-inverse`.
 * Drag overlay: 1.05x scale, `shadow-lg`, slight rotation (1-2 degrees) for feel.
 * Touch dragging must preserve scroll access, use a visible active state, and never rely on hover to reveal a drop target.
 * Provide action-based alternatives for assigning a guest or moving a table when canvas precision is poor on a phone.
@@ -286,26 +305,26 @@ The canvas is the most visual surface. Specific rules:
 
 * Always use `<EmptyState>` (per `07-components.md` § 4).
 * Background: `bg-surface`.
-* Icon: 48 px, `text-muted`.
-* Title: `text-lg`.
-* Description: `text-sm text-muted`.
+* Icon: 48 px, `text-accent`.
+* Title: `text-lg font-display`.
+* Description: `text-sm text-text-muted`.
 * Action: primary button if there's a clear next step.
 
 Error states:
 
 * Inline errors use `text-danger` next to the field.
-* Page-level errors use `bg-danger/10 border-danger/30 text-danger` with `rounded-lg p-4`.
+* Page-level errors use `bg-danger/10 border-danger/30 text-danger` with `rounded-xl p-4`.
 
 ---
 
 ## 14. Guest Group Color (optional enhancement)
 
-If `guest.group` is set, the guest chip and seat dot can be tinted using a stable color derived from the group name. Implementation: hash the group string to one of a 6-color palette (`indigo`, `emerald`, `amber`, `rose`, `sky`, `violet`).
+If `guest.group` is set, the guest chip and seat dot can be tinted using a stable color derived from the group name. Implementation: hash the group string to one of a 6-color palette (`brand`, `success`, `warning`, `danger`, `info`, `accent`).
 
 Rules:
 
-* Tints apply to the chip background at low opacity (`bg-{color}-100`) and the text at full saturation (`text-{color}-700`).
-* Tints are accessible (each passes AA on its 100-level background with the 700-level text).
+* Tints apply to the chip background at low opacity and the text at full saturation.
+* Tints are accessible.
 * Tints are derived — not stored — so renaming a group changes everyone's tint consistently.
 
 This is **opt-in** in the MVP. The default is monochrome.
@@ -370,8 +389,19 @@ The token system is structured to allow dark mode without refactor: each color t
 
 ---
 
-## 18. Open Design Questions
+## 18. Decorative Elements
 
-1. **Brand color** — `indigo-600` is a placeholder. We can swap to a wedding-themed color (e.g. `rose`, `amber`) before launch.
+Wedding identity is conveyed through restrained details:
+
+* A subtle botanical divider (`BotanicalDivider`) with a champagne-gold accent, used sparingly for major section breaks.
+* Elegant display typography for headings.
+* Warm surface colors and soft shadows.
+* No over-decoration, no glitter, no heavy gradients.
+
+---
+
+## 19. Open Design Questions
+
+1. **Brand color** — `#68745D` sage green is the launch choice.
 2. **Group color palette** — six colors is enough for MVP. More colors risk looking noisy.
 3. **Icon font size** — confirm `lucide-react` stroke width feels right at 16 px on small screens.

@@ -1,5 +1,6 @@
 'use client'
 
+import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 
@@ -21,18 +22,25 @@ interface TableDeleteDialogProps {
 export function TableDeleteDialog({ tableName, guestNames, onConfirm, onCancel }: TableDeleteDialogProps) {
   return (
     <Modal open onClose={onCancel} title="Supprimer cette table ?">
-      <p className="text-sm text-text-muted">
-        La table « {tableName} » sera définitivement supprimée.{' '}
-        {guestNames.length === 1
-          ? '1 invité retournera aux non placés :'
-          : `${guestNames.length} invités retourneront aux non placés :`}
-      </p>
-      <ul className="mt-2 max-h-32 list-disc overflow-y-auto pl-5 text-sm text-text">
-        {guestNames.map((name) => (
-          <li key={name}>{name}</li>
-        ))}
-      </ul>
-      <div className="mt-4 flex justify-end gap-2">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger/10 text-danger">
+          <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="flex-1">
+          <p className="text-sm leading-relaxed text-text-muted">
+            La table « {tableName} » sera définitivement supprimée.{' '}
+            {guestNames.length === 1
+              ? '1 invité retournera aux non placés :'
+              : `${guestNames.length} invités retourneront aux non placés :`}
+          </p>
+          <ul className="mt-2 max-h-32 list-disc overflow-y-auto pl-5 text-sm text-text">
+            {guestNames.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>
           Annuler
         </Button>

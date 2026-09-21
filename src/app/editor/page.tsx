@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { AlertTriangle } from 'lucide-react'
 import type { Plan } from '@/types/plan'
 import { getRepository } from '@/lib/repo'
 import { PlanProvider } from '@/lib/plan/context'
@@ -10,6 +11,7 @@ import { EditorSkeleton } from '@/components/layout/EditorSkeleton'
 import { TopBar } from '@/components/layout/TopBar'
 import { PlanStatsBar } from '@/components/plan-status/PlanStatsBar'
 import { SeatingEditor } from '@/components/editor/SeatingEditor'
+import { Button } from '@/components/ui/Button'
 
 // Editor route (docs/06-routing-and-pages.md § 6). Reads the active plan id
 // from localStorage, loads it via the repository, and mounts the editor
@@ -51,25 +53,26 @@ export default function EditorPage() {
 
   if (error) {
     return (
-      <main className="p-8">
-        <h1 className="text-xl font-semibold text-danger">
-          Le plan n&apos;a pas pu être chargé. Réessayer ?
-        </h1>
-        <p className="mt-2 text-sm text-text-muted">{error}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="flex min-h-[44px] items-center underline"
-            onClick={() => {
+      <main className="flex min-h-screen flex-col items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-danger/10 text-danger">
+            <AlertTriangle className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <h1 className="font-display text-xl font-semibold text-text">
+            Le plan n&apos;a pas pu être chargé.
+          </h1>
+          <p className="mt-2 text-sm text-text-muted">{error}</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Button type="button" variant="secondary" onClick={() => {
               setError(null)
               setAttempt((n) => n + 1)
-            }}
-          >
-            Réessayer
-          </button>
-          <button type="button" className="flex min-h-[44px] items-center underline" onClick={() => router.replace('/')}>
-            Retour à l&apos;accueil
-          </button>
+            }}>
+              Réessayer
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
+              Retour à l&apos;accueil
+            </Button>
+          </div>
         </div>
       </main>
     )

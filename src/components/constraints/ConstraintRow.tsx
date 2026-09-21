@@ -5,6 +5,7 @@ import { CONSTRAINT_KIND_LABELS } from './constraints'
 import { Badge } from '@/components/ui/Badge'
 import type { BadgeTone } from '@/components/ui/Badge'
 import { IconButton } from '@/components/ui/IconButton'
+import { X } from 'lucide-react'
 
 interface ConstraintRowProps {
   constraint: Constraint
@@ -32,8 +33,8 @@ const KIND_BADGE_TONE: Record<Constraint['kind'], BadgeTone> = {
 export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated, onRemove }: ConstraintRowProps) {
   return (
     <li
-      className={`flex items-center gap-2 rounded px-3 py-2 ${
-        violated ? 'border border-danger/40 bg-danger/10' : 'hover:bg-surface'
+      className={`group flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 transition-colors ${
+        violated ? 'border-danger/30 bg-danger/10' : 'hover:bg-surface-muted hover:border-border'
       }`}
     >
       <Badge tone={KIND_BADGE_TONE[constraint.kind]}>{CONSTRAINT_KIND_LABELS[constraint.kind]}</Badge>
@@ -47,7 +48,8 @@ export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated
         onClick={() => onRemove(constraint.id)}
         label={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
         title={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
-        icon="×"
+        icon={<X className="h-5 w-5" />}
+        className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0"
       />
     </li>
   )

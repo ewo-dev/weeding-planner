@@ -20,7 +20,7 @@ export function TableList({ rows, selectedId, onEdit, onRemove }: TableListProps
   if (rows.length === 0) return null
 
   return (
-    <ul>
+    <ul className="space-y-1">
       {rows.map(({ table, seated }) => (
         <TableRow
           key={table.id}

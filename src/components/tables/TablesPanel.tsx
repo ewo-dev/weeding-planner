@@ -157,10 +157,10 @@ export function TablesPanel() {
   const takenNames = plan.tables.filter((t) => t.id !== editingId).map((t) => t.name)
 
   return (
-    <section aria-label="Tables" className="flex min-h-0 flex-col gap-3 p-4">
+    <section aria-label="Tables" className="flex min-h-0 flex-col gap-4 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold text-text">Tables</h2>
-        <span data-testid="table-count" className="text-sm text-text-muted">
+        <h2 className="font-display text-xl font-semibold text-text">Tables</h2>
+        <span data-testid="table-count" className="text-sm font-medium text-text-muted">
           {plan.tables.length} tables · {totalSeats} places
         </span>
       </div>
@@ -174,7 +174,7 @@ export function TablesPanel() {
       />
 
       {generateError && (
-        <p role="alert" className="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+        <p role="alert" className="rounded-xl border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
           {generateError}
         </p>
       )}
@@ -194,7 +194,7 @@ export function TablesPanel() {
       )}
 
       {bulkOpen && (
-        <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
           <BulkTableConfig
             defaultCapacity={defaults.capacity}
             defaultShape={defaults.shape}
@@ -206,7 +206,7 @@ export function TablesPanel() {
       )}
 
       {editingTable && (
-        <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
           <TableConfigSheet
             key={editingTable.id}
             table={editingTable}

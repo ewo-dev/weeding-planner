@@ -42,7 +42,7 @@ export function GuestChip({ guest, variant }: GuestChipProps) {
         aria-label={guest.name}
         {...listeners}
         {...attributes}
-        className="flex h-11 w-11 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse"
+        className="flex h-11 w-11 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse shadow-sm transition-transform active:scale-95"
       >
         {initial}
       </button>
@@ -54,14 +54,14 @@ export function GuestChip({ guest, variant }: GuestChipProps) {
       ref={setNodeRef}
       {...listeners}
       {...attributes}
-      className="flex touch-none items-center gap-2 rounded-full border border-border bg-surface-raised py-1 pl-1 pr-3"
+      className="flex touch-none items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 shadow-sm"
     >
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse">
         {initial}
       </span>
       <span className="truncate text-sm font-medium text-text">{guest.name}</span>
       {guest.group && (
-        <span className="truncate rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
+        <span className="truncate rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-hover">
           {guest.group}
         </span>
       )}

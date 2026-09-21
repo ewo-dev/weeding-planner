@@ -95,7 +95,7 @@ describe('ConstraintsPanel', () => {
   it('adds a constraint through the menu', () => {
     renderPanel(G(2))
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Ajouter une contrainte' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter une contrainte' }))
     fireEvent.change(screen.getByLabelText('Avec'), { target: { value: G(3) } })
     const form = document.querySelector('form')
     if (!form) throw new Error('expected the constraint form')

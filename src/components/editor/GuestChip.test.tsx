@@ -29,10 +29,10 @@ describe('GuestChip', () => {
   })
 
   it('card omits the group badge when the guest has no group', () => {
-    const { container } = renderChip(G(1, 'Bob'), 'card')
+    renderChip(G(1, 'Bob'), 'card')
 
     expect(screen.getByText('Bob')).toBeInTheDocument()
-    expect(container.querySelector('.bg-surface')).toBeNull()
+    expect(screen.queryByText('Famille')).not.toBeInTheDocument()
   })
 
   it('seat renders the initial dot as an accessible button', () => {

@@ -7,6 +7,7 @@ import type { PlanSummary } from '@/lib/repo/types'
 import { ACTIVE_PLAN_KEY } from './createBlankPlan'
 import { duplicatePlan } from './duplicatePlan'
 import { PlanListDeleteDialog } from './PlanListDeleteDialog'
+import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -99,13 +100,14 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
 
   return (
     <>
-      <ul className="mt-6 overflow-hidden rounded-lg border border-border bg-surface">
+      <BotanicalDivider className="my-8" />
+      <ul className="space-y-3">
         {summaries.map((summary) => (
           <li
             key={summary.id}
-            className="flex flex-col gap-3 border-b border-border p-4 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm transition-shadow hover:shadow sm:flex-row sm:items-center sm:justify-between"
           >
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               {editingId === summary.id ? (
                 <input
                   autoFocus
@@ -120,13 +122,13 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
                       cancelEdit()
                     }
                   }}
-                  className="w-full rounded border border-border bg-surface-raised px-2 py-1 text-sm text-text"
+                  className="w-full rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-display font-semibold text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
                   aria-label="Nom du plan"
                 />
               ) : (
                 <div className="min-w-0">
-                  <p className="truncate font-medium text-text">{summary.name}</p>
-                  <p className="text-sm text-text-muted">{formatDate(summary.updatedAt)}</p>
+                  <p className="truncate text-base font-medium font-display text-text">{summary.name}</p>
+                  <p className="text-sm text-text-muted">Modifié le {formatDate(summary.updatedAt)}</p>
                 </div>
               )}
             </div>
@@ -135,35 +137,35 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
               <button
                 type="button"
                 onClick={() => openPlan(summary.id)}
-                className="rounded border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface"
+                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Ouvrir
               </button>
               <button
                 type="button"
                 onClick={() => startRename(summary)}
-                className="rounded border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface"
+                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Renommer
               </button>
               <button
                 type="button"
                 onClick={() => void handleDuplicate(summary.id)}
-                className="rounded border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-text transition-colors hover:bg-surface"
+                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Dupliquer
               </button>
               <button
                 type="button"
                 onClick={() => setDeleting(summary)}
-                className="rounded border border-border bg-surface-raised px-3 py-1.5 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-white"
+                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-danger/30 bg-danger/10 px-4 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-white sm:flex-initial"
               >
                 Supprimer
               </button>
             </div>
 
             {rowError?.id === summary.id && (
-              <p role="alert" className="text-sm text-danger">
+              <p role="alert" className="w-full text-sm text-danger">
                 {rowError.message}
               </p>
             )}

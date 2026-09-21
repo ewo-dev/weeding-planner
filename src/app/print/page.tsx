@@ -8,6 +8,7 @@ import { seatedCount, unseatedGuests } from '@/lib/plan/selectors'
 import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
 import { PrintLayout } from '@/components/print/PrintLayout'
 import { PrintTable } from '@/components/print/PrintTable'
+import { Button } from '@/components/ui/Button'
 import '../../styles/print.css'
 
 // Print view (docs/06-routing-and-pages.md § 7, D-019). Reads the active plan
@@ -50,23 +51,23 @@ export default function PrintPage() {
 
   if (error) {
     return (
-      <main className="p-8">
-        <h1 className="text-xl font-semibold text-danger">Le plan n&apos;a pas pu être chargé.</h1>
-        <p className="mt-2 text-sm text-text-muted">{error}</p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="flex min-h-[44px] items-center underline"
-            onClick={() => {
+      <main className="flex min-h-screen flex-col items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 text-center shadow-sm">
+          <h1 className="font-display text-xl font-semibold text-text">
+            Le plan n&apos;a pas pu être chargé.
+          </h1>
+          <p className="mt-2 text-sm text-text-muted">{error}</p>
+          <div className="mt-5 flex flex-wrap justify-center gap-2">
+            <Button type="button" variant="secondary" onClick={() => {
               setError(null)
               setAttempt((n) => n + 1)
-            }}
-          >
-            Réessayer
-          </button>
-          <button type="button" className="flex min-h-[44px] items-center underline" onClick={() => router.replace('/')}>
-            Retour à l&apos;accueil
-          </button>
+            }}>
+              Réessayer
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
+              Retour à l&apos;accueil
+            </Button>
+          </div>
         </div>
       </main>
     )

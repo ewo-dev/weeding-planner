@@ -92,8 +92,8 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
     const orphaned = seated - pending.capacity
     return (
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-text">Réduire la capacité ?</h3>
-        <p className="text-sm text-text-muted">
+        <h3 className="font-display text-base font-semibold text-text">Réduire la capacité ?</h3>
+        <p className="text-sm leading-relaxed text-text-muted">
           « {table.name} » passera à {pending.capacity} places alors que {seated} invités y sont
           placés. {orphaned === 1 ? '1 invité n’aura' : `${orphaned} invités n’auront`} plus de place
           assise valide.
@@ -111,8 +111,8 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h3 className="text-sm font-semibold text-text">Configurer la table</h3>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="font-display text-base font-semibold text-text">Configurer la table</h3>
 
       <Input
         id="table-name"

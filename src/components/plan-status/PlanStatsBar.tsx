@@ -3,11 +3,13 @@
 import { useMemo } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { conflicts, seatedCount, unseatedGuests } from '@/lib/plan/selectors'
+import { Users, Table2, Armchair, UserX, AlertTriangle } from 'lucide-react'
 
 interface StatTile {
   testId: string
   label: string
   value: number
+  icon: React.ReactNode
   danger?: boolean
 }
 
@@ -24,28 +26,39 @@ export function PlanStatsBar() {
 
   const totalSeats = plan.tables.reduce((sum, table) => sum + table.capacity, 0)
   const occupied = seatedCount(plan)
+  const free = totalSeats - occupied
   const conflictCount = report.mandatoryUnsatisfied.length + report.separationViolations.length
 
   const tiles: StatTile[] = [
-    { testId: 'stat-guests', label: 'Invités', value: plan.guests.length },
-    { testId: 'stat-tables', label: 'Tables', value: plan.tables.length },
-    { testId: 'stat-seats-total', label: 'Places totales', value: totalSeats },
-    { testId: 'stat-seats-occupied', label: 'Places occupées', value: occupied },
-    { testId: 'stat-seats-free', label: 'Places libres', value: totalSeats - occupied },
-    { testId: 'stat-unseated', label: 'Non placés', value: unseatedCount },
-    { testId: 'stat-conflicts', label: 'Conflits', value: conflictCount, danger: conflictCount > 0 },
+    { testId: 'stat-guests', label: 'Invités', value: plan.guests.length, icon: <Users className="h-3.5 w-3.5" /> },
+    { testId: 'stat-tables', label: 'Tables', value: plan.tables.length, icon: <Table2 className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-total', label: 'Places totales', value: totalSeats, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-occupied', label: 'Places occupées', value: occupied, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-free', label: 'Places libres', value: free, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-unseated', label: 'Non placés', value: unseatedCount, icon: <UserX className="h-3.5 w-3.5" /> },
+    {
+      testId: 'stat-conflicts',
+      label: 'Conflits',
+      value: conflictCount,
+      icon: <AlertTriangle className="h-3.5 w-3.5" />,
+      danger: conflictCount > 0,
+    },
   ]
 
   return (
-    <div className="flex flex-wrap items-center gap-x-6 gap-y-1.5 border-b border-border bg-surface px-4 py-2 text-sm">
+    <div className="flex flex-wrap items-center gap-x-1 gap-y-1 border-b border-border bg-surface-raised px-3 py-2 text-sm sm:gap-x-3 sm:px-4">
       {tiles.map((tile) => (
         <span
           key={tile.testId}
           data-testid={tile.testId}
           aria-label={`${tile.value} ${tile.label.toLowerCase()}`}
-          className={tile.danger ? 'font-semibold text-danger' : 'text-text'}
+          className={`inline-flex items-center gap-1.5 rounded-md px-2 py-1 ${
+            tile.danger ? 'bg-danger/10 text-danger' : 'text-text-muted'
+          }`}
         >
-          <span className="font-semibold">{tile.value}</span> {tile.label}
+          {tile.icon}
+          <span className={`${tile.danger ? 'font-semibold' : 'font-medium text-text'}`}>{tile.value}</span>
+          <span className="hidden sm:inline">{tile.label}</span>
         </span>
       ))}
     </div>

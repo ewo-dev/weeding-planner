@@ -77,7 +77,7 @@ describe('TablesPanel', () => {
   it('adds a table with a unique name and the current defaults', () => {
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Ajouter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
 
     expect(screen.getByRole('button', { name: /^Table 3/ })).toHaveTextContent('Ronde · 0/8 placés')
     expect(screen.getByTestId('table-count')).toHaveTextContent('3 tables · 22 places')
@@ -107,7 +107,7 @@ describe('TablesPanel', () => {
     expect(screen.getByTestId('table-count')).toHaveTextContent('2 tables · 20 places')
 
     // New tables inherit the bulk values.
-    fireEvent.click(screen.getByRole('button', { name: '+ Ajouter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
     expect(screen.getByRole('button', { name: /^Table 3/ })).toHaveTextContent('0/10 placés')
   })
 

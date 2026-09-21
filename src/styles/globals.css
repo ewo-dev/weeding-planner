@@ -3,13 +3,18 @@
 @config "../../tailwind.config.ts";
 
 :root {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --font-display: var(--font-sans);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-cormorant), "Cormorant Garamond", "Playfair Display", Georgia, "Times New Roman", serif;
 }
 
 /* Default surface and text per design tokens (docs/09-design-system.md § 4). */
 body {
-  @apply bg-bg text-text font-sans;
+  @apply bg-bg text-text font-sans antialiased;
+}
+
+/* Elegant display headings: lighter weight, refined tracking. */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-display;
 }
 
 /* Respect prefers-reduced-motion (docs/10-interactions.md § 15). */
@@ -24,6 +29,6 @@ body {
    2 px brand ring with 2 px offset for every natively focusable element,
    * including raw <button>/<a>/<input> that don't go through Button. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
-  outline: 2px solid #4f46e5;
+  outline: 2px solid #68745D;
   outline-offset: 2px;
 }

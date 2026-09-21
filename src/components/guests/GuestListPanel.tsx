@@ -12,6 +12,7 @@ import { GuestSearchInput } from './GuestSearchInput'
 import { GuestList } from './GuestList'
 import { GuestEditor } from './GuestEditor'
 import { GuestDeleteDialog } from './GuestDeleteDialog'
+import { UserPlus } from 'lucide-react'
 
 type EditorState = { mode: 'create' } | { mode: 'edit'; guestId: string } | null
 
@@ -111,16 +112,16 @@ export function GuestListPanel() {
   const showEditor = editor?.mode === 'create' || editingGuest !== null
 
   return (
-    <section aria-label="Invités" className="flex min-h-0 flex-col gap-3 p-4">
+    <section aria-label="Invités" className="flex min-h-0 flex-col gap-4 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-lg font-semibold text-text">Invités</h2>
-        <span data-testid="guest-count" className="text-sm text-text-muted">
+        <h2 className="font-display text-xl font-semibold text-text">Invités</h2>
+        <span data-testid="guest-count" className="text-sm font-medium text-text-muted">
           {seatedTotal} / {total} placés
         </span>
       </div>
 
-      <Button type="button" onClick={() => setEditor((current) => (current?.mode === 'create' ? null : { mode: 'create' }))}>
-        + Ajouter
+      <Button type="button" icon={<UserPlus className="h-4 w-4" />} onClick={() => setEditor((current) => (current?.mode === 'create' ? null : { mode: 'create' }))}>
+        Ajouter
       </Button>
 
       <GuestSearchInput onSearch={handleSearch} />
@@ -149,7 +150,7 @@ export function GuestListPanel() {
       <ConstraintsPanel guestId={editor?.mode === 'edit' ? editor.guestId : null} />
 
       {showEditor && (
-        <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
           <GuestEditor
             key={editor?.mode === 'edit' ? editor.guestId : 'new'}
             guest={editingGuest}

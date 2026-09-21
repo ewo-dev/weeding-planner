@@ -17,15 +17,19 @@ const SIZES: Record<ButtonSize, string> = {
   // interactive targets are min 44 px. `sm` stays compact for dense
   // secondary actions (toasts); `md` is the mobile default.
   sm: 'h-8 px-3 text-sm',
-  md: 'h-11 px-4 text-sm',
-  lg: 'h-12 px-5 text-base',
+  md: 'h-11 px-5 text-sm',
+  lg: 'h-12 px-6 text-base',
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-text-inverse hover:bg-brand-hover',
-  secondary: 'border border-border bg-surface text-text hover:bg-surface-raised',
-  ghost: 'text-text hover:bg-surface',
-  danger: 'bg-danger text-text-inverse hover:bg-danger/90',
+  primary:
+    'bg-brand text-text-inverse shadow-sm hover:bg-brand-hover hover:shadow active:bg-brand-hover',
+  secondary:
+    'border border-border bg-surface text-text shadow-sm hover:bg-surface-muted hover:border-border active:bg-surface-muted',
+  ghost:
+    'text-text-muted hover:text-text hover:bg-surface-muted active:bg-surface-muted',
+  danger:
+    'bg-danger text-text-inverse shadow-sm hover:bg-danger/90 hover:shadow active:bg-danger/90',
 }
 
 /**
@@ -48,7 +52,7 @@ export function Button({
       type="button"
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={`inline-flex items-center justify-center gap-2 rounded font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${SIZES[size]} ${VARIANTS[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-md font-medium transition-all disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${SIZES[size]} ${VARIANTS[variant]} ${className}`}
       {...rest}
     >
       {loading && <Spinner size="sm" />}

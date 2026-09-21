@@ -1,5 +1,6 @@
 'use client'
 
+import { Plus, Sparkles, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 interface TablesToolbarProps {
@@ -19,12 +20,13 @@ interface TablesToolbarProps {
 export function TablesToolbar({ onAdd, onBulk, onGenerate, canGenerate, generating }: TablesToolbarProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      <Button type="button" onClick={onAdd}>
-        + Ajouter
+      <Button type="button" icon={<Plus className="h-4 w-4" />} onClick={onAdd}>
+        Ajouter
       </Button>
       <Button
         type="button"
         variant="secondary"
+        icon={<Sparkles className="h-4 w-4" />}
         onClick={onGenerate}
         disabled={!canGenerate}
         loading={generating}
@@ -32,7 +34,7 @@ export function TablesToolbar({ onAdd, onBulk, onGenerate, canGenerate, generati
       >
         {generating ? 'Génération…' : 'Générer'}
       </Button>
-      <Button type="button" variant="secondary" onClick={onBulk}>
+      <Button type="button" variant="secondary" icon={<Settings2 className="h-4 w-4" />} onClick={onBulk}>
         Configurer
       </Button>
     </div>

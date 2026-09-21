@@ -72,8 +72,8 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
     const affected = tables.filter((t) => confirmCapacity < t.seated)
     return (
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-text">Appliquer quand même ?</h3>
-        <p className="text-sm text-text-muted">
+        <h3 className="font-display text-base font-semibold text-text">Appliquer quand même ?</h3>
+        <p className="text-sm leading-relaxed text-text-muted">
           {affected.length === 1 ? 'Cette table' : `Ces ${affected.length} tables`} perdront des places
           valides :
         </p>
@@ -104,9 +104,9 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h3 className="text-sm font-semibold text-text">Configuration des tables</h3>
-      <p className="text-sm text-text-muted">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="font-display text-base font-semibold text-text">Configuration des tables</h3>
+      <p className="text-sm leading-relaxed text-text-muted">
         {tables.length === 0
           ? 'Ces valeurs seront utilisées pour les nouvelles tables.'
           : 'Ces valeurs seront utilisées pour les nouvelles tables et appliquées à toutes les tables existantes.'}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { Download, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { getRepository } from '@/lib/repo'
 import { RepoError } from '@/lib/repo/errors'
@@ -90,20 +91,24 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
         <Button
           type="button"
           variant="secondary"
+          icon={<Download className="h-4 w-4" />}
           onClick={handleExport}
           aria-label="Exporter le plan (JSON)"
+          title="Exporter"
         >
-          Exporter
+          <span className="hidden sm:inline">Exporter</span>
         </Button>
       ) : null}
       <Button
         type="button"
         variant="secondary"
+        icon={<Upload className="h-4 w-4" />}
         loading={importing}
         onClick={() => fileRef.current?.click()}
         aria-label="Importer un plan (JSON)"
+        title="Importer"
       >
-        Importer
+        <span className="hidden sm:inline">Importer</span>
       </Button>
       <input
         ref={fileRef}

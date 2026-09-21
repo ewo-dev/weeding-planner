@@ -1,5 +1,6 @@
 'use client'
 
+import { CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 import type { ConstraintRef, GenerationReport } from '@/lib/engine'
 import { guestById } from '@/lib/plan/selectors'
 import type { Plan } from '@/types/plan'
@@ -53,19 +54,24 @@ export function GenerationReportDialog({
       title={hasMandatoryProblems ? 'Plan généré avec des conflits' : 'Plan généré'}
     >
       {/* Generation reports are assertive live regions (design § 15). */}
-      <div role="alert" className="space-y-1.5">
+      <div role="alert" className="space-y-2">
         <p className="text-sm text-text">
           {report.seatedGuests === 1 ? '1 invité placé.' : `${report.seatedGuests} invités placés.`}
         </p>
 
         {mandatoryTotal === 0 ? (
-          <p className={mutedLine}>Aucune contrainte obligatoire définie.</p>
+          <p className={mutedLine}>
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            Aucune contrainte obligatoire définie.
+          </p>
         ) : report.mandatoryUnsatisfied.length === 0 ? (
           <p className={successLine}>
-            <span aria-hidden="true">✓</span> Toutes les relations obligatoires sont respectées.
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            Toutes les relations obligatoires sont respectées.
           </p>
         ) : (
           <p className={dangerLine}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.mandatoryUnsatisfied.length === 1
               ? '1 contrainte obligatoire n’a pas pu être respectée.'
               : `${report.mandatoryUnsatisfied.length} contraintes obligatoires n’ont pas pu être respectées.`}
@@ -74,10 +80,12 @@ export function GenerationReportDialog({
 
         {report.separationViolations.length === 0 ? (
           <p className={successLine}>
-            <span aria-hidden="true">✓</span> Aucune contrainte de séparation violée.
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            Aucune contrainte de séparation violée.
           </p>
         ) : (
           <p className={dangerLine}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.separationViolations.length === 1
               ? '1 contrainte de séparation violée.'
               : `${report.separationViolations.length} contraintes de séparation violées.`}
@@ -85,29 +93,42 @@ export function GenerationReportDialog({
         )}
 
         {preferenceTotal === 0 ? (
-          <p className={mutedLine}>Aucune préférence définie.</p>
+          <p className={mutedLine}>
+            <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            Aucune préférence définie.
+          </p>
         ) : (
           <p className={report.preferenceUnsatisfied.length === 0 ? successLine : mutedLine}>
+            {report.preferenceUnsatisfied.length === 0 && (
+              <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            )}
+            {report.preferenceUnsatisfied.length > 0 && (
+              <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            )}
             {report.preferenceSatisfied.length} / {preferenceTotal} préférences respectées.
           </p>
         )}
 
         {report.unseatedGuests > 0 && (
           <p className={dangerLine}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.unseatedGuests === 1
               ? '1 invité n’a pas pu être placé.'
               : `${report.unseatedGuests} invités n’ont pas pu être placés.`}
           </p>
         )}
         {report.overflow && (
-          <p className={dangerLine}>Pas assez de places — ajoutez des tables ou réduisez les invités.</p>
+          <p className={dangerLine}>
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            Pas assez de places — ajoutez des tables ou réduisez les invités.
+          </p>
         )}
       </div>
 
       {hasMandatoryProblems && (
-        <div className="mt-3 rounded-lg border border-danger/30 bg-danger/10 p-3">
-          <h3 className="text-sm font-semibold text-danger">Conflits à revoir</h3>
-          <ul className="mt-1 space-y-1 text-sm text-text">
+        <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 p-4">
+          <h3 className="font-display text-sm font-semibold text-danger">Conflits à revoir</h3>
+          <ul className="mt-2 space-y-1.5 text-sm text-text">
             {report.mandatoryUnsatisfied.map((ref) => {
               const [nameA, nameB] = names(ref, plan)
               return (
@@ -128,7 +149,7 @@ export function GenerationReportDialog({
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap justify-end gap-2">
+      <div className="mt-5 flex flex-wrap justify-end gap-2">
         <Button variant="ghost" onClick={onDiscard}>
           Abandonner
         </Button>

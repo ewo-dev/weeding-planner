@@ -42,7 +42,7 @@ export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps
       {guest ? (
         <GuestChip guest={guest} variant="seat" />
       ) : (
-        <span aria-hidden="true" className="block h-3 w-3 rounded-full border-2 border-border" />
+        <span aria-hidden="true" className="block h-3 w-3 rounded-full border-2 border-border bg-surface" />
       )}
     </div>
   )

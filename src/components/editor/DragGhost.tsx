@@ -16,9 +16,9 @@ type DragGhostProps =
 export function DragGhost(props: DragGhostProps) {
   if (props.kind === 'table') {
     return (
-      <div className="rounded-lg border border-border bg-surface-raised px-4 py-2 shadow-lg motion-safe:rotate-1 motion-safe:scale-105">
-        <span className="text-sm font-semibold text-text">{props.table.name}</span>
-        <span className="ml-2 text-xs text-text-muted">
+      <div className="rounded-xl border border-border bg-surface px-4 py-2 shadow-lg motion-safe:rotate-1 motion-safe:scale-105">
+        <span className="font-display text-base font-semibold text-text">{props.table.name}</span>
+        <span className="ml-2 text-xs font-medium text-text-muted">
           {props.seated}/{props.table.capacity}
         </span>
       </div>
@@ -27,7 +27,7 @@ export function DragGhost(props: DragGhostProps) {
 
   const initial = props.guest.name.trim().charAt(0).toUpperCase() || '?'
   return (
-    <div className="flex items-center gap-2 rounded-full border border-border bg-surface-raised py-1 pl-1 pr-3 shadow-lg motion-safe:rotate-1 motion-safe:scale-105">
+    <div className="flex items-center gap-2 rounded-full border border-border bg-surface py-1 pl-1 pr-3 shadow-lg motion-safe:rotate-1 motion-safe:scale-105">
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse">
         {initial}
       </span>

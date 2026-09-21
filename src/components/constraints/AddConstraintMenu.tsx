@@ -9,6 +9,7 @@ import type { ConstraintKind, Guest } from '@/types/plan'
 import { CONSTRAINT_KIND_LABELS, validateConstraintInput } from './constraints'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
+import { Plus, Minus } from 'lucide-react'
 
 interface AddConstraintMenuProps {
   /** Pre-selected source guest, or null to pick both sides. */
@@ -72,17 +73,18 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
       <Button
         type="button"
         variant="secondary"
+        icon={open ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
         onClick={() => {
           setOpen((was) => !was)
           setError(null)
         }}
         aria-expanded={open}
       >
-        {open ? '− Masquer' : '+ Ajouter une contrainte'}
+        {open ? 'Masquer' : 'Ajouter une contrainte'}
       </Button>
 
       {open && (
-        <form onSubmit={handleSubmit} className="mt-2 space-y-2 rounded-lg border border-border bg-surface p-3">
+        <form onSubmit={handleSubmit} className="mt-3 space-y-3 rounded-xl border border-border bg-surface p-4 shadow-sm">
           {!freeMode && (
             <p className="text-sm text-text-muted">
               Pour <span className="font-medium text-text">{sourceName}</span> avec :
@@ -90,7 +92,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
           )}
 
           {freeMode ? (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">
                 <Select
                   label="Invité A"

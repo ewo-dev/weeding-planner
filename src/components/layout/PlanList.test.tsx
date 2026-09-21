@@ -84,9 +84,9 @@ describe('PlanList', () => {
     expect(screen.getByText('Plan C')).toBeInTheDocument()
 
     const fmt = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
-    expect(screen.getByText(fmt.format(new Date(isoA)))).toBeInTheDocument()
-    expect(screen.getByText(fmt.format(new Date(isoB)))).toBeInTheDocument()
-    expect(screen.getByText(fmt.format(new Date(isoC)))).toBeInTheDocument()
+    expect(screen.getByText((content) => content.includes(fmt.format(new Date(isoA))))).toBeInTheDocument()
+    expect(screen.getByText((content) => content.includes(fmt.format(new Date(isoB))))).toBeInTheDocument()
+    expect(screen.getByText((content) => content.includes(fmt.format(new Date(isoC))))).toBeInTheDocument()
   })
 
   it('opens a plan: sets the active plan key and navigates to /editor', async () => {

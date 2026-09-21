@@ -9,8 +9,8 @@ import { EmptyState } from '@/components/ui/EmptyState'
 
 /**
  * Droppable canvas surface (`workspace`) holding the table cards
- * (docs/07-components.md § 6). Dotted grid per docs/09-design-system.md § 12;
- * no shadows on tables, no pan/zoom in MVP. The content box grows with the
+ * (docs/07-components.md § 6). Warm, faint grid per docs/09-design-system.md § 12;
+ * no heavy shadows on the canvas itself. The content box grows with the
  * tables (640×480 minimum) and scrolls; dnd-kit's built-in auto-scroll
  * handles edge scrolling during drags.
  *
@@ -40,7 +40,7 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
   return (
     <div
       data-testid="workspace-scroll"
-      className="min-h-0 flex-1 overflow-auto bg-bg bg-[radial-gradient(circle,rgb(148_163_184/0.35)_1px,transparent_1px)] bg-[size:22px_22px]"
+      className="min-h-0 flex-1 overflow-auto bg-bg bg-[radial-gradient(circle,rgb(229_225_216/0.85)_1px,transparent_1px)] bg-[size:24px_24px]"
     >
       <div
         ref={setRefs}
@@ -52,10 +52,10 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
         style={{ width, height }}
       >
         {plan.tables.length === 0 ? (
-          <div className="absolute left-1/2 top-1/3 w-full max-w-sm -translate-x-1/2">
+          <div className="absolute left-1/2 top-1/3 w-full max-w-sm -translate-x-1/2 px-4">
             <EmptyState
               title="Aucune table pour l’instant"
-              description="Ajoutez vos tables depuis l’onglet Tables."
+              description="Ajoutez vos tables depuis l’onglet Tables, puis glissez-déposez vos invités."
             />
           </div>
         ) : (

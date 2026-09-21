@@ -7,7 +7,7 @@ describe('Badge', () => {
     render(<Badge>3 placés</Badge>)
 
     const badge = screen.getByText('3 placés')
-    expect(badge).toHaveClass('bg-surface')
+    expect(badge).toHaveClass('bg-surface-muted')
   })
 
   it('applies tone classes', () => {

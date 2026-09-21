@@ -50,8 +50,8 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <h3 className="text-sm font-semibold text-text">
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <h3 className="font-display text-base font-semibold text-text">
         {guest ? 'Modifier l’invité' : 'Nouvel invité'}
       </h3>
 
@@ -90,7 +90,7 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
         </p>
       )}
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button type="submit">Enregistrer</Button>
         <Button type="button" variant="secondary" onClick={onClose}>
           Annuler
@@ -99,7 +99,7 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
           <button
             type="button"
             onClick={() => onDelete(guest.id)}
-            className="ml-auto flex min-h-[44px] items-center rounded px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
+            className="ml-auto flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
           >
             Supprimer
           </button>

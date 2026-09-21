@@ -39,7 +39,7 @@ export function ConstraintsPanel({ guestId }: ConstraintsPanelProps) {
   const list = guestId ? constraintsForGuest(plan, guestId) : plan.constraints
 
   return (
-    <section aria-label="Contraintes" className="flex min-h-0 flex-col gap-2">
+    <section aria-label="Contraintes" className="flex min-h-0 flex-col gap-3">
       <h2 className="font-display text-base font-semibold text-text">
         {guestName ? `Contraintes de ${guestName}` : 'Contraintes'}{' '}
         <span data-testid="constraint-count" className="text-sm font-normal text-text-muted">
@@ -52,7 +52,7 @@ export function ConstraintsPanel({ guestId }: ConstraintsPanelProps) {
           {guestName ? `Aucune contrainte pour ${guestName}.` : 'Aucune contrainte pour l’instant.'}
         </p>
       ) : (
-        <ul>
+        <ul className="space-y-1">
           {list.map((constraint) => (
             <ConstraintRow
               key={constraint.id}

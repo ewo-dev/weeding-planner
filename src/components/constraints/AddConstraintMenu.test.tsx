@@ -53,7 +53,7 @@ function renderMenu(sourceGuestId: string | null = G(1)) {
 }
 
 function openMenu(): void {
-  fireEvent.click(screen.getByRole('button', { name: '+ Ajouter une contrainte' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Ajouter une contrainte' }))
 }
 
 function submit(): void {

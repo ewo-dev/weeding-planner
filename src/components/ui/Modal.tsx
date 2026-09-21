@@ -74,7 +74,7 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-text/25 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCloseRef.current()
       }}
@@ -85,12 +85,13 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`my-auto max-h-[90dvh] w-full overflow-y-auto rounded-lg border border-border bg-surface-raised p-6 shadow-lg outline-none ${
-          size === 'lg' ? 'max-w-lg' : 'max-w-md'
+        className={`my-auto max-h-[90dvh] w-full overflow-y-auto rounded-t-xl border border-border bg-surface p-5 shadow-lg outline-none sm:rounded-xl ${
+          size === 'lg' ? 'sm:max-w-lg' : 'sm:max-w-md'
         }`}
       >
-        <h2 className="font-display text-lg font-semibold text-text">{title}</h2>
-        <div className="mt-2">{children}</div>
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border sm:hidden" aria-hidden="true" />
+        <h2 className="font-display text-xl font-semibold text-text">{title}</h2>
+        <div className="mt-3">{children}</div>
       </div>
     </div>,
     document.body,

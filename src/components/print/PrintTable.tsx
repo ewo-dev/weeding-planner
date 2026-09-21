@@ -22,8 +22,8 @@ export function PrintTable({ table, guests, assignments }: PrintTableProps) {
   const free = table.capacity - seatedNames.length
 
   return (
-    <section aria-label={table.name} className="break-inside-avoid rounded-lg border border-border p-4">
-      <h2 className="font-display text-base font-semibold text-text">{table.name}</h2>
+    <section aria-label={table.name} className="break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
+      <h2 className="font-display text-lg font-semibold text-text">{table.name}</h2>
       <p className="mt-0.5 text-sm text-text-muted">
         {SHAPE_LABELS[table.shape]} · {seatedNames.length}/{table.capacity} places occupées
       </p>

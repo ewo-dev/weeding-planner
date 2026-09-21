@@ -24,7 +24,7 @@ export function IconButton({ icon, label, size = 'md', className = '', ...rest }
     <button
       type="button"
       aria-label={label}
-      className={`inline-flex shrink-0 items-center justify-center rounded text-lg leading-none text-text-muted transition-colors hover:bg-surface hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${SIZES[size]} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-md text-lg leading-none text-text-muted transition-colors hover:bg-surface-muted hover:text-text focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${SIZES[size]} ${className}`}
       {...rest}
     >
       {icon}

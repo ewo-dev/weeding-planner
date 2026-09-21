@@ -12,14 +12,14 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const inputClassName =
-  'h-11 w-full rounded border border-border bg-surface-raised px-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft'
+  'h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text placeholder:text-text-muted/70 focus:border-brand focus:bg-surface-raised focus:outline-none focus:ring-2 focus:ring-brand-soft'
 
 /**
  * Labeled text input (docs/07-components.md § 4, visual rules § 11).
  * Uncontrolled-friendly: `defaultValue`/`name` pass straight through, so
  * existing FormData forms migrate without logic changes.
  */
-export function Input({ label, hideLabel = false, error, hint, id: idProp, ...rest }: InputProps) {
+export function Input({ label, hideLabel = false, error, hint, id: idProp, className = '', ...rest }: InputProps) {
   const generatedId = useId()
   const id = idProp ?? generatedId
   const errorId = `${id}-error`
@@ -32,7 +32,7 @@ export function Input({ label, hideLabel = false, error, hint, id: idProp, ...re
     <div>
       <label
         htmlFor={id}
-        className={hideLabel ? 'sr-only' : 'mb-1 block text-xs font-medium text-text-muted'}
+        className={hideLabel ? 'sr-only' : 'mb-1.5 block text-sm font-medium text-text-muted'}
       >
         {label}
       </label>
@@ -40,15 +40,15 @@ export function Input({ label, hideLabel = false, error, hint, id: idProp, ...re
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
-        className={`${inputClassName} ${error ? 'border-danger' : ''}`}
+        className={`${inputClassName} ${error ? 'border-danger focus:border-danger focus:ring-danger/20' : ''} ${className}`}
         {...rest}
       />
       {error ? (
-        <p id={errorId} className="mt-1 text-sm text-danger">
+        <p id={errorId} className="mt-1.5 text-sm text-danger">
           {error}
         </p>
       ) : hint ? (
-        <p id={hintId} className="mt-1 text-sm text-text-muted">
+        <p id={hintId} className="mt-1.5 text-sm text-text-muted">
           {hint}
         </p>
       ) : null}

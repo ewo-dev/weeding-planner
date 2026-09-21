@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { ReactNode } from 'react'
+import { Users, Table2, LayoutTemplate } from 'lucide-react'
 import { GuestListPanel } from '@/components/guests/GuestListPanel'
 import { TablesPanel } from '@/components/tables/TablesPanel'
 
@@ -12,6 +13,12 @@ const TAB_LABELS: Record<EditorTab, string> = {
   guests: 'Invités',
   tables: 'Tables',
   plan: 'Plan',
+}
+
+const TAB_ICONS: Record<EditorTab, ReactNode> = {
+  guests: <Users className="h-4 w-4" aria-hidden="true" />,
+  tables: <Table2 className="h-4 w-4" aria-hidden="true" />,
+  plan: <LayoutTemplate className="h-4 w-4" aria-hidden="true" />,
 }
 
 const ASIDE_LABELS: Record<AsideTab, string> = {
@@ -38,13 +45,13 @@ export function EditorLayout({ children }: { children: ReactNode }) {
   const [asideTab, setAsideTab] = useState<AsideTab>('guests')
 
   const asideButton =
-    'flex-1 min-h-[44px] px-3 py-2 text-sm font-medium transition-colors rounded-t data-[active=true]:bg-surface'
+    'flex-1 min-h-[44px] px-3 py-2 text-sm font-medium transition-colors rounded-t-md data-[active=true]:bg-surface data-[active=true]:text-text data-[active=false]:text-text-muted data-[active=false]:hover:text-text'
 
   return (
     <div className="flex min-w-0 flex-1 flex-col overflow-x-clip lg:flex-row">
       {/* Side panel (desktop). */}
-      <aside className="hidden lg:block lg:w-80 lg:shrink-0 lg:border-r lg:border-border">
-        <nav aria-label="Panneau latéral" data-testid="aside-tabs" className="flex border-b border-border">
+      <aside className="hidden lg:flex lg:w-80 lg:shrink-0 lg:flex-col lg:border-r lg:border-border bg-surface-raised">
+        <nav aria-label="Panneau latéral" data-testid="aside-tabs" className="flex border-b border-border bg-bg">
           {(Object.keys(ASIDE_LABELS) as AsideTab[]).map((name) => (
             <button
               key={name}
@@ -52,28 +59,33 @@ export function EditorLayout({ children }: { children: ReactNode }) {
               onClick={() => setAsideTab(name)}
               aria-pressed={asideTab === name}
               data-active={asideTab === name}
-              className={`${asideButton} ${asideTab === name ? 'text-text' : 'text-text-muted hover:text-text'}`}
+              className={asideButton}
             >
               {ASIDE_LABELS[name]}
             </button>
           ))}
         </nav>
-        {asideTab === 'guests' ? <GuestListPanel /> : <TablesPanel />}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {asideTab === 'guests' ? <GuestListPanel /> : <TablesPanel />}
+        </div>
       </aside>
 
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile tab switcher (hidden on lg+). */}
-        <nav aria-label="Panneau" data-testid="mobile-tabs" className="flex border-b border-border lg:hidden">
+        <nav aria-label="Panneau" data-testid="mobile-tabs" className="flex border-b border-border bg-surface lg:hidden">
           {(Object.keys(TAB_LABELS) as EditorTab[]).map((name) => (
             <button
               key={name}
               type="button"
               onClick={() => setTab(name)}
               aria-pressed={tab === name}
-              className={`flex-1 min-h-[44px] px-3 py-2 text-sm font-medium ${
-                tab === name ? 'border-b-2 border-brand text-text' : 'text-text-muted'
+              className={`flex flex-1 min-h-[48px] items-center justify-center gap-1.5 px-2 py-2 text-sm font-medium transition-colors ${
+                tab === name
+                  ? 'border-b-2 border-brand text-text'
+                  : 'text-text-muted hover:bg-surface-muted hover:text-text'
               }`}
             >
+              {TAB_ICONS[name]}
               {TAB_LABELS[name]}
             </button>
           ))}

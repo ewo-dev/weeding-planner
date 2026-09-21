@@ -114,7 +114,7 @@ describe('GuestListPanel', () => {
   it('creates a guest and updates the counts', () => {
     renderPanel()
 
-    fireEvent.click(screen.getByRole('button', { name: '+ Ajouter' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter' }))
     expect(screen.getByText('Nouvel invité')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Eve' } })

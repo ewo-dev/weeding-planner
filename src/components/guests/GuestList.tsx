@@ -42,12 +42,12 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
     <div
       ref={setNodeRef}
       data-testid="unseat-dropzone"
-      className={`space-y-4 rounded-lg transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : ''}`}
+      className={`space-y-5 rounded-xl transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : ''}`}
     >
       {unseated.length > 0 && (
         <section aria-label="Non placés">
           <h3 className={sectionTitle}>Non placés ({unseated.length})</h3>
-          <ul className="mt-1">
+          <ul className="mt-2 space-y-1">
             {unseated.map((guest) => (
               <GuestRow
                 key={guest.id}
@@ -66,7 +66,7 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
       {seated.length > 0 && (
         <section aria-label="Placés">
           <h3 className={sectionTitle}>Placés ({seated.length})</h3>
-          <ul className="mt-1">
+          <ul className="mt-2 space-y-1">
             {seated.map(({ guest, tableName }) => (
               <GuestRow
                 key={guest.id}

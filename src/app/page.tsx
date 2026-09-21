@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Sparkles } from 'lucide-react'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { PlanList } from '@/components/layout/PlanList'
 import { ProjectActions } from '@/components/persistence/ProjectActions'
 import { createBlankPlan } from '@/components/layout/createBlankPlan'
+import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 import { getRepository } from '@/lib/repo'
 import type { PlanSummary } from '@/lib/repo/types'
 
@@ -56,22 +58,25 @@ export default function HomePage() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-xl px-4 py-8 sm:py-12">
-      <header className="mb-6">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-text">Plan de Table</h1>
-        <p className="mt-1 text-text-muted">Créez votre plan de table</p>
+    <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-16">
+      <header className="mb-8 text-center sm:text-left">
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent">Plan de table</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold text-text sm:text-4xl">
+          Votre mariage, bien assis.
+        </h1>
+        <p className="mt-2 text-text-muted">Créez et organisez votre plan de table en toute simplicité.</p>
       </header>
 
-      <Button
-        type="button"
-        onClick={() => void handleCreate()}
-        loading={creating}
-        className="w-full sm:w-auto"
-      >
-        Nouveau plan
-      </Button>
-
-      <div className="mt-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Button
+          type="button"
+          onClick={() => void handleCreate()}
+          loading={creating}
+          icon={<Sparkles className="h-4 w-4" />}
+          className="w-full sm:w-auto"
+        >
+          Nouveau plan
+        </Button>
         <ProjectActions onImported={reload} />
       </div>
 
@@ -82,13 +87,13 @@ export default function HomePage() {
       )}
 
       {status === 'loading' && (
-        <div className="mt-10 flex justify-center text-text-muted">
+        <div className="mt-12 flex justify-center text-text-muted">
           <Spinner className="h-6 w-6" />
         </div>
       )}
 
       {status === 'error' && (
-        <div role="alert" className="mt-10 rounded-lg border border-border bg-surface p-4 text-center">
+        <div role="alert" className="mt-10 rounded-xl border border-border bg-surface p-5 text-center shadow-sm">
           <p className="text-text">{listError}</p>
           <Button type="button" variant="secondary" onClick={reload} className="mt-3">
             Réessayer
@@ -97,8 +102,8 @@ export default function HomePage() {
       )}
 
       {status === 'ready' && summaries.length === 0 && (
-        <div className="mt-10 rounded-lg border border-dashed border-border bg-surface p-8 text-center">
-          <p className="font-medium text-text">Aucun plan pour l&apos;instant</p>
+        <div className="mt-10 rounded-xl border border-dashed border-border bg-surface p-8 text-center">
+          <p className="font-display text-lg font-semibold text-text">Aucun plan pour l&apos;instant</p>
           <p className="mt-1 text-sm text-text-muted">
             Créez votre premier plan de table pour commencer.
           </p>
@@ -108,6 +113,11 @@ export default function HomePage() {
       {status === 'ready' && summaries.length > 0 && (
         <PlanList summaries={summaries} onChanged={reload} />
       )}
+
+      <BotanicalDivider className="mt-12" />
+      <p className="mt-6 text-center text-xs text-text-muted">
+        Tout reste sur votre appareil — vos données ne sont pas envoyées en ligne.
+      </p>
     </main>
   )
 }

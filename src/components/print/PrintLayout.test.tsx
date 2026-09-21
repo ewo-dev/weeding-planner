@@ -45,7 +45,7 @@ describe('PrintLayout', () => {
   it('navigates back to the editor and opens the print dialog', () => {
     renderLayout()
 
-    fireEvent.click(screen.getByRole('button', { name: '← Retour à l’éditeur' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Retour à l’éditeur' }))
     expect(pushMock).toHaveBeenCalledWith('/editor')
 
     fireEvent.click(screen.getByRole('button', { name: 'Imprimer' }))

@@ -21,12 +21,12 @@ interface TableCardProps {
 const SEAT = 44
 
 /**
- * One table on the canvas (docs/07-components.md § 6). Round tables render a
- * seat ring around a central label disc; rectangles render a row of slots
- * below the header. The header is the drag handle (`table:{id}`); seats stay
- * clickable because only the header carries the listeners. Clicking the name
- * renames inline (reverts on empty/duplicate). While the card follows the
- * pointer via transform, guests use the overlay ghost instead.
+ * One table on the canvas (docs/07-components.md § 6). Round tables render as
+ * a circular table surface surrounded by seat slots; rectangles render as a
+ * long table surface with a row of seats below. The header/surface is the drag
+ * handle; seats stay clickable because only the surface carries the listeners.
+ * Clicking the name renames inline (reverts on empty/duplicate). While the card
+ * follows the pointer via transform, guests use the overlay ghost instead.
  */
 export function TableCard({ table, guests, selected = false }: TableCardProps) {
   const { plan, dispatch } = usePlan()
@@ -97,28 +97,30 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
       }}
       aria-label="Nom de la table"
       maxLength={TABLE_MAX_NAME}
-      className="w-full min-w-0 rounded border border-brand bg-surface-raised px-1 text-sm font-semibold text-text"
+      className="w-full min-w-0 rounded border border-brand bg-surface px-1.5 py-0.5 text-center text-sm font-semibold text-text"
     />
   ) : (
     <button
       type="button"
       onClick={startRename}
       title="Renommer la table"
-      className="flex min-h-[44px] min-w-0 items-center truncate text-sm font-semibold text-text hover:underline"
+      className="min-w-0 truncate text-sm font-semibold text-text transition-colors hover:text-brand"
     >
       {table.name}
     </button>
   )
 
-  const cardClass = `absolute rounded-lg border bg-surface-raised ${
-    selected ? 'border-2 border-brand' : 'border-border'
-  } ${isDragging ? 'z-10 opacity-90 shadow-lg' : ''}`
   // Screen-reader name for the table group (design § 15: tables expose names).
   const cardLabel = `Table ${table.name}, ${guests.length} sur ${table.capacity} placés`
 
+  const surfaceBase =
+    'bg-surface shadow-sm ring-1 ring-inset ring-border transition-shadow'
+  const selectedRing = selected ? 'ring-2 ring-brand' : ''
+  const draggingStyles = isDragging ? 'z-10 opacity-95 shadow-lg' : ''
+
   if (table.shape === 'round') {
-    const radius = Math.max(56, Math.ceil((table.capacity * (SEAT + 6)) / (2 * Math.PI)))
-    const size = (radius + 28) * 2
+    const radius = Math.max(64, Math.ceil((table.capacity * (SEAT + 8)) / (2 * Math.PI)))
+    const size = (radius + 36) * 2
     const center = size / 2
     return (
       <div
@@ -132,7 +134,7 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
           height: size,
           transform: CSS.Translate.toString(transform),
         }}
-        className={cardClass}
+        className={`absolute ${draggingStyles}`}
       >
         {slots.map((slot, seatIndex) => {
           const angle = -Math.PI / 2 + (seatIndex * 2 * Math.PI) / table.capacity
@@ -149,16 +151,16 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
             </div>
           )
         })}
-        {/* Central disc = drag handle + rename. */}
+        {/* Central table surface = drag handle + rename. */}
         <div
           ref={setNodeRef}
           {...listeners}
           {...attributes}
           aria-label={`Déplacer ${table.name}`}
-          className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-surface text-center"
+          className={`absolute left-1/2 top-1/2 flex h-[8.5rem] w-[8.5rem] -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 rounded-full ${surfaceBase} ${selectedRing}`}
         >
           {headerName}
-          <span className="text-xs text-text-muted">
+          <span className="text-xs font-medium text-text-muted">
             {guests.length}/{table.capacity}
           </span>
         </div>
@@ -174,25 +176,25 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
       style={{
         left: table.position.x,
         top: table.position.y,
-        width: 224,
+        width: 240,
         transform: CSS.Translate.toString(transform),
       }}
-      className={cardClass}
+      className={`absolute ${draggingStyles}`}
     >
-      {/* Header = drag handle + rename. */}
+      {/* Table surface = drag handle + rename. */}
       <div
         ref={setNodeRef}
         {...listeners}
         {...attributes}
         aria-label={`Déplacer ${table.name}`}
-        className="flex min-h-[44px] touch-none items-center gap-2 border-b border-border px-3 py-2"
+        className={`flex min-h-[52px] touch-none items-center justify-between gap-2 rounded-xl ${surfaceBase} ${selectedRing} px-4 py-2.5`}
       >
-        <span className="min-w-0 flex-1">{headerName}</span>
-        <span className="shrink-0 text-xs text-text-muted">
+        <span className="min-w-0 flex-1 text-center">{headerName}</span>
+        <span className="shrink-0 text-xs font-medium text-text-muted">
           {guests.length}/{table.capacity}
         </span>
       </div>
-      <div className="flex flex-wrap gap-1.5 p-3">{slots}</div>
+      <div className="mt-2 flex flex-wrap justify-center gap-2 px-1">{slots}</div>
     </div>
   )
 }
