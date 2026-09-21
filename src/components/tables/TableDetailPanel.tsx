@@ -7,6 +7,7 @@ import { guestById, tableById } from '@/lib/plan/selectors'
 import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
 import { Button } from '@/components/ui/Button'
 import { SHAPE_LABELS } from './tables'
+import { AddGuestSheet } from './AddGuestSheet'
 import { TableConfigSheet } from './TableConfigSheet'
 
 interface TableDetailContentProps {
@@ -25,6 +26,7 @@ interface TableDetailContentProps {
 export function TableDetailContent({ tableId, onClose }: TableDetailContentProps) {
   const { plan, dispatch } = usePlan()
   const [moveGuestId, setMoveGuestId] = useState<string | null>(null)
+  const [addingGuest, setAddingGuest] = useState(false)
   const [configuring, setConfiguring] = useState(false)
 
   const table = tableById(plan, tableId)
@@ -122,6 +124,11 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
       )}
 
       <div className="flex flex-wrap gap-2">
+        {!full && (
+          <Button type="button" onClick={() => setAddingGuest(true)}>
+            Ajouter un invité
+          </Button>
+        )}
         <Button type="button" variant="secondary" onClick={() => setConfiguring(true)}>
           Configurer
         </Button>
@@ -131,6 +138,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
       </div>
 
       {moveGuestId && <MoveGuestSheet guestId={moveGuestId} onClose={() => setMoveGuestId(null)} />}
+      {addingGuest && <AddGuestSheet tableId={table.id} onClose={() => setAddingGuest(false)} />}
     </div>
   )
 }

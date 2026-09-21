@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { ReactNode } from 'react'
+import { useDroppable } from '@dnd-kit/core'
 import { usePlan } from '@/lib/plan/usePlan'
 import { removeGuest } from '@/lib/plan/actions'
 import { conflicts, constraintsForGuest, guestById, seatedCount, tableById } from '@/lib/plan/selectors'
@@ -13,19 +15,53 @@ import { GuestList } from './GuestList'
 import { GuestEditor } from './GuestEditor'
 import { GuestDeleteDialog } from './GuestDeleteDialog'
 import { MoveGuestSheet } from './MoveGuestSheet'
+import { GuestRow } from './GuestRow'
+import {
+  GUEST_FILTERS,
+  GUEST_SORTS,
+  groupByGroup,
+  groupByTable,
+  sortEnriched,
+  type EnrichedGuest,
+  type GuestFilter,
+  type GuestSort,
+} from './guestFilters'
 import { UserPlus } from 'lucide-react'
 
 type EditorState = { mode: 'create' } | { mode: 'edit'; guestId: string } | null
 
 /**
- * Guest management panel (docs/07-components.md § 7): search input, counts,
- * Unseated/Seated list, create/edit form. Selection is local UI state (not in
- * the plan) per the composition rules; all mutations dispatch through
- * context and are undoable (docs/10-interactions.md § 9).
+ * Unseat dropzone wrapper for the grouped views (`Par table` / `Par groupe`).
+ * The flat view keeps its own `seat:unseat` dropzone inside `GuestList`, so
+ * this wrapper is only mounted in the grouped branches — never nested.
+ */
+function GroupedDropzone({ children }: { children: ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: 'seat:unseat',
+    data: { kind: 'unseat' },
+  })
+  return (
+    <div
+      ref={setNodeRef}
+      data-testid="unseat-dropzone"
+      className={`space-y-5 rounded-xl transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : ''}`}
+    >
+      {children}
+    </div>
+  )
+}
+
+/**
+ * Guest management panel (docs/07-components.md § 7): search input, filter
+ * chips, sort select, counts, guest sections, create/edit form. Selection is
+ * local UI state (not in the plan) per the composition rules; all mutations
+ * dispatch through context and are undoable (docs/10-interactions.md § 9).
  */
 export function GuestListPanel() {
   const { plan, dispatch } = usePlan()
   const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<GuestFilter>('all')
+  const [sort, setSort] = useState<GuestSort>('name')
   const [editor, setEditor] = useState<EditorState>(null)
   const [deleteTarget, setDeleteTarget] = useState<Guest | null>(null)
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
@@ -37,39 +73,51 @@ export function GuestListPanel() {
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent): void {
       const target = event.target as HTMLElement | null
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return
       if (event.key === 'Escape') setEditor(null)
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  const tableByGuest = useMemo(() => {
-    const map = new Map<string, string | null>()
-    for (const assignment of plan.assignments) {
-      map.set(assignment.guestId, tableById(plan, assignment.tableId)?.name ?? null)
-    }
-    return map
+  const enriched = useMemo<EnrichedGuest[]>(() => {
+    const assignmentByGuest = new Map(plan.assignments.map((a) => [a.guestId, a] as const))
+    return plan.guests.map((guest, index) => {
+      const assignment = assignmentByGuest.get(guest.id)
+      const table = assignment ? tableById(plan, assignment.tableId) : undefined
+      return {
+        guest,
+        index,
+        tableId: assignment?.tableId ?? null,
+        tableName: table?.name ?? null,
+      }
+    })
   }, [plan])
-
-  const seatedIds = useMemo(() => new Set(plan.assignments.map((a) => a.guestId)), [plan.assignments])
 
   const normalized = query.trim().toLowerCase()
   const visible = useMemo(
     () =>
-      plan.guests.filter(
-        (guest) =>
+      enriched.filter(
+        ({ guest }) =>
           normalized === '' ||
           guest.name.toLowerCase().includes(normalized) ||
           (guest.group ?? '').toLowerCase().includes(normalized),
       ),
-    [plan.guests, normalized],
+    [enriched, normalized],
   )
 
-  const unseated = visible.filter((guest) => !seatedIds.has(guest.id))
-  const seated = visible
-    .filter((guest) => seatedIds.has(guest.id))
-    .map((guest) => ({ guest, tableName: tableByGuest.get(guest.id) ?? null }))
+  const unseatedSorted = useMemo(
+    () => sortEnriched(visible.filter((e) => e.tableId === null), sort),
+    [visible, sort],
+  )
+  const seatedSorted = useMemo(
+    () => sortEnriched(visible.filter((e) => e.tableId !== null), sort),
+    [visible, sort],
+  )
+
+  const tableOrder = useMemo(() => new Map(plan.tables.map((t, i) => [t.id, i] as const)), [plan.tables])
+  const byTableGroups = useMemo(() => groupByTable(seatedSorted, tableOrder), [seatedSorted, tableOrder])
+  const byGroupGroups = useMemo(() => groupByGroup(sortEnriched(visible, sort)), [visible, sort])
 
   const total = plan.guests.length
   const seatedTotal = seatedCount(plan)
@@ -112,6 +160,24 @@ export function GuestListPanel() {
 
   const editingGuest = editor?.mode === 'edit' ? (guestById(plan, editor.guestId) ?? null) : null
   const showEditor = editor?.mode === 'create' || editingGuest !== null
+  const selectedId = editor?.mode === 'edit' ? editor.guestId : null
+
+  function renderRow(entry: EnrichedGuest) {
+    return (
+      <GuestRow
+        key={entry.guest.id}
+        guest={entry.guest}
+        tableName={entry.tableName}
+        selected={entry.guest.id === selectedId}
+        hasConflict={conflictGuestIds.has(entry.guest.id)}
+        onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
+        onRemove={requestDelete}
+        onMove={setMoveTargetId}
+      />
+    )
+  }
+
+  const sectionTitle = 'text-xs font-semibold uppercase tracking-wide text-text-muted'
 
   return (
     <section aria-label="Invités" className="flex min-h-0 flex-col gap-4 p-4">
@@ -128,6 +194,41 @@ export function GuestListPanel() {
 
       <GuestSearchInput onSearch={handleSearch} />
 
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div role="group" aria-label="Filtrer les invités" className="flex flex-wrap gap-1.5">
+          {GUEST_FILTERS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={filter === option.value}
+              onClick={() => setFilter(option.value)}
+              className={`min-h-[44px] rounded-full border px-3 text-sm font-medium transition-colors ${
+                filter === option.value
+                  ? 'border-brand bg-brand-soft text-text'
+                  : 'border-border bg-surface text-text-muted hover:text-text'
+              }`}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+        <label className="flex min-h-[44px] items-center gap-2 text-sm text-text-muted">
+          Trier
+          <select
+            aria-label="Trier les invités"
+            value={sort}
+            onChange={(event) => setSort(event.target.value as GuestSort)}
+            className="min-h-[44px] rounded-md border border-border bg-surface px-2 text-sm text-text"
+          >
+            {GUEST_SORTS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+
       {total === 0 && (
         <EmptyState
           title="Aucun invité pour l’instant"
@@ -139,16 +240,50 @@ export function GuestListPanel() {
         <EmptyState title={`Aucun résultat pour « ${query.trim()} ».`} />
       )}
 
-      {/* Always mounted: the list doubles as the `seat:unseat` dropzone. */}
-      <GuestList
-        unseated={unseated}
-        seated={seated}
-        selectedId={editor?.mode === 'edit' ? editor.guestId : null}
-        conflictIds={conflictGuestIds}
-        onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
-        onRemove={requestDelete}
-        onMove={setMoveTargetId}
-      />
+      {filter === 'by-table' ? (
+        <GroupedDropzone>
+          {unseatedSorted.length > 0 && (
+            <section aria-label="Non placés">
+              <h3 className={sectionTitle}>Non placés ({unseatedSorted.length})</h3>
+              <ul className="mt-2 space-y-1">{unseatedSorted.map(renderRow)}</ul>
+            </section>
+          )}
+          {byTableGroups.map((group) => (
+            <section key={group.tableId} aria-label={group.tableName}>
+              <h3 className={sectionTitle}>
+                {group.tableName} ({group.guests.length})
+              </h3>
+              <ul className="mt-2 space-y-1">{group.guests.map(renderRow)}</ul>
+            </section>
+          ))}
+        </GroupedDropzone>
+      ) : filter === 'by-group' ? (
+        <GroupedDropzone>
+          {byGroupGroups.map((group) => (
+            <section key={group.groupName} aria-label={group.groupName}>
+              <h3 className={sectionTitle}>
+                {group.groupName} ({group.guests.length})
+              </h3>
+              <ul className="mt-2 space-y-1">{group.guests.map(renderRow)}</ul>
+            </section>
+          ))}
+        </GroupedDropzone>
+      ) : (
+        /* Always mounted: the list doubles as the `seat:unseat` dropzone. */
+        <GuestList
+          unseated={filter === 'seated' ? [] : unseatedSorted.map((entry) => entry.guest)}
+          seated={
+            filter === 'unseated'
+              ? []
+              : seatedSorted.map((entry) => ({ guest: entry.guest, tableName: entry.tableName }))
+          }
+          selectedId={selectedId}
+          conflictIds={conflictGuestIds}
+          onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
+          onRemove={requestDelete}
+          onMove={setMoveTargetId}
+        />
+      )}
 
       <ConstraintsPanel guestId={editor?.mode === 'edit' ? editor.guestId : null} />
 

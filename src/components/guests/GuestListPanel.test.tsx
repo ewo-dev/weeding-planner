@@ -183,4 +183,64 @@ describe('GuestListPanel', () => {
     // The dropzone still exists so seated guests could be unseated here.
     expect(screen.getByTestId('unseat-dropzone')).toBeInTheDocument()
   })
+
+  it('filters to unseated / seated guests via chips', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Non placés' }))
+    expect(screen.getByRole('button', { name: /^Carol/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Dave/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Alice/ })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Placés' }))
+    expect(screen.getByRole('button', { name: /^Alice/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Bob/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Carol/ })).not.toBeInTheDocument()
+  })
+
+  it('groups seated guests by table in "Par table" view', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Par table' }))
+    const section = screen.getByRole('region', { name: 'Table Ronde' })
+    expect(section).toBeInTheDocument()
+    expect(section).toHaveTextContent('Alice')
+    expect(section).toHaveTextContent('Bob')
+    // Unseated guests stay visible above the table groups.
+    expect(screen.getByRole('button', { name: /^Carol/ })).toBeInTheDocument()
+  })
+
+  it('groups guests by group in "Par groupe" view', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Par groupe' }))
+    const friends = screen.getByRole('region', { name: 'Amis' })
+    expect(friends).toHaveTextContent('Dave')
+    expect(screen.getByRole('region', { name: 'Sans groupe' })).toBeInTheDocument()
+  })
+
+  it('sorts guests by name via the sort select', () => {
+    renderPanel()
+
+    // Default (Nom): Alice before Bob in the seated section.
+    const seated = screen.getByRole('region', { name: 'Placés' })
+    const before = [...seated.querySelectorAll('li')].map((li) => li.textContent ?? '')
+    expect(before.findIndex((t) => t.includes('Alice'))).toBeLessThan(
+      before.findIndex((t) => t.includes('Bob')),
+    )
+
+    // Récemment ajouté reverses insertion order.
+    fireEvent.change(screen.getByLabelText('Trier les invités'), { target: { value: 'recent' } })
+    const seatedAfter = screen.getByRole('region', { name: 'Placés' })
+    const after = [...seatedAfter.querySelectorAll('li')].map((li) => li.textContent ?? '')
+    expect(after.findIndex((t) => t.includes('Bob'))).toBeLessThan(
+      after.findIndex((t) => t.includes('Alice')),
+    )
+  })
+
+  it('shows a prominent Placer action on unseated rows', () => {
+    renderPanel()
+
+    expect(screen.getByRole('button', { name: 'Placer Carol' })).toHaveTextContent('Placer')
+  })
 })

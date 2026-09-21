@@ -98,6 +98,19 @@ describe('TableDetailPanel', () => {
     expect(screen.getByRole('dialog', { name: 'Placer Alice' })).toBeInTheDocument()
   })
 
+  it('places an unseated guest via "Ajouter un invité"', () => {
+    renderDetail()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ajouter un invité' }))
+    expect(screen.getByRole('dialog', { name: 'Ajouter à Table 1' })).toBeInTheDocument()
+
+    // Guest picker -> seat picker (table is fixed).
+    fireEvent.click(screen.getByRole('button', { name: 'Placer Carol à Table 1' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Place 2' }))
+
+    const probe = screen.getByTestId('assignments-probe')
+    expect(probe).toHaveTextContent(`${G(3)}|${T(1)}|1`)
+  })
   it('closes and opens table configuration from the detail', () => {
     const onClose = vi.fn()
     renderDetail(fixture(), onClose)

@@ -32,10 +32,10 @@ Each step:
 | 12   | Auto-generation + report dialog        | Done        | 3, 11           |
 | 13   | Print view                             | Done        | 7               |
 | 14   | JSON project import/export             | Done        | 2, 5, 6        |
-| 15   | Table detail panel / bottom sheet              | Planned     | 7, 9, 10      |
-| 16   | Canvas selection & emphasis for tables         | Planned     | 15            |
-| 17   | Guest list filters, sort, and table assignment | Planned     | 7, 8          |
-| 18   | Mobile placement flow (list → table → seat)    | Planned     | 15, 17        |
+| 15   | Table detail panel / bottom sheet              | Done     | 7, 9, 10      |
+| 16   | Canvas selection & emphasis for tables         | Done    | 15            |
+| 17   | Guest list filters, sort, and table assignment | Done     | 7, 8          |
+| 18   | Mobile placement flow (list → table → seat)    | Done    | 15, 17        |
 | 19   | Capacity feedback & full-table handling        | Planned     | 9, 15, 18     |
 | 20   | Print redesign (A4 blocks + alphabetical index)| Planned     | 7, 13         |
 | 21   | Update smoke checks and component tests        | Planned     | 15–20         |

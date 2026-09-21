@@ -50,6 +50,11 @@ function renderSheet(plan: Plan = fixture(), guestId: string | null = G(2), onCl
   return { close }
 }
 
+/** Step 1 (table list) -> step 2 (seats) for the single-table fixture. */
+function openSeats(): void {
+  fireEvent.click(screen.getByRole('button', { name: 'Table Ronde, 1 sur 3' }))
+}
+
 beforeEach(() => {
   vi.spyOn(repoModule, 'getRepository').mockReturnValue({
     save: vi.fn(async () => undefined),
@@ -61,26 +66,72 @@ afterEach(() => {
 })
 
 describe('MoveGuestSheet', () => {
-  it('lists only empty seats for the guest', () => {
+  it('lists tables with occupancy first (no seats yet)', () => {
     renderSheet()
 
     expect(screen.getByText('Placer Carol')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Table Ronde, 1 sur 3' })).toBeInTheDocument()
+    // Seats only appear after choosing a table (step 2).
+    expect(screen.queryByRole('button', { name: 'Place 1' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Place 2' })).not.toBeInTheDocument()
+    // Unseated guest has nothing to unseat.
+    expect(screen.queryByRole('button', { name: 'Retirer de la table' })).not.toBeInTheDocument()
+  })
+
+  it('shows only empty seats after choosing a table', () => {
+    renderSheet()
+    openSeats()
+
     // Seat 1 is occupied by Alice: only seats 2 and 3 are offered.
     expect(screen.queryByRole('button', { name: 'Place 1' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Place 2' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Place 3' })).toBeInTheDocument()
-    // Unseated guest has nothing to unseat.
-    expect(screen.queryByRole('button', { name: 'Retirer de la table' })).not.toBeInTheDocument()
   })
 
   it('places the guest on the chosen seat and closes', () => {
     const onClose = vi.fn()
     renderSheet(fixture(), G(2), onClose)
+    openSeats()
 
     fireEvent.click(screen.getByRole('button', { name: 'Place 2' }))
 
     expect(onClose).toHaveBeenCalled()
     expect(screen.getByTestId('assignments-probe')).toHaveTextContent(`${G(1)}@${T(1)}:0,${G(2)}@${T(1)}:1`)
+  })
+
+  it('offers one-tap placement on the first free seat', () => {
+    const onClose = vi.fn()
+    renderSheet(fixture(), G(2), onClose)
+    openSeats()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Placer à la première place libre (Place 2)' }))
+
+    expect(onClose).toHaveBeenCalled()
+    expect(screen.getByTestId('assignments-probe')).toHaveTextContent(`${G(2)}@${T(1)}:1`)
+  })
+
+  it('goes back from seats to the table list', () => {
+    renderSheet()
+    openSeats()
+
+    expect(screen.getByRole('button', { name: 'Place 2' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Toutes les tables' }))
+
+    expect(screen.getByRole('button', { name: 'Table Ronde, 1 sur 3' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Place 2' })).not.toBeInTheDocument()
+  })
+
+  it('disables full tables in the table list', () => {
+    const full: Plan = {
+      ...fixture(),
+      tables: [...fixture().tables, { id: T(2), name: 'Table Pleine', shape: 'round', capacity: 1, position: { x: 0, y: 0 } }],
+      guests: [...fixture().guests, { id: G(3), name: 'Dave' }],
+      assignments: [...fixture().assignments, { guestId: G(3), tableId: T(2), seatIndex: 0 }],
+    }
+    renderSheet(full)
+
+    const fullButton = screen.getByRole('button', { name: 'Table Pleine, 1 sur 1, complète' })
+    expect(fullButton).toBeDisabled()
   })
 
   it('offers unseating for a seated guest', () => {

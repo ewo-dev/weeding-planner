@@ -3,8 +3,9 @@
 import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { guestDragId } from '@/components/editor/dnd'
+import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
-import { Armchair, X } from 'lucide-react'
+import { ArrowRightLeft, X } from 'lucide-react'
 
 interface GuestRowProps {
   guest: Guest
@@ -73,13 +74,27 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
           !
         </span>
       )}
-      <IconButton
-        type="button"
-        onClick={() => onMove(guest.id)}
-        label={`Placer ${guest.name}`}
-        title={`Placer ${guest.name}`}
-        icon={<Armchair className="h-5 w-5" />}
-      />
+      {tableName === null ? (
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => onMove(guest.id)}
+          aria-label={`Placer ${guest.name}`}
+          title={`Placer ${guest.name}`}
+          className="min-h-[44px] shrink-0"
+        >
+          Placer
+        </Button>
+      ) : (
+        <IconButton
+          type="button"
+          onClick={() => onMove(guest.id)}
+          label={`Déplacer ${guest.name}`}
+          title={`Déplacer ${guest.name}`}
+          icon={<ArrowRightLeft className="h-5 w-5" />}
+        />
+      )}
       <IconButton
         type="button"
         onClick={() => onRemove(guest.id)}
