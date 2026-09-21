@@ -1,0 +1,299 @@
+# Plan de Table — Roadmap
+
+## 1. Purpose
+
+This document defines the implementation order for the MVP.
+
+The project documentation is complete (`00-overview` → `10-interactions`) and 17 architectural decisions are recorded (`08-decisions.md`). This roadmap turns that design into a sequenced build plan.
+
+Each step:
+
+* Produces a runnable, verifiable artifact.
+* Unblocks the next step.
+* Stays small enough to review in one pass.
+
+---
+
+## 2. Status
+
+| Step | Title                                  | Status      | Depends on      |
+| ---- | -------------------------------------- | ----------- | --------------- |
+| 1    | Scaffold Next.js + stack               | **Next**    | —               |
+| 2    | Data model + local repository          | **Next**    | 1               |
+| 3    | Seating engine (pure, TDD)             | Planned     | 2               |
+| 4    | UI primitives + design tokens          | Planned     | 1               |
+| 5    | Plan context, reducer, actions, history| Planned     | 2, 4            |
+| 6    | Entry page (`/`)                       | Planned     | 5               |
+| 7    | Editor shell + TopBar + PlanStatsBar   | Planned     | 5               |
+| 8    | Guest management                       | Planned     | 7               |
+| 9    | Table management                       | Planned     | 7               |
+| 10   | Seating editor canvas (DnD)            | Planned     | 7, 8, 9         |
+| 11   | Constraints UI                         | Planned     | 8, 10           |
+| 12   | Auto-generation + report dialog        | Planned     | 3, 11           |
+| 13   | Print view                             | Planned     | 7               |
+| 14   | Auth + Supabase (additive layer)       | Planned     | 2, 5            |
+| 15   | E2E tests + a11y/responsive polish     | Planned     | 1–13            |
+
+---
+
+## 3. Steps in Detail
+
+### Step 1 — Scaffold Next.js + stack
+
+Bootstrap the project skeleton.
+
+* `create-next-app` (App Router, TypeScript strict, Tailwind, no `src/` flag — we add `src/` manually to match `02-architecture.md`).
+* Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `@supabase/ssr`, `lucide-react`.
+* Install dev deps: `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test`.
+* Configure `tailwind.config.ts` with design tokens from `09-design-system.md` § 4–8 (colors, spacing, radii, shadows, font families).
+* Configure `globals.css`: Tailwind base + reduced-motion rule (`10-interactions.md` § 15).
+* Create the `src/` folder structure exactly as defined in `02-architecture.md` § 5 (empty placeholder files allowed).
+* Add `.env.example` with placeholder `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+
+**Validation gate:** `npm run dev` serves a blank page, `npm run build` succeeds, `npm run lint` clean, `tsc --noEmit` clean.
+
+---
+
+### Step 2 — Data model + local repository
+
+The persistence foundation. Everything that reads or writes a plan goes through this layer.
+
+* `src/lib/schema/plan.ts` — zod schemas (`PlanSchema`, `GuestSchema`, `TableSchema`, `ConstraintSchema`, `AssignmentSchema`, `TableShape`, `ConstraintKind`, `PlanMeta`).
+* `src/lib/schema/migrations.ts` — `CURRENT_VERSION = 1`, `migrate(raw)` runs migrations from stored version to current.
+* `src/lib/repo/types.ts` — `PlanSummary`, `PlanRepository` interface (per `05-persistence.md` § 3).
+* `src/lib/repo/local.ts` — `LocalPlanRepository` with `list`, `load`, `save`, `remove`. Keys: `weeding-planner:plan:<id>`, `weeding-planner:plan-index`, `weeding-planner:active-plan`. Throws `RepoError("quota")` on `QuotaExceededError`.
+* `src/lib/repo/index.ts` — factory stub returning `LocalPlanRepository` (Supabase added in step 14).
+* `src/lib/repo/errors.ts` — `RepoError` with codes (`not_found`, `quota`, `network`, `auth`, `corrupt`, `unknown`).
+* `src/lib/id.ts` — `newId()` wrapping `crypto.randomUUID()`.
+* `src/types/plan.ts` — re-exports from `lib/schema/plan`.
+* Vitest unit tests: schema round-trips, invariant rejections, migration identity, local repo CRUD, quota error, index update.
+
+**Validation gate:** Vitest suite green. Manual smoke: create a plan in Node, save via repo, reload, assert equality.
+
+---
+
+### Step 3 — Seating engine (pure, TDD)
+
+The complex business logic, isolated and tested first.
+
+* `src/lib/engine/types.ts` — `GenerateOptions`, `GenerationReport`, `ConstraintRef`, `GenerateOutput`.
+* `src/lib/engine/score.ts` — `scorePlan(plan, assignments)` per `04-seating-engine.md` § 5.
+* `src/lib/engine/conflicts.ts` — `detectConflicts(plan)` (used by UI after manual edits).
+* `src/lib/engine/generate.ts` — five-phase algorithm per `04-seating-engine.md` § 4. Seeded PRNG (mulberry32). Deterministic for `(plan, seed)`.
+* `src/lib/engine/errors.ts` — `EngineError("invalid_input" | "timeout")`.
+* `src/lib/engine/index.ts` — public surface.
+* `src/lib/engine/__fixtures__/` — minimal plans for tests.
+* Vitest unit tests covering all cases in `04-seating-engine.md` § 10.
+
+**Validation gate:** Vitest suite green. Benchmark: 200 guests / 25 tables generates in < 500 ms.
+
+---
+
+### Step 4 — UI primitives + design tokens
+
+The dumb building blocks. No plan-specific types.
+
+* `src/components/ui/` per `07-components.md` § 4: `Button`, `IconButton`, `Input`, `TextArea`, `Select`, `Modal`, `Toast`, `Badge`, `EmptyState`, `Spinner`, `Separator`, `VisuallyHidden`.
+* `src/components/ui/ToastProvider.tsx` — toast queue used by root layout.
+* Visual rules per `09-design-system.md` § 11.
+* Tests via Testing Library for visual primitives (renders, variants, sizes).
+
+**Validation gate:** Storybook-free; component tests pass.
+
+---
+
+### Step 5 — Plan context, reducer, actions, history
+
+The single source of truth for an open plan.
+
+* `src/lib/plan/context.tsx` — `<PlanProvider initialPlan>` with debounced autosave.
+* `src/lib/plan/usePlan.ts` — typed hook returning `{ plan, dispatch }`.
+* `src/lib/plan/selectors.ts` — derived stats: `seatedCount`, `unseatedGuests`, `conflicts`, etc.
+* `src/lib/plan/actions.ts` — exhaustive action types (`addGuest`, `updateGuest`, `removeGuest`, `addTable`, `updateTable`, `removeTable`, `moveGuest`, `unseatGuest`, `addConstraint`, `removeConstraint`, `generateSeating`, `undo`, `redo`, `renamePlan`).
+* `src/lib/plan/reducer.ts` — immutable updates + history stack (50 entries, D-014). Each action carries an `inverse` action.
+* `src/lib/plan/cn.ts` — `cn(...)` className helper.
+* Tests for reducer transitions and history behavior.
+
+**Validation gate:** Reducer tests green. History (undo/redo) verified end-to-end in component tests.
+
+---
+
+### Step 6 — Entry page (`/`)
+
+* `src/app/page.tsx` (server): reads `LocalPlanRepository.list()`, renders `<PlanList>` with "Nouveau plan" CTA.
+* Server action `createBlankPlan()` in `src/app/actions.ts` creates a blank plan and redirects to `/plan/[id]`.
+* `src/components/layout/PlanList.tsx` (client) — rows with Open / Rename / Delete / Duplicate (Delete with confirm).
+* Empty state when no plans.
+
+**Validation gate:** Page renders. Creating a plan navigates to its editor URL.
+
+---
+
+### Step 7 — Editor shell + TopBar + EditorLayout + PlanStatsBar
+
+* `src/app/plan/[planId]/page.tsx` (server): validates UUID, loads via repo, `notFound()` on miss, passes to `<PlanProvider>`.
+* `src/app/plan/[planId]/loading.tsx` — `<EditorSkeleton>`.
+* `src/app/plan/[planId]/error.tsx` (client) — friendly message + retry.
+* `src/components/layout/TopBar.tsx` (client) — plan name (click to rename), save indicator (`saved` / `saving` / `error`).
+* `src/components/layout/EditorLayout.tsx` — two-column on `lg+`, tab-switcher below.
+* `src/components/plan-status/PlanStatsBar.tsx` — guests, tables, seated/unseated, conflicts.
+
+**Validation gate:** Editor route loads with placeholder data and shows all chrome.
+
+---
+
+### Step 8 — Guest management
+
+* `src/components/guests/GuestListPanel.tsx` (client) — search input + counts.
+* `src/components/guests/GuestSearchInput.tsx` — debounced 150 ms.
+* `src/components/guests/GuestList.tsx` — Unseated / Seated sections.
+* `src/components/guests/GuestRow.tsx` — click to select.
+* `src/components/guests/GuestEditor.tsx` — form (create / edit / delete). Delete confirmation per `10-interactions.md` § 12.
+
+**Validation gate:** CRUD on guests works, selection updates the right-side panel, counts update.
+
+---
+
+### Step 9 — Table management
+
+* `src/components/tables/TablesToolbar.tsx` — Add table, Bulk configure.
+* `src/components/tables/TableConfigSheet.tsx` — edit name, shape, capacity.
+* `src/components/tables/BulkTableConfig.tsx` — default capacity / shape for new and existing tables.
+* Capacity shrink that would orphan guests triggers confirmation per `10-interactions.md` § 12.
+
+**Validation gate:** Add/edit/delete tables works; bulk apply updates all tables.
+
+---
+
+### Step 10 — Seating editor canvas (DnD)
+
+The heart of the application.
+
+* `src/components/editor/SeatingEditor.tsx` (client) — hosts two parallel `DndContext`s (guests and tables, `10-interactions.md` § 3).
+* `src/components/editor/Workspace.tsx` — droppable surface for tables.
+* `src/components/editor/TableCard.tsx` (client) — round / rectangle shapes; seats as droppables; header is the drag handle.
+* `src/components/editor/SeatSlot.tsx` — droppable with stable ID `seat:{tableId}:{n}`.
+* `src/components/editor/GuestChip.tsx` — compact (list) and card (canvas) presentations; draggable.
+* `src/components/editor/DragGhost.tsx` — overlay using `DragOverlay`.
+* Sensors: `PointerSensor` (6 px activation), `KeyboardSensor` (mandatory).
+* Auto-scroll near edges on desktop.
+* Per `09-design-system.md` § 12 visual rules (dotted grid, no shadow on tables).
+
+**Validation gate:** Drag guest onto empty seat; drag between tables; drag to unseat; drag table around; keyboard drag works.
+
+---
+
+### Step 11 — Constraints UI
+
+* `src/components/constraints/ConstraintsPanel.tsx` — constraints for selected guest (or all if none).
+* `src/components/constraints/ConstraintRow.tsx` — icon + label + names.
+* `src/components/constraints/AddConstraintMenu.tsx` — pick target guest + kind; reject self / duplicate pairs / `must_together` vs `must_not_together` conflicts.
+* Wire `detectConflicts` to run on every dispatch (`10-interactions.md` § 14); show inline warning badge + toast with `Keep anyway` / `Undo`.
+
+**Validation gate:** Adding/removing constraints updates engine state; manual conflict warning fires correctly.
+
+---
+
+### Step 12 — Auto-generation + report dialog
+
+* "Generate seating plan" button in `TablesToolbar`.
+* Calls `engine.generate(currentPlan)` via context action.
+* `src/components/plan-status/GenerationReportDialog.tsx` — maps `GenerationReport` to copy per `04-seating-engine.md` § 6 and `01-product.md` § 10. Actions: `Apply`, `Regenerate`, `Discard`.
+* Undo of `generateSeating` restores previous assignments exactly (D-014 + `10-interactions.md` § 9).
+
+**Validation gate:** Generation respects mandatory constraints when feasible; report copy matches spec; undo restores.
+
+---
+
+### Step 13 — Print view
+
+* `src/app/plan/[planId]/print/page.tsx` (server) — loads plan, renders `<PrintLayout>` + one `<PrintTable>` per table.
+* `src/components/print/PrintLayout.tsx`, `src/components/print/PrintTable.tsx`.
+* `src/styles/print.css` — `@media print` rules hide chrome, set black on white (D-017).
+* Browser print dialog = PDF export (D-017).
+
+**Validation gate:** `/plan/[id]/print` renders cleanly; browser print preview matches design.
+
+---
+
+### Step 14 — Auth + Supabase (additive)
+
+The optional layer. The app already works without it.
+
+* `src/lib/auth/client.ts` — Supabase client (browser).
+* `src/lib/auth/server.ts` — server-side session helper.
+* `src/lib/auth/AuthProvider.tsx` (client) — provides `useUser()`.
+* `src/lib/auth/useUser.ts` — typed hook.
+* `src/lib/repo/supabase.ts` — `SupabasePlanRepository` per `05-persistence.md` § 5.
+* `src/lib/repo/composite.ts` — `CompositeRepository` (local + cloud) per D-005.
+* `src/lib/repo/index.ts` updated: factory picks `CompositeRepository` when signed in.
+* `src/app/sign-in/page.tsx` + `<SignInForm>` + `<AuthMenu>` in `TopBar`.
+* `src/middleware.ts` — refreshes Supabase session cookie (no gating).
+* Stale-plan banner per `05-persistence.md` § 7.
+* Error mapping per `05-persistence.md` § 9.
+
+**Validation gate:** Sign in / sign out works. Save to cloud → reload from another device → plan matches. Local save still works for anonymous users.
+
+---
+
+### Step 15 — E2E tests + a11y/responsive polish
+
+* Playwright flows: anonymous happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, cloud save round-trip.
+* Component test coverage for interactive components.
+* A11y audit: contrast, keyboard parity, focus-visible, `prefers-reduced-motion`, hit targets ≥ 44 px, `aria-label` on seats and tables.
+* Responsive check at `sm` / `md` / `lg`.
+
+**Validation gate:** Playwright suite green on Chromium. Manual review against `09-design-system.md`.
+
+---
+
+## 4. Dependency Graph
+
+```text
+[1 Scaffold]
+    │
+    ├──> [4 UI primitives] ──┐
+    │                        │
+    └──> [2 Data model + repo]
+              │
+              ├──> [3 Engine] ────────────────┐
+              │                               │
+              └──> [5 Context/reducer] <──────┤
+                         │                    │
+                         ├──> [6 Entry page]   │
+                         │                    │
+                         └──> [7 Editor shell] │
+                                   │           │
+                                   ├──> [8 Guests]
+                                   ├──> [9 Tables]
+                                   ├──> [10 DnD editor]
+                                   │       │
+                                   │       v
+                                   ├──> [11 Constraints]
+                                   │       │
+                                   │       v
+                                   │   [12 Generation + report]
+                                   │
+                                   └──> [13 Print view]
+
+[14 Auth + Supabase] ──> additive to [2] and [5]
+
+[15 E2E + polish] ──> validates 1–13
+```
+
+---
+
+## 5. Open Questions for Roadmap
+
+1. **Storybook** — not adopted; component tests are enough for MVP.
+2. **CI** — out of scope of the roadmap; assumed to live outside the repo.
+3. **i18n** — explicitly deferred per D-011. French-only for MVP.
+
+---
+
+## 6. How to Update This Document
+
+* When a step is started, change its Status from `Planned` to `In progress`.
+* When a step is completed and its validation gate passes, change its Status to `Done` and append a one-line note with the commit hash.
+* When scope changes, update the affected step *and* the dependency graph.
+* New steps are appended at the end (status `Planned`).
