@@ -31,7 +31,7 @@ Each step:
 | 11   | Constraints UI                         | Done        | 8, 10           |
 | 12   | Auto-generation + report dialog        | Done        | 3, 11           |
 | 13   | Print view                             | Done        | 7               |
-| 14   | JSON project import/export             | Planned     | 2, 5, 6        |
+| 14   | JSON project import/export             | Done        | 2, 5, 6        |
 | 15   | Release validation: mobile, a11y, responsive | Planned | 1–14          |
 
 ---

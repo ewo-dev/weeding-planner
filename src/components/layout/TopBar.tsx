@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { usePlan } from '@/lib/plan/usePlan'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
+import { ProjectActions } from '@/components/persistence/ProjectActions'
 
 /**
  * Editor top bar (docs/07-components.md § 5). Reads plan state from context:
@@ -110,6 +111,7 @@ export function TopBar() {
         <Button type="button" variant="secondary" size="sm" onClick={() => router.push('/print')}>
           Imprimer
         </Button>
+        <ProjectActions plan={plan} onImported={() => window.location.reload()} />
 
         {saveStatus === 'saved' && (
           <span className="text-sm font-medium text-success">Enregistré</span>

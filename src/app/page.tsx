@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Spinner } from '@/components/ui/Spinner'
 import { Button } from '@/components/ui/Button'
 import { PlanList } from '@/components/layout/PlanList'
+import { ProjectActions } from '@/components/persistence/ProjectActions'
 import { createBlankPlan } from '@/components/layout/createBlankPlan'
 import { getRepository } from '@/lib/repo'
 import type { PlanSummary } from '@/lib/repo/types'
@@ -69,6 +70,10 @@ export default function HomePage() {
       >
         Nouveau plan
       </Button>
+
+      <div className="mt-3">
+        <ProjectActions onImported={reload} />
+      </div>
 
       {createError && (
         <p role="alert" className="mt-3 text-sm text-danger">
