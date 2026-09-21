@@ -8,6 +8,7 @@ import { addTable, generateSeating as generateSeatingAction, removeTable, update
 import { guestById, tableById } from '@/lib/plan/selectors'
 import type { Table, TableShape } from '@/types/plan'
 import { GenerationReportDialog } from '@/components/plan-status/GenerationReportDialog'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { TablesToolbar } from './TablesToolbar'
 import { TableList } from './TableList'
 import { TableConfigSheet } from './TableConfigSheet'
@@ -179,10 +180,10 @@ export function TablesPanel() {
       )}
 
       {rows.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-surface p-6 text-center">
-          <p className="text-sm font-medium text-text">Aucune table pour l’instant</p>
-          <p className="mt-1 text-sm text-text-muted">Configurez vos tables pour commencer.</p>
-        </div>
+        <EmptyState
+          title="Aucune table pour l’instant"
+          description="Configurez vos tables pour commencer."
+        />
       ) : (
         <TableList
           rows={rows}

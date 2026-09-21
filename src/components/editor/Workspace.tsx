@@ -5,6 +5,7 @@ import { usePlan } from '@/lib/plan/usePlan'
 import { seatedGuestsByTable } from '@/lib/plan/selectors'
 import { WORKSPACE_DROP_ID } from './dnd'
 import { TableCard } from './TableCard'
+import { EmptyState } from '@/components/ui/EmptyState'
 
 /**
  * Droppable canvas surface (`workspace`) holding the table cards
@@ -49,9 +50,12 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
         style={{ width, height }}
       >
         {plan.tables.length === 0 ? (
-          <p className="absolute left-1/2 top-1/3 w-full max-w-sm -translate-x-1/2 rounded-lg border border-dashed border-border bg-surface p-6 text-center text-sm text-text-muted">
-            Aucune table pour l’instant — ajoutez vos tables depuis l’onglet Tables.
-          </p>
+          <div className="absolute left-1/2 top-1/3 w-full max-w-sm -translate-x-1/2">
+            <EmptyState
+              title="Aucune table pour l’instant"
+              description="Ajoutez vos tables depuis l’onglet Tables."
+            />
+          </div>
         ) : (
           plan.tables.map((table) => (
             <TableCard key={table.id} table={table} guests={byTable.get(table.id) ?? []} />

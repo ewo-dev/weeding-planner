@@ -2,6 +2,9 @@
 
 import type { Constraint } from '@/types/plan'
 import { CONSTRAINT_KIND_LABELS } from './constraints'
+import { Badge } from '@/components/ui/Badge'
+import type { BadgeTone } from '@/components/ui/Badge'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface ConstraintRowProps {
   constraint: Constraint
@@ -14,10 +17,10 @@ interface ConstraintRowProps {
   onRemove: (constraintId: string) => void
 }
 
-const KIND_TONE: Record<Constraint['kind'], string> = {
-  must_together: 'bg-success/10 text-success',
-  prefer_together: 'bg-info/10 text-info',
-  must_not_together: 'bg-danger/10 text-danger',
+const KIND_BADGE_TONE: Record<Constraint['kind'], BadgeTone> = {
+  must_together: 'success',
+  prefer_together: 'info',
+  must_not_together: 'danger',
 }
 
 /**
@@ -33,31 +36,19 @@ export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated
         violated ? 'border border-danger/40 bg-danger/10' : 'hover:bg-surface'
       }`}
     >
-      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${KIND_TONE[constraint.kind]}`}>
-        {CONSTRAINT_KIND_LABELS[constraint.kind]}
-      </span>
+      <Badge tone={KIND_BADGE_TONE[constraint.kind]}>{CONSTRAINT_KIND_LABELS[constraint.kind]}</Badge>
       <span className="min-w-0 flex-1 truncate text-sm text-text">
         {nameA} et {nameB}
       </span>
-      {violated && (
-        <span className="shrink-0 rounded-full bg-danger px-2 py-0.5 text-xs font-semibold text-white">
-          Non respectée
-        </span>
-      )}
-      {!violated && softViolated && (
-        <span className="shrink-0 rounded-full bg-surface px-2 py-0.5 text-xs text-text-muted">
-          Souhait non tenu
-        </span>
-      )}
-      <button
+      {violated && <Badge tone="danger-solid">Non respectée</Badge>}
+      {!violated && softViolated && <Badge tone="neutral">Souhait non tenu</Badge>}
+      <IconButton
         type="button"
         onClick={() => onRemove(constraint.id)}
-        aria-label={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
+        label={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
         title={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
-        className="shrink-0 px-1 text-base leading-none text-text-muted transition-colors hover:text-danger"
-      >
-        ×
-      </button>
+        icon="×"
+      />
     </li>
   )
 }

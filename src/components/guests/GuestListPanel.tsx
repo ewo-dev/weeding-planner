@@ -6,6 +6,8 @@ import { removeGuest } from '@/lib/plan/actions'
 import { conflicts, constraintsForGuest, guestById, seatedCount, tableById } from '@/lib/plan/selectors'
 import type { Guest } from '@/types/plan'
 import { ConstraintsPanel } from '@/components/constraints/ConstraintsPanel'
+import { Button } from '@/components/ui/Button'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { GuestSearchInput } from './GuestSearchInput'
 import { GuestList } from './GuestList'
 import { GuestEditor } from './GuestEditor'
@@ -117,27 +119,21 @@ export function GuestListPanel() {
         </span>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setEditor((current) => (current?.mode === 'create' ? null : { mode: 'create' }))}
-        className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-      >
+      <Button type="button" onClick={() => setEditor((current) => (current?.mode === 'create' ? null : { mode: 'create' }))}>
         + Ajouter
-      </button>
+      </Button>
 
       <GuestSearchInput onSearch={handleSearch} />
 
       {total === 0 && (
-        <div className="rounded-lg border border-dashed border-border bg-surface p-6 text-center">
-          <p className="text-sm font-medium text-text">Aucun invité pour l’instant</p>
-          <p className="mt-1 text-sm text-text-muted">Ajoutez votre premier invité ci-dessus.</p>
-        </div>
+        <EmptyState
+          title="Aucun invité pour l’instant"
+          description="Ajoutez votre premier invité ci-dessus."
+        />
       )}
 
       {total > 0 && visible.length === 0 && (
-        <p className="rounded-lg border border-dashed border-border bg-surface p-6 text-center text-sm text-text-muted">
-          Aucun résultat pour « {query.trim()} ».
-        </p>
+        <EmptyState title={`Aucun résultat pour « ${query.trim()} ».`} />
       )}
 
       {/* Always mounted: the list doubles as the `seat:unseat` dropzone. */}

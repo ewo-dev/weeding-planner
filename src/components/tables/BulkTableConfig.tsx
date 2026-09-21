@@ -3,7 +3,15 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import type { TableShape } from '@/types/plan'
-import { SHAPE_LABELS, TABLE_MAX_CAPACITY, TABLE_MIN_CAPACITY } from './tables'
+import { TABLE_MAX_CAPACITY, TABLE_MIN_CAPACITY } from './tables'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+
+const SHAPE_OPTIONS = [
+  { value: 'round', label: 'Ronde' },
+  { value: 'rectangle', label: 'Rectangulaire' },
+]
 
 export interface BulkTableSummary {
   id: string
@@ -60,9 +68,6 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
     onApply(parsed.capacity, parsed.shape)
   }
 
-  const field =
-    'w-full rounded border border-border bg-surface-raised px-3 py-2 text-sm text-text placeholder:text-text-muted'
-
   if (confirmCapacity !== null && confirmShape !== null) {
     const affected = tables.filter((t) => confirmCapacity < t.seated)
     return (
@@ -80,23 +85,19 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
           ))}
         </ul>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onApply(confirmCapacity, confirmShape)}
-            className="rounded bg-danger px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-danger/90"
-          >
+          <Button type="button" variant="danger" onClick={() => onApply(confirmCapacity, confirmShape)}>
             Appliquer quand même
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
             onClick={() => {
               setConfirmCapacity(null)
               setConfirmShape(null)
             }}
-            className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
           >
             Retour
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -113,31 +114,25 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <label htmlFor="bulk-shape" className="mb-1 block text-xs font-medium text-text-muted">
-            Forme
-          </label>
-          <select id="bulk-shape" name="shape" defaultValue={defaultShape} className={field}>
-            {(Object.keys(SHAPE_LABELS) as TableShape[]).map((shape) => (
-              <option key={shape} value={shape}>
-                {SHAPE_LABELS[shape]}
-              </option>
-            ))}
-          </select>
+          <Select
+            id="bulk-shape"
+            label="Forme"
+            name="shape"
+            options={SHAPE_OPTIONS}
+            defaultValue={defaultShape}
+          />
         </div>
 
         <div className="w-28">
-          <label htmlFor="bulk-capacity" className="mb-1 block text-xs font-medium text-text-muted">
-            Places
-          </label>
-          <input
+          <Input
             id="bulk-capacity"
+            label="Places"
             name="capacity"
             type="number"
             defaultValue={defaultCapacity}
             min={TABLE_MIN_CAPACITY}
             max={TABLE_MAX_CAPACITY}
             step={1}
-            className={field}
           />
         </div>
       </div>
@@ -149,19 +144,12 @@ export function BulkTableConfig({ defaultCapacity, defaultShape, tables, onApply
       )}
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
+        <Button type="submit">
           {tables.length === 0 ? 'Enregistrer' : 'Appliquer à toutes les tables'}
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
-        >
+        </Button>
+        <Button type="button" variant="secondary" onClick={onClose}>
           Annuler
-        </button>
+        </Button>
       </div>
     </form>
   )

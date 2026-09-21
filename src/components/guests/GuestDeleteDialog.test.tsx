@@ -1,19 +1,6 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { GuestDeleteDialog } from './GuestDeleteDialog'
-
-// jsdom does not implement the <dialog> imperative API; stub it so
-// showModal()/close() behave like in a browser (same as PlanList.test.tsx).
-beforeAll(() => {
-  if (typeof HTMLDialogElement === 'function') {
-    HTMLDialogElement.prototype.showModal = function showModal() {
-      this.open = true
-    }
-    HTMLDialogElement.prototype.close = function close() {
-      this.open = false
-    }
-  }
-})
 
 describe('GuestDeleteDialog', () => {
   it('confirms deletion', () => {

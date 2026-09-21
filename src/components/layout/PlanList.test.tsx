@@ -1,4 +1,4 @@
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Mock } from 'vitest'
 import '@testing-library/jest-dom/vitest'
 import { render, screen, within } from '@testing-library/react'
@@ -35,19 +35,6 @@ function makePlan(name: string, updatedAt: string): Plan {
 function makeSummary(id: string, name: string, updatedAt: string) {
   return { id, name, updatedAt }
 }
-
-// jsdom does not implement the <dialog> imperative API; stub it so
-// showModal()/close() behave like in a browser.
-beforeAll(() => {
-  if (typeof HTMLDialogElement === 'function') {
-    HTMLDialogElement.prototype.showModal = function showModal() {
-      this.open = true
-    }
-    HTMLDialogElement.prototype.close = function close() {
-      this.open = false
-    }
-  }
-})
 
 let loadSpy: Mock<(id: string) => Promise<Plan | null>>
 let saveSpy: Mock<(plan: Plan) => Promise<void>>

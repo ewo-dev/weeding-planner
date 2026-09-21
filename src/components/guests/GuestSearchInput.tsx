@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Input } from '@/components/ui/Input'
 
 /** Debounce before the list filter updates (docs/07-components.md § 7). */
 const DEBOUNCE_MS = 150
@@ -24,13 +25,13 @@ export function GuestSearchInput({ onSearch }: GuestSearchInputProps) {
 
   return (
     <div className="relative">
-      <input
+      <Input
         type="search"
+        label="Rechercher un invité"
+        hideLabel
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         placeholder="Rechercher…"
-        aria-label="Rechercher un invité"
-        className="w-full rounded border border-border bg-surface-raised px-3 py-2 text-sm text-text placeholder:text-text-muted"
       />
       {draft !== '' && (
         <button

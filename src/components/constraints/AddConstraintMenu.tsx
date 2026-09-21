@@ -5,8 +5,10 @@ import type { FormEvent } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { addConstraint } from '@/lib/plan/actions'
 import { guestById } from '@/lib/plan/selectors'
-import type { ConstraintKind } from '@/types/plan'
+import type { ConstraintKind, Guest } from '@/types/plan'
 import { CONSTRAINT_KIND_LABELS, validateConstraintInput } from './constraints'
+import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 
 interface AddConstraintMenuProps {
   /** Pre-selected source guest, or null to pick both sides. */
@@ -59,25 +61,25 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
     setTargetB('')
   }
 
-  const field =
-    'w-full rounded border border-border bg-surface-raised px-3 py-2 text-sm text-text'
-
   const others = (exclude: string | null) =>
     plan.guests.filter((guest) => guest.id !== exclude)
 
+  const pickerOptions = (guests: Guest[]) =>
+    [{ value: '', label: 'Choisir…' }, ...guests.map((guest) => ({ value: guest.id, label: guest.name }))]
+
   return (
     <div>
-      <button
+      <Button
         type="button"
+        variant="secondary"
         onClick={() => {
           setOpen((was) => !was)
           setError(null)
         }}
         aria-expanded={open}
-        className="rounded border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
       >
         {open ? '− Masquer' : '+ Ajouter une contrainte'}
-      </button>
+      </Button>
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-2 space-y-2 rounded-lg border border-border bg-surface p-3">
@@ -89,69 +91,42 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
 
           {freeMode ? (
             <div className="flex gap-2">
-              <label className="flex-1">
-                <span className="mb-1 block text-xs font-medium text-text-muted">Invité A</span>
-                <select
+              <div className="flex-1">
+                <Select
+                  label="Invité A"
                   value={targetA}
                   onChange={(event) => setTargetA(event.target.value)}
-                  className={field}
-                >
-                  <option value="">Choisir…</option>
-                  {plan.guests.map((guest) => (
-                    <option key={guest.id} value={guest.id}>
-                      {guest.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="flex-1">
-                <span className="mb-1 block text-xs font-medium text-text-muted">Invité B</span>
-                <select
+                  options={pickerOptions(plan.guests)}
+                />
+              </div>
+              <div className="flex-1">
+                <Select
+                  label="Invité B"
                   value={targetB}
                   onChange={(event) => setTargetB(event.target.value)}
-                  className={field}
-                >
-                  <option value="">Choisir…</option>
-                  {plan.guests.map((guest) => (
-                    <option key={guest.id} value={guest.id}>
-                      {guest.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                  options={pickerOptions(plan.guests)}
+                />
+              </div>
             </div>
           ) : (
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-text-muted">Avec</span>
-              <select
+            <div className="block">
+              <Select
+                label="Avec"
                 value={targetA}
                 onChange={(event) => setTargetA(event.target.value)}
-                className={field}
-              >
-                <option value="">Choisir…</option>
-                {others(sourceGuestId).map((guest) => (
-                  <option key={guest.id} value={guest.id}>
-                    {guest.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+                options={pickerOptions(others(sourceGuestId))}
+              />
+            </div>
           )}
 
-          <label className="block">
-            <span className="mb-1 block text-xs font-medium text-text-muted">Relation</span>
-            <select
+          <div className="block">
+            <Select
+              label="Relation"
               value={kind}
               onChange={(event) => setKind(event.target.value as ConstraintKind)}
-              className={field}
-            >
-              {KINDS.map((option) => (
-                <option key={option} value={option}>
-                  {CONSTRAINT_KIND_LABELS[option]}
-                </option>
-              ))}
-            </select>
-          </label>
+              options={KINDS.map((option) => ({ value: option, label: CONSTRAINT_KIND_LABELS[option] }))}
+            />
+          </div>
 
           {error && (
             <p role="alert" className="text-sm text-danger">
@@ -159,12 +134,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
             </p>
           )}
 
-          <button
-            type="submit"
-            className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-          >
-            Ajouter
-          </button>
+          <Button type="submit">Ajouter</Button>
         </form>
       )}
     </div>

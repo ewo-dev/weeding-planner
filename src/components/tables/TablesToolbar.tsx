@@ -1,6 +1,6 @@
 'use client'
 
-import { Spinner } from '@/components/layout/Spinner'
+import { Button } from '@/components/ui/Button'
 
 interface TablesToolbarProps {
   onAdd: () => void
@@ -19,30 +19,22 @@ interface TablesToolbarProps {
 export function TablesToolbar({ onAdd, onBulk, onGenerate, canGenerate, generating }: TablesToolbarProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        type="button"
-        onClick={onAdd}
-        className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-      >
+      <Button type="button" onClick={onAdd}>
         + Ajouter
-      </button>
-      <button
+      </Button>
+      <Button
         type="button"
+        variant="secondary"
         onClick={onGenerate}
-        disabled={!canGenerate || generating}
+        disabled={!canGenerate}
+        loading={generating}
         title={canGenerate ? 'Générer un plan de table automatique' : 'Ajoutez des tables pour générer un plan'}
-        className="flex items-center gap-2 rounded border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {generating && <Spinner className="h-4 w-4" />}
         {generating ? 'Génération…' : 'Générer'}
-      </button>
-      <button
-        type="button"
-        onClick={onBulk}
-        className="rounded border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
-      >
+      </Button>
+      <Button type="button" variant="secondary" onClick={onBulk}>
         Configurer
-      </button>
+      </Button>
     </div>
   )
 }

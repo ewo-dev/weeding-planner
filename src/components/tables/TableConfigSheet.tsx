@@ -5,7 +5,15 @@ import type { FormEvent } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { updateTable } from '@/lib/plan/actions'
 import type { Table, TableShape } from '@/types/plan'
-import { SHAPE_LABELS, TABLE_MAX_CAPACITY, TABLE_MAX_NAME, TABLE_MIN_CAPACITY } from './tables'
+import { TABLE_MAX_CAPACITY, TABLE_MAX_NAME, TABLE_MIN_CAPACITY } from './tables'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Select } from '@/components/ui/Select'
+
+const SHAPE_OPTIONS = [
+  { value: 'round', label: 'Ronde' },
+  { value: 'rectangle', label: 'Rectangulaire' },
+]
 
 interface TableConfigSheetProps {
   table: Table
@@ -80,9 +88,6 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
     apply(update)
   }
 
-  const field =
-    'w-full rounded border border-border bg-surface-raised px-3 py-2 text-sm text-text placeholder:text-text-muted'
-
   if (pending) {
     const orphaned = seated - pending.capacity
     return (
@@ -94,20 +99,12 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
           assise valide.
         </p>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => apply(pending)}
-            className="rounded bg-danger px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-danger/90"
-          >
+          <Button type="button" variant="danger" onClick={() => apply(pending)}>
             Réduire quand même
-          </button>
-          <button
-            type="button"
-            onClick={() => setPending(null)}
-            className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
-          >
+          </Button>
+          <Button type="button" variant="secondary" onClick={() => setPending(null)}>
             Annuler
-          </button>
+          </Button>
         </div>
       </div>
     )
@@ -117,47 +114,36 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
     <form onSubmit={handleSubmit} className="space-y-3">
       <h3 className="text-sm font-semibold text-text">Configurer la table</h3>
 
-      <div>
-        <label htmlFor="table-name" className="mb-1 block text-xs font-medium text-text-muted">
-          Nom
-        </label>
-        <input
-          id="table-name"
-          name="name"
-          type="text"
-          defaultValue={table.name}
-          maxLength={TABLE_MAX_NAME}
-          className={field}
-        />
-      </div>
+      <Input
+        id="table-name"
+        label="Nom"
+        name="name"
+        type="text"
+        defaultValue={table.name}
+        maxLength={TABLE_MAX_NAME}
+      />
 
       <div className="flex gap-3">
         <div className="flex-1">
-          <label htmlFor="table-shape" className="mb-1 block text-xs font-medium text-text-muted">
-            Forme
-          </label>
-          <select id="table-shape" name="shape" defaultValue={table.shape} className={field}>
-            {(Object.keys(SHAPE_LABELS) as TableShape[]).map((shape) => (
-              <option key={shape} value={shape}>
-                {SHAPE_LABELS[shape]}
-              </option>
-            ))}
-          </select>
+          <Select
+            id="table-shape"
+            label="Forme"
+            name="shape"
+            options={SHAPE_OPTIONS}
+            defaultValue={table.shape}
+          />
         </div>
 
         <div className="w-28">
-          <label htmlFor="table-capacity" className="mb-1 block text-xs font-medium text-text-muted">
-            Places
-          </label>
-          <input
+          <Input
             id="table-capacity"
+            label="Places"
             name="capacity"
             type="number"
             defaultValue={table.capacity}
             min={TABLE_MIN_CAPACITY}
             max={TABLE_MAX_CAPACITY}
             step={1}
-            className={field}
           />
         </div>
       </div>
@@ -169,19 +155,10 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
       )}
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
-          Enregistrer
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
-        >
+        <Button type="submit">Enregistrer</Button>
+        <Button type="button" variant="secondary" onClick={onClose}>
           Annuler
-        </button>
+        </Button>
       </div>
     </form>
   )

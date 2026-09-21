@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
 import type { Plan } from '@/types/plan'
@@ -52,19 +52,6 @@ function submitForm(): void {
   if (!form) throw new Error('expected a form')
   fireEvent.submit(form)
 }
-
-// jsdom does not implement the <dialog> imperative API; stub it so
-// showModal()/close() behave like in a browser (same as PlanList.test.tsx).
-beforeAll(() => {
-  if (typeof HTMLDialogElement === 'function') {
-    HTMLDialogElement.prototype.showModal = function showModal() {
-      this.open = true
-    }
-    HTMLDialogElement.prototype.close = function close() {
-      this.open = false
-    }
-  }
-})
 
 beforeEach(() => {
   vi.spyOn(repoModule, 'getRepository').mockReturnValue({

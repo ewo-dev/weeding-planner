@@ -5,6 +5,9 @@ import type { FormEvent } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { addGuest, updateGuest } from '@/lib/plan/actions'
 import type { Guest } from '@/types/plan'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { TextArea } from '@/components/ui/TextArea'
 
 /** Mirrors GuestSchema name bounds (src/lib/schema/plan.ts). */
 const MAX_NAME = 80
@@ -46,58 +49,40 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
     onClose()
   }
 
-  const field =
-    'w-full rounded border border-border bg-surface-raised px-3 py-2 text-sm text-text placeholder:text-text-muted'
-
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <h3 className="text-sm font-semibold text-text">
         {guest ? 'Modifier l’invité' : 'Nouvel invité'}
       </h3>
 
-      <div>
-        <label htmlFor="guest-name" className="mb-1 block text-xs font-medium text-text-muted">
-          Nom
-        </label>
-        <input
-          id="guest-name"
-          name="name"
-          type="text"
-          defaultValue={guest?.name ?? ''}
-          maxLength={MAX_NAME}
-          autoFocus={guest === null}
-          placeholder="Marie Dupont"
-          className={field}
-        />
-      </div>
+      <Input
+        id="guest-name"
+        label="Nom"
+        name="name"
+        type="text"
+        defaultValue={guest?.name ?? ''}
+        maxLength={MAX_NAME}
+        autoFocus={guest === null}
+        placeholder="Marie Dupont"
+      />
 
-      <div>
-        <label htmlFor="guest-group" className="mb-1 block text-xs font-medium text-text-muted">
-          Groupe (optionnel)
-        </label>
-        <input
-          id="guest-group"
-          name="group"
-          type="text"
-          defaultValue={guest?.group ?? ''}
-          placeholder="Famille, Amis…"
-          className={field}
-        />
-      </div>
+      <Input
+        id="guest-group"
+        label="Groupe (optionnel)"
+        name="group"
+        type="text"
+        defaultValue={guest?.group ?? ''}
+        placeholder="Famille, Amis…"
+      />
 
-      <div>
-        <label htmlFor="guest-notes" className="mb-1 block text-xs font-medium text-text-muted">
-          Notes (optionnel)
-        </label>
-        <textarea
-          id="guest-notes"
-          name="notes"
-          rows={2}
-          defaultValue={guest?.notes ?? ''}
-          placeholder="Régime, allergies…"
-          className={field}
-        />
-      </div>
+      <TextArea
+        id="guest-notes"
+        label="Notes (optionnel)"
+        name="notes"
+        rows={2}
+        defaultValue={guest?.notes ?? ''}
+        placeholder="Régime, allergies…"
+      />
 
       {error && (
         <p role="alert" className="text-sm text-danger">
@@ -106,19 +91,10 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
       )}
 
       <div className="flex flex-wrap gap-2">
-        <button
-          type="submit"
-          className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
-          Enregistrer
-        </button>
-        <button
-          type="button"
-          onClick={onClose}
-          className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
-        >
+        <Button type="submit">Enregistrer</Button>
+        <Button type="button" variant="secondary" onClick={onClose}>
           Annuler
-        </button>
+        </Button>
         {guest && (
           <button
             type="button"

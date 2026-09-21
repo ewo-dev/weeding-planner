@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/Button'
 
 interface PrintLayoutProps {
   planName: string
@@ -26,20 +27,12 @@ export function PrintLayout({ planName, unseatedNames, seatedCount, totalGuests,
   return (
     <main className="print-sheet mx-auto w-full max-w-3xl px-4 py-8">
       <div className="mb-6 flex flex-wrap gap-2 print:hidden">
-        <button
-          type="button"
-          onClick={() => router.push('/editor')}
-          className="rounded border border-border bg-surface-raised px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
-        >
+        <Button type="button" variant="secondary" onClick={() => router.push('/editor')}>
           ← Retour à l’éditeur
-        </button>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover"
-        >
+        </Button>
+        <Button type="button" onClick={() => window.print()}>
           Imprimer
-        </button>
+        </Button>
       </div>
 
       <header>

@@ -3,6 +3,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { guestDragId } from '@/components/editor/dnd'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface GuestRowProps {
   guest: Guest
@@ -61,15 +62,13 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
           !
         </span>
       )}
-      <button
+      <IconButton
         type="button"
         onClick={() => onRemove(guest.id)}
-        aria-label={`Supprimer ${guest.name}`}
+        label={`Supprimer ${guest.name}`}
         title={`Supprimer ${guest.name}`}
-        className="shrink-0 px-3 py-2.5 text-base leading-none text-text-muted transition-colors hover:text-danger"
-      >
-        ×
-      </button>
+        icon="×"
+      />
     </li>
   )
 }

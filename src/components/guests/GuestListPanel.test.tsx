@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DndContext } from '@dnd-kit/core'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
@@ -60,19 +60,6 @@ async function search(query: string): Promise<void> {
     await vi.advanceTimersByTimeAsync(200)
   })
 }
-
-// jsdom does not implement the <dialog> imperative API; stub it so
-// showModal()/close() behave like in a browser (same as PlanList.test.tsx).
-beforeAll(() => {
-  if (typeof HTMLDialogElement === 'function') {
-    HTMLDialogElement.prototype.showModal = function showModal() {
-      this.open = true
-    }
-    HTMLDialogElement.prototype.close = function close() {
-      this.open = false
-    }
-  }
-})
 
 beforeEach(() => {
   vi.useFakeTimers()

@@ -2,6 +2,8 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { Button } from './Button'
+import { IconButton } from './IconButton'
 
 export type ToastKind = 'info' | 'success' | 'warning' | 'error'
 
@@ -100,26 +102,25 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {toast.message}
               </p>
               {toast.actions?.map((action) => (
-                <button
+                <Button
                   key={action.label}
                   type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => {
                     action.onAction?.()
                     dismiss(toast.id)
                   }}
-                  className="shrink-0 rounded border border-border bg-surface px-2 py-1 text-sm font-medium text-text transition-colors hover:bg-surface-raised"
                 >
                   {action.label}
-                </button>
+                </Button>
               ))}
-              <button
+              <IconButton
                 type="button"
+                label="Fermer la notification"
+                icon="×"
                 onClick={() => dismiss(toast.id)}
-                aria-label="Fermer la notification"
-                className="shrink-0 px-2 py-1 text-base leading-none text-text-muted transition-colors hover:text-text"
-              >
-                ×
-              </button>
+              />
             </div>
           ))}
         </div>

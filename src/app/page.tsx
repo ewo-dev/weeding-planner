@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Spinner } from '@/components/layout/Spinner'
+import { Spinner } from '@/components/ui/Spinner'
+import { Button } from '@/components/ui/Button'
 import { PlanList } from '@/components/layout/PlanList'
 import { createBlankPlan } from '@/components/layout/createBlankPlan'
 import { getRepository } from '@/lib/repo'
@@ -60,15 +61,14 @@ export default function HomePage() {
         <p className="mt-1 text-text-muted">Créez votre plan de table</p>
       </header>
 
-      <button
+      <Button
         type="button"
         onClick={() => void handleCreate()}
-        disabled={creating}
-        className="flex w-full items-center justify-center gap-2 rounded bg-brand px-4 py-3 font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        loading={creating}
+        className="w-full sm:w-auto"
       >
-        {creating && <Spinner className="h-4 w-4" />}
         Nouveau plan
-      </button>
+      </Button>
 
       {createError && (
         <p role="alert" className="mt-3 text-sm text-danger">
@@ -85,13 +85,9 @@ export default function HomePage() {
       {status === 'error' && (
         <div role="alert" className="mt-10 rounded-lg border border-border bg-surface p-4 text-center">
           <p className="text-text">{listError}</p>
-          <button
-            type="button"
-            onClick={reload}
-            className="mt-3 rounded border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface"
-          >
+          <Button type="button" variant="secondary" onClick={reload} className="mt-3">
             Réessayer
-          </button>
+          </Button>
         </div>
       )}
 

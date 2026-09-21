@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
 import type { ConstraintRef, GenerationReport } from '@/lib/engine'
 import { guestById } from '@/lib/plan/selectors'
 import type { Plan } from '@/types/plan'
+import { Button } from '@/components/ui/Button'
+import { Modal } from '@/components/ui/Modal'
 
 interface GenerationReportDialogProps {
   report: GenerationReport
@@ -24,8 +25,8 @@ function names(ref: ConstraintRef, plan: Plan): [string, string] {
  * `GenerationReport` to copy per docs/04-seating-engine.md § 6 and
  * docs/01-product.md § 10 — in French (D-011). Mandatory problems render
  * prominently with per-pair details; nothing mandatory is silently
- * swallowed. Actions: Apply, Regenerate, Discard.
- * TODO step 4: replace with the shared <Modal> primitive (components/ui/Modal).
+ * swallowed. Actions: Apply, Regenerate, Discard. Rendered in the shared
+ * <Modal>; the parent conditionally mounts it.
  */
 export function GenerationReportDialog({
   report,
@@ -35,17 +36,6 @@ export function GenerationReportDialog({
   onRegenerate,
   onDiscard,
 }: GenerationReportDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (!dialog.open) dialog.showModal()
-    return () => {
-      if (dialog.open) dialog.close()
-    }
-  }, [])
-
   const mandatoryTotal = report.mandatorySatisfied.length + report.mandatoryUnsatisfied.length
   const preferenceTotal = report.preferenceSatisfied.length + report.preferenceUnsatisfied.length
   const hasMandatoryProblems =
@@ -56,19 +46,14 @@ export function GenerationReportDialog({
   const mutedLine = 'flex items-start gap-2 text-sm text-text-muted'
 
   return (
-    <dialog
-      ref={dialogRef}
-      aria-modal="true"
-      aria-labelledby="generation-report-title"
-      onCancel={onDiscard}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-lg border border-border bg-surface-raised p-5 shadow-lg backdrop:bg-slate-900/40"
+    <Modal
+      open
+      onClose={onDiscard}
+      size="lg"
+      title={hasMandatoryProblems ? 'Plan généré avec des conflits' : 'Plan généré'}
     >
-      <h2 id="generation-report-title" className="font-display text-lg font-semibold text-text">
-        {hasMandatoryProblems ? 'Plan généré avec des conflits' : 'Plan généré'}
-      </h2>
-
       {/* Generation reports are assertive live regions (design § 15). */}
-      <div role="alert" className="mt-3 space-y-1.5">
+      <div role="alert" className="space-y-1.5">
         <p className="text-sm text-text">
           {report.seatedGuests === 1 ? '1 invité placé.' : `${report.seatedGuests} invités placés.`}
         </p>
@@ -144,30 +129,16 @@ export function GenerationReportDialog({
       )}
 
       <div className="mt-4 flex flex-wrap justify-end gap-2">
-        <button
-          type="button"
-          onClick={onDiscard}
-          className="rounded px-3 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text"
-        >
+        <Button variant="ghost" onClick={onDiscard}>
           Abandonner
-        </button>
-        <button
-          type="button"
-          onClick={onRegenerate}
-          disabled={regenerating}
-          className="rounded border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-raised disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        </Button>
+        <Button variant="secondary" loading={regenerating} onClick={onRegenerate}>
           {regenerating ? 'Régénération…' : 'Régénérer'}
-        </button>
-        <button
-          type="button"
-          onClick={onApply}
-          disabled={regenerating}
-          className="rounded bg-brand px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60"
-        >
+        </Button>
+        <Button variant="primary" disabled={regenerating} onClick={onApply}>
           Appliquer
-        </button>
+        </Button>
       </div>
-    </dialog>
+    </Modal>
   )
 }

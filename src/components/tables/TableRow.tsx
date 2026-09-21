@@ -2,6 +2,7 @@
 
 import type { Table } from '@/types/plan'
 import { SHAPE_LABELS } from './tables'
+import { IconButton } from '@/components/ui/IconButton'
 
 interface TableRowProps {
   table: Table
@@ -30,15 +31,13 @@ export function TableRow({ table, seated, selected, onEdit, onRemove }: TableRow
           {SHAPE_LABELS[table.shape]} · {seated}/{table.capacity} placés
         </span>
       </button>
-      <button
+      <IconButton
         type="button"
         onClick={() => onRemove(table.id)}
-        aria-label={`Supprimer ${table.name}`}
+        label={`Supprimer ${table.name}`}
         title={`Supprimer ${table.name}`}
-        className="shrink-0 px-3 py-2.5 text-base leading-none text-text-muted transition-colors hover:text-danger"
-      >
-        ×
-      </button>
+        icon="×"
+      />
     </li>
   )
 }

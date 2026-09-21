@@ -21,7 +21,7 @@ Each step:
 | 1    | Scaffold Next.js + stack               | **Next**    | —               |
 | 2    | Data model + local repository          | **Next**    | 1               |
 | 3    | Seating engine (pure, TDD)             | Done        | 2               |
-| 4    | UI primitives + design tokens          | Planned     | 1               |
+| 4    | UI primitives + design tokens          | Done        | 1               |
 | 5    | Plan context, reducer, actions, history| Done        | 2, 4            |
 | 6    | Entry page (`/`)                       | Done        | 5               |
 | 7    | Editor shell + TopBar + PlanStatsBar   | Done        | 5               |

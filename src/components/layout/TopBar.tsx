@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePlan } from '@/lib/plan/usePlan'
-import { Spinner } from './Spinner'
+import { Button } from '@/components/ui/Button'
+import { Spinner } from '@/components/ui/Spinner'
 
 /**
  * Editor top bar (docs/07-components.md § 5). Reads plan state from context:
@@ -61,9 +62,6 @@ export function TopBar() {
     dispatch({ type: 'renamePlan', name: trimmed })
   }
 
-  const actionButton =
-    'rounded border border-border bg-surface-raised px-2 py-1 text-sm font-medium text-text transition-colors hover:bg-surface disabled:cursor-not-allowed disabled:opacity-40'
-
   return (
     <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border bg-surface px-4 py-2">
       <button
@@ -103,15 +101,15 @@ export function TopBar() {
       )}
 
       <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1">
-        <button type="button" onClick={undo} disabled={!canUndo} aria-label="undo" className={actionButton}>
+        <Button type="button" variant="secondary" size="sm" onClick={undo} disabled={!canUndo} aria-label="undo">
           Annuler
-        </button>
-        <button type="button" onClick={redo} disabled={!canRedo} aria-label="redo" className={actionButton}>
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={redo} disabled={!canRedo} aria-label="redo">
           Rétablir
-        </button>
-        <button type="button" onClick={() => router.push('/print')} className={actionButton}>
+        </Button>
+        <Button type="button" variant="secondary" size="sm" onClick={() => router.push('/print')}>
           Imprimer
-        </button>
+        </Button>
 
         {saveStatus === 'saved' && (
           <span className="text-sm font-medium text-success">Enregistré</span>

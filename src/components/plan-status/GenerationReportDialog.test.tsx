@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { GenerationReport } from '@/lib/engine'
 import type { Plan } from '@/types/plan'
@@ -52,19 +52,6 @@ function renderDialog(r: GenerationReport) {
     />,
   )
 }
-
-// jsdom does not implement the <dialog> imperative API; stub it (same pattern
-// as the other dialog tests).
-beforeAll(() => {
-  if (typeof HTMLDialogElement === 'function') {
-    HTMLDialogElement.prototype.showModal = function showModal() {
-      this.open = true
-    }
-    HTMLDialogElement.prototype.close = function close() {
-      this.open = false
-    }
-  }
-})
 
 describe('GenerationReportDialog', () => {
   it('reports a clean generation per the spec mapping', () => {
