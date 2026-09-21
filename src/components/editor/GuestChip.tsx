@@ -9,6 +9,9 @@ export type GuestChipVariant = 'card' | 'seat'
 interface GuestChipProps {
   guest: Guest
   variant: GuestChipVariant
+  /** Tap handler (mobile tap-to-place). Drag still works: the 6-px pointer
+   * activation keeps click intact when the pointer doesn't move. */
+  onSelect?: (guestId: string) => void
 }
 
 /**
@@ -25,7 +28,7 @@ interface GuestChipProps {
  * nothing here. `touch-none` lets pointer drags start on touch without the
  * browser stealing the gesture for scrolling.
  */
-export function GuestChip({ guest, variant }: GuestChipProps) {
+export function GuestChip({ guest, variant, onSelect }: GuestChipProps) {
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: guestDragId(guest.id),
     data: { kind: 'guest', guestId: guest.id },
@@ -40,6 +43,7 @@ export function GuestChip({ guest, variant }: GuestChipProps) {
         type="button"
         title={guest.name}
         aria-label={guest.name}
+        onClick={() => onSelect?.(guest.id)}
         {...listeners}
         {...attributes}
         className="flex h-11 w-11 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse shadow-sm transition-transform active:scale-95"

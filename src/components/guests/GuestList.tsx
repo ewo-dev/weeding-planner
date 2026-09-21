@@ -18,6 +18,7 @@ interface GuestListProps {
   conflictIds: Set<string>
   onEdit: (guestId: string) => void
   onRemove: (guestId: string) => void
+  onMove: (guestId: string) => void
 }
 
 /**
@@ -30,7 +31,7 @@ interface GuestListProps {
  * renders so the dropzone exists even with an empty list. Requires a
  * `<DndContext>` ancestor — provided by `<SeatingEditor>`.
  */
-export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, onRemove }: GuestListProps) {
+export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, onRemove, onMove }: GuestListProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: UNSEAT_DROP_ID,
     data: { kind: 'unseat' },
@@ -57,6 +58,7 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
                 hasConflict={conflictIds.has(guest.id)}
                 onEdit={onEdit}
                 onRemove={onRemove}
+                onMove={onMove}
               />
             ))}
           </ul>
@@ -76,6 +78,7 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
                 hasConflict={conflictIds.has(guest.id)}
                 onEdit={onEdit}
                 onRemove={onRemove}
+                onMove={onMove}
               />
             ))}
           </ul>

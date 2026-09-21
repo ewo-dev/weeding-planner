@@ -4,7 +4,7 @@ import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { guestDragId } from '@/components/editor/dnd'
 import { IconButton } from '@/components/ui/IconButton'
-import { X } from 'lucide-react'
+import { Armchair, X } from 'lucide-react'
 
 interface GuestRowProps {
   guest: Guest
@@ -14,6 +14,8 @@ interface GuestRowProps {
   hasConflict: boolean
   onEdit: (guestId: string) => void
   onRemove: (guestId: string) => void
+  /** Tap-to-place sheet (docs/10-interactions.md § 5 mobile path). */
+  onMove: (guestId: string) => void
 }
 
 /**
@@ -26,7 +28,7 @@ interface GuestRowProps {
  * tab stop (Enter edits, Space drags). Requires a `<DndContext>` ancestor —
  * provided by `<SeatingEditor>`.
  */
-export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRemove }: GuestRowProps) {
+export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRemove, onMove }: GuestRowProps) {
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: guestDragId(guest.id),
     data: { kind: 'guest', guestId: guest.id },
@@ -71,6 +73,13 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
           !
         </span>
       )}
+      <IconButton
+        type="button"
+        onClick={() => onMove(guest.id)}
+        label={`Placer ${guest.name}`}
+        title={`Placer ${guest.name}`}
+        icon={<Armchair className="h-5 w-5" />}
+      />
       <IconButton
         type="button"
         onClick={() => onRemove(guest.id)}

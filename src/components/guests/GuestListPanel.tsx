@@ -12,6 +12,7 @@ import { GuestSearchInput } from './GuestSearchInput'
 import { GuestList } from './GuestList'
 import { GuestEditor } from './GuestEditor'
 import { GuestDeleteDialog } from './GuestDeleteDialog'
+import { MoveGuestSheet } from './MoveGuestSheet'
 import { UserPlus } from 'lucide-react'
 
 type EditorState = { mode: 'create' } | { mode: 'edit'; guestId: string } | null
@@ -27,6 +28,7 @@ export function GuestListPanel() {
   const [query, setQuery] = useState('')
   const [editor, setEditor] = useState<EditorState>(null)
   const [deleteTarget, setDeleteTarget] = useState<Guest | null>(null)
+  const [moveTargetId, setMoveTargetId] = useState<string | null>(null)
 
   const handleSearch = useCallback((value: string) => setQuery(value), [])
 
@@ -145,6 +147,7 @@ export function GuestListPanel() {
         conflictIds={conflictGuestIds}
         onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
         onRemove={requestDelete}
+        onMove={setMoveTargetId}
       />
 
       <ConstraintsPanel guestId={editor?.mode === 'edit' ? editor.guestId : null} />
@@ -168,6 +171,8 @@ export function GuestListPanel() {
           onCancel={() => setDeleteTarget(null)}
         />
       )}
+
+      {moveTargetId && <MoveGuestSheet guestId={moveTargetId} onClose={() => setMoveTargetId(null)} />}
     </section>
   )
 }

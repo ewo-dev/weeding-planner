@@ -17,13 +17,14 @@ function renderList(children: ReactNode) {
 }
 
 function listProps(conflictIds: Set<string> = new Set()) {
-  return { selectedId: null, conflictIds, onEdit: vi.fn(), onRemove: vi.fn() }
+  return { selectedId: null, conflictIds, onEdit: vi.fn(), onRemove: vi.fn(), onMove: vi.fn() }
 }
 
 describe('GuestList', () => {
   it('renders Unseated / Seated sections with counts and hides empty sections', () => {
     const onEdit = vi.fn()
     const onRemove = vi.fn()
+    const onMove = vi.fn()
     renderList(
       <GuestList
         unseated={[G(1, 'Carol')]}
@@ -32,6 +33,7 @@ describe('GuestList', () => {
         conflictIds={new Set()}
         onEdit={onEdit}
         onRemove={onRemove}
+        onMove={onMove}
       />,
     )
 
@@ -61,6 +63,7 @@ describe('GuestList', () => {
         conflictIds={new Set([carol.id])}
         onEdit={vi.fn()}
         onRemove={vi.fn()}
+        onMove={vi.fn()}
       />,
     )
 
@@ -71,6 +74,7 @@ describe('GuestList', () => {
   it('row click edits, × button removes', () => {
     const onEdit = vi.fn()
     const onRemove = vi.fn()
+    const onMove = vi.fn()
     const carol = G(1, 'Carol')
     renderList(
       <GuestList
@@ -80,6 +84,7 @@ describe('GuestList', () => {
         conflictIds={new Set()}
         onEdit={onEdit}
         onRemove={onRemove}
+        onMove={onMove}
       />,
     )
 
@@ -88,5 +93,8 @@ describe('GuestList', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Supprimer Carol' }))
     expect(onRemove).toHaveBeenCalledWith(carol.id)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Placer Carol' }))
+    expect(onMove).toHaveBeenCalledWith(carol.id)
   })
 })

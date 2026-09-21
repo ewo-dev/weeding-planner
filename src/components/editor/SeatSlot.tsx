@@ -1,9 +1,11 @@
 'use client'
 
+import { useState } from 'react'
 import { useDroppable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { seatDropId } from './dnd'
 import { GuestChip } from './GuestChip'
+import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
 
 interface SeatSlotProps {
   tableId: string
@@ -25,6 +27,9 @@ export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps
     id: seatDropId(tableId, seatIndex),
     data: { kind: 'seat', tableId, seatIndex },
   })
+  // Tap-to-place sheet for seated guests (docs/10-interactions.md § 5
+  // mobile path). Local state: each filled slot owns its own sheet.
+  const [moveGuestId, setMoveGuestId] = useState<string | null>(null)
 
   // Human-facing seat numbers are 1-based; the DnD id stays 0-based (§ 4).
   const label = `Place ${seatIndex + 1} de ${tableName}, ${guest ? guest.name : 'vide'}`
@@ -40,7 +45,10 @@ export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps
       }`}
     >
       {guest ? (
-        <GuestChip guest={guest} variant="seat" />
+        <>
+          <GuestChip guest={guest} variant="seat" onSelect={setMoveGuestId} />
+          {moveGuestId && <MoveGuestSheet guestId={moveGuestId} onClose={() => setMoveGuestId(null)} />}
+        </>
       ) : (
         <span aria-hidden="true" className="block h-3 w-3 rounded-full border-2 border-border bg-surface" />
       )}
