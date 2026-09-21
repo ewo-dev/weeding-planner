@@ -302,7 +302,7 @@ Not in MVP. The schema does not include presence or shared-edit fields; this lea
 
 ### D-016 — Test framework: Vitest + React Testing Library + Playwright (2026-01-12)
 
-**Status:** Accepted.
+**Status:** Superseded by D-018.
 
 **Context**
 The engine is pure; components are interactive. We need both unit and e2e coverage.
@@ -353,3 +353,22 @@ These are tracked as open questions in other docs but not as decisions:
 * Engine weights (currently hardcoded; D-003 says heuristic, not optimal).
 * Empty-state copy — owned by product, not architecture.
 * Error message wording — owned by UX, owned once `09-design-system.md` is finalized.
+
+### D-018 — Drop Playwright; manual smoke flows instead (2026-09-21)
+
+**Status:** Accepted. Supersedes D-016.
+
+**Context**
+D-016 added Playwright for e2e coverage. For a project of this size, the maintenance cost of a real-browser runner, CI configuration, and flake debugging outweighs the value. The app is small enough that a short manual checklist per release catches the same regressions.
+
+**Decision**
+* Keep **Vitest** for unit tests (`lib/engine`, `lib/repo`, `lib/plan`).
+* Keep **React Testing Library + Vitest** for component tests.
+* **Drop Playwright.** No e2e runner, no `@playwright/test` dependency.
+* Replace automated e2e with a documented manual smoke checklist per release (see `docs/13-smoke-checks.md` — to be written when needed).
+
+**Consequences**
+* Smaller dependency surface; faster installs; no browser binaries in CI.
+* One test runner only (Vitest). Less context for contributors.
+* We accept the trade-off that interactive regressions (drag & drop, print layout) are caught manually before each release rather than in CI.
+* The schema and contract tests still guarantee the critical invariants (engine correctness, repo round-trip, schema validation).

@@ -32,7 +32,7 @@ Each step:
 | 12   | Auto-generation + report dialog        | Planned     | 3, 11           |
 | 13   | Print view                             | Planned     | 7               |
 | 14   | Auth + Supabase (additive layer)       | Planned     | 2, 5            |
-| 15   | E2E tests + a11y/responsive polish     | Planned     | 1–13            |
+| 15   | Manual smoke checks + a11y/responsive polish | Planned | 1–13          |
 
 ---
 
@@ -44,7 +44,7 @@ Bootstrap the project skeleton.
 
 * `create-next-app` (App Router, TypeScript strict, Tailwind, no `src/` flag — we add `src/` manually to match `02-architecture.md`).
 * Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `@supabase/ssr`, `lucide-react`.
-* Install dev deps: `vitest`, `@testing-library/react`, `@testing-library/user-event`, `@playwright/test`.
+* Install dev deps: `vitest`, `@testing-library/react`, `@testing-library/user-event`.
 * Configure `tailwind.config.ts` with design tokens from `09-design-system.md` § 4–8 (colors, spacing, radii, shadows, font families).
 * Configure `globals.css`: Tailwind base + reduced-motion rule (`10-interactions.md` § 15).
 * Create the `src/` folder structure exactly as defined in `02-architecture.md` § 5 (empty placeholder files allowed).
@@ -236,14 +236,15 @@ The optional layer. The app already works without it.
 
 ---
 
-### Step 15 — E2E tests + a11y/responsive polish
+### Step 15 — Manual smoke checks + a11y/responsive polish
 
-* Playwright flows: anonymous happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, cloud save round-trip.
-* Component test coverage for interactive components.
+* No automated e2e runner (per D-018). Maintain `docs/13-smoke-checks.md` with the manual checklist:
+  anonymous happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, cloud save round-trip.
+* Component test coverage for interactive components via Vitest + Testing Library.
 * A11y audit: contrast, keyboard parity, focus-visible, `prefers-reduced-motion`, hit targets ≥ 44 px, `aria-label` on seats and tables.
 * Responsive check at `sm` / `md` / `lg`.
 
-**Validation gate:** Playwright suite green on Chromium. Manual review against `09-design-system.md`.
+**Validation gate:** Vitest suite green. Manual review against `09-design-system.md` and the smoke checklist.
 
 ---
 

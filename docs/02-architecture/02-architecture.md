@@ -361,7 +361,7 @@ The UI maps these to messages without exposing stack traces.
 
 * **Unit** — `lib/engine/**` (pure functions, easy to cover).
 * **Component** — `components/**` (React Testing Library).
-* **E2E** — Playwright for the critical flows:
+* **End-to-end checks** — manual smoke flows documented per release (no automated e2e runner — see D-018):
   * Anonymous user can build a plan end-to-end.
   * Auto-generation respects mandatory constraints.
   * Cloud save and reload round-trip works.

@@ -307,7 +307,7 @@ const migrations: Record<number, Migration> = {
 }
 ```
 
-3. On repository load, run migrations sequentially from `raw.schemaVersion` to `CURRENT_VERSION`.
+3. On repository load, run migrations sequentially from the stored `meta.schemaVersion` up to `CURRENT_VERSION`.
 4. After migration, re-validate. If validation fails, surface a "Plan could not be loaded" error and offer a reset.
 
 Migrations are forward-only. Backwards compatibility within a deployed version window is acceptable.

@@ -312,7 +312,7 @@ Last-write-wins by `updatedAt`. No per-field merge.
 Whenever the repository loads a plan (local or cloud):
 
 1. Parse JSON.
-2. Run migrations from `raw.schemaVersion` up to `CURRENT_VERSION` (see `03-data-model.md` § 9).
+2. Run migrations from the stored `meta.schemaVersion` up to `CURRENT_VERSION` (see `03-data-model.md` § 9).
 3. Validate with `PlanSchema`.
 4. If validation fails, throw `RepoError("corrupt")` — the UI offers a "Discard plan" or "Keep editing in memory" choice.
 

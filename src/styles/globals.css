@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@config "../../tailwind.config.ts";
+
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-sans);
+}
+
+/* Default surface and text per design tokens (docs/09-design-system.md § 4). */
+body {
+  @apply bg-bg text-text font-sans;
+}
+
+/* Respect prefers-reduced-motion (docs/10-interactions.md § 15). */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.001ms !important;
+    animation-duration: 0.001ms !important;
+  }
+}
