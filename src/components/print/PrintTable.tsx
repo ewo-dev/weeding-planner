@@ -9,38 +9,59 @@ interface PrintTableProps {
   assignments: Assignment[]
 }
 
+interface SeatRow {
+  seatIndex: number
+  /** Truthy: known guest name or unknown placeholder. */
+  guestName: string | null
+  /** True when the seat has no assignment at all. */
+  empty: boolean
+}
+
+const UNKNOWN_GUEST = '(invité inconnu)'
+
 /**
- * One table in the print view (docs/06-routing-and-pages.md § 7). Guests are
- * resolved and ordered by seat index; unknown ids degrade to a placeholder
- * instead of crashing the printout.
+ * One table in the print view (docs/06-routing-and-pages.md § 7,
+ * docs/11-roadmap.md step 20). Shows the table name, shape, occupancy,
+ * every seat in order with the seated guest's name (or "Place libre"
+ * for empty seats). `break-inside-avoid` keeps a table block on a
+ * single page in print preview.
  */
 export function PrintTable({ table, guests, assignments }: PrintTableProps) {
-  const seatedNames = assignments
-    .filter((a) => a.tableId === table.id)
-    .sort((x, y) => x.seatIndex - y.seatIndex)
-    .map((a) => guests.find((g) => g.id === a.guestId)?.name ?? '(invité inconnu)')
-  const free = table.capacity - seatedNames.length
+  const byGuest = new Map(guests.map((g) => [g.id, g.name] as const))
+  const rows: SeatRow[] = Array.from({ length: table.capacity }, (_, seatIndex) => {
+    const assignment = assignments.find((a) => a.tableId === table.id && a.seatIndex === seatIndex)
+    if (!assignment) return { seatIndex, guestName: null, empty: true }
+    const knownName = byGuest.get(assignment.guestId)
+    return { seatIndex, guestName: knownName ?? UNKNOWN_GUEST, empty: false }
+  })
+  const seated = rows.filter((row) => !row.empty).length
+  const occupancyLabel = `${seated} / ${table.capacity}`
+  const allEmpty = rows.every((row) => row.empty)
 
   return (
     <section aria-label={table.name} className="break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
-      <h2 className="font-display text-lg font-semibold text-text">{table.name}</h2>
-      <p className="mt-0.5 text-sm text-text-muted">
-        {SHAPE_LABELS[table.shape]} · {seatedNames.length}/{table.capacity} places occupées
-      </p>
-      {seatedNames.length === 0 ? (
+      <header className="flex items-baseline justify-between gap-2">
+        <h2 className="font-display text-lg font-semibold text-text">{table.name}</h2>
+        <span className="shrink-0 text-xs text-text-muted">{occupancyLabel}</span>
+      </header>
+      <p className="mt-0.5 text-xs text-text-muted">{SHAPE_LABELS[table.shape]}</p>
+      {allEmpty ? (
         <p className="mt-2 text-sm text-text-muted">Aucun invité placé.</p>
       ) : (
-        <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-sm text-text">
-          {seatedNames.map((name, index) => (
-            // Seat order is the list order; names can repeat so index keys it.
-            <li key={`${name}-${index}`}>{name}</li>
+        <ol className="mt-2 space-y-0.5 text-sm text-text">
+          {rows.map((row) => (
+            <li key={row.seatIndex} className="flex items-baseline gap-2">
+              <span className="w-14 shrink-0 text-xs text-text-muted">Place {row.seatIndex + 1}</span>
+              <span className="min-w-0 truncate">
+                {row.empty ? (
+                  <span className="italic text-text-muted">Place libre</span>
+                ) : (
+                  row.guestName
+                )}
+              </span>
+            </li>
           ))}
         </ol>
-      )}
-      {free > 0 && seatedNames.length > 0 && (
-        <p className="mt-2 text-sm text-text-muted">
-          {free === 1 ? '1 place libre.' : `${free} places libres.`}
-        </p>
       )}
     </section>
   )

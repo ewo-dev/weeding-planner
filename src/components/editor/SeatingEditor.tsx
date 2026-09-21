@@ -6,8 +6,9 @@ import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 import { usePlan } from '@/lib/plan/usePlan'
 import { guestById, tableById } from '@/lib/plan/selectors'
 import { EditorLayout } from '@/components/layout/EditorLayout'
+import { useToast } from '@/components/ui/ToastProvider'
 import { arrowKeyboardCoordinates, parseDndId, type ActiveDrag, type DragKind } from './dnd'
-import { resolveGuestDrop, resolveTableDrop } from './dropLogic'
+import { isFullTableDrop, resolveGuestDrop, resolveTableDrop } from './dropLogic'
 import { DragGhost } from './DragGhost'
 import { ConflictWatcher } from '@/components/constraints/ConflictWatcher'
 import { Workspace } from './Workspace'
@@ -60,6 +61,7 @@ function parseTable(id: string): string | null {
  */
 export function SeatingEditor() {
   const { plan, dispatch } = usePlan()
+  const { notify } = useToast()
   const [activeDrag, setActiveDrag] = useState<ActiveDrag | null>(null)
   const workspaceRef = useRef<HTMLDivElement | null>(null)
 
@@ -78,8 +80,21 @@ export function SeatingEditor() {
     if (!drag) return
 
     if (drag.kind === 'guest' && drag.guestId) {
-      const action = resolveGuestDrop(plan, drag.guestId, event.over ? String(event.over.id) : null)
-      if (action) dispatch(action)
+      const overId = event.over ? String(event.over.id) : null
+      const action = resolveGuestDrop(plan, drag.guestId, overId)
+      if (action) {
+        dispatch(action)
+        return
+      }
+      // Capacity feedback (docs/11-roadmap.md step 19): a snap-back to a
+      // seat that belongs to a full table tells the user why the drop
+      // failed instead of silently rejecting.
+      if (isFullTableDrop(plan, overId)) {
+        notify({
+          kind: 'warning',
+          message: 'Cette table est complète. Retirez un invité ou augmentez la capacité.',
+        })
+      }
       return
     }
 

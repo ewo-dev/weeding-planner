@@ -18,7 +18,7 @@ function guests(): Guest[] {
 }
 
 describe('PrintTable', () => {
-  it('lists seated guests ordered by seat index with occupancy', () => {
+  it('lists seats in order with occupants and "Place libre" for empty ones', () => {
     const assignments: Assignment[] = [
       { guestId: G(2), tableId: T, seatIndex: 1 },
       { guestId: G(1), tableId: T, seatIndex: 0 },
@@ -26,22 +26,34 @@ describe('PrintTable', () => {
     render(<PrintTable table={table()} guests={guests()} assignments={assignments} />)
 
     expect(screen.getByRole('heading', { name: 'Table Ronde' })).toBeInTheDocument()
-    expect(screen.getByText('Ronde · 2/4 places occupées')).toBeInTheDocument()
-    const items = screen.getAllByRole('listitem')
-    expect(items.map((item) => item.textContent)).toEqual(['Alice', 'Bob'])
-    expect(screen.getByText('2 places libres.')).toBeInTheDocument()
+    expect(screen.getByText('2 / 4')).toBeInTheDocument()
+    const rows = screen.getAllByRole('listitem')
+    expect(rows).toHaveLength(4)
+    expect(rows[0]).toHaveTextContent('Place 1')
+    expect(rows[0]).toHaveTextContent('Alice')
+    expect(rows[1]).toHaveTextContent('Place 2')
+    expect(rows[1]).toHaveTextContent('Bob')
+    expect(rows[2]).toHaveTextContent('Place 3')
+    expect(rows[2]).toHaveTextContent('Place libre')
+    expect(rows[3]).toHaveTextContent('Place 4')
+    expect(rows[3]).toHaveTextContent('Place libre')
   })
 
   it('shows the empty state for a table with no assignments', () => {
     render(<PrintTable table={table()} guests={guests()} assignments={[]} />)
 
+    expect(screen.getByText('0 / 4')).toBeInTheDocument()
     expect(screen.getByText('Aucun invité placé.')).toBeInTheDocument()
+    expect(screen.queryByRole('listitem')).not.toBeInTheDocument()
   })
 
-  it('degrades unknown guest ids to a placeholder', () => {
+  it('degrades unknown guest ids to a placeholder instead of "Place libre"', () => {
     const assignments: Assignment[] = [{ guestId: G(9), tableId: T, seatIndex: 0 }]
     render(<PrintTable table={table()} guests={guests()} assignments={assignments} />)
 
-    expect(screen.getByText('(invité inconnu)')).toBeInTheDocument()
+    // Seat 0 keeps its assignment but renders the unknown-guest placeholder.
+    expect(screen.getByText(/invité inconnu/i)).toBeInTheDocument()
+    // Seats 1, 2, 3 still show "Place libre".
+    expect(screen.getAllByText('Place libre')).toHaveLength(3)
   })
 })

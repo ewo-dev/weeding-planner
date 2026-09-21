@@ -39,6 +39,23 @@ export function resolveGuestDrop(plan: Plan, guestId: string, overId: string | n
   return null
 }
 
+/**
+ * Identifies a snap-back reason for capacity feedback (docs/11-roadmap.md
+ * step 19). Returns true when the over id resolves to a seat whose table
+ * is already at capacity, so the caller can replace the silent snap-back
+ * with an explicit toast. Anything else (unknown tables, no over,
+ * different drop kinds) returns false.
+ */
+export function isFullTableDrop(plan: Plan, overId: string | null): boolean {
+  if (overId === null) return false
+  const target = parseDndId(overId)
+  if (target.kind !== 'seat') return false
+  const table = tableById(plan, target.tableId)
+  if (!table) return false
+  const seated = plan.assignments.filter((a) => a.tableId === table.id).length
+  return seated >= table.capacity
+}
+
 /** Inset keeping dragged tables fully visible (docs/10-interactions.md § 7). */
 export const WORKSPACE_INSET = 16
 

@@ -4,17 +4,17 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Plan } from '@/types/plan'
 import { getRepository } from '@/lib/repo'
-import { seatedCount, unseatedGuests } from '@/lib/plan/selectors'
 import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
 import { PrintLayout } from '@/components/print/PrintLayout'
 import { PrintTable } from '@/components/print/PrintTable'
 import { Button } from '@/components/ui/Button'
 import '../../styles/print.css'
 
-// Print view (docs/06-routing-and-pages.md § 7, D-019). Reads the active plan
-// id from localStorage, loads it via the repository, and renders the
-// print-friendly layout. Fully client for the static export: no loading.tsx /
-// error.tsx, no metadata (client components cannot export it).
+// Print view (docs/06-routing-and-pages.md § 7, roadmap step 20, D-019).
+// Reads the active plan id from localStorage, loads it via the repository,
+// and renders the print-friendly layout. Fully client for the static
+// export: no loading.tsx / error.tsx, no metadata (client components
+// cannot export it).
 
 export default function PrintPage() {
   const router = useRouter()
@@ -76,12 +76,7 @@ export default function PrintPage() {
   if (!plan) return null
 
   return (
-    <PrintLayout
-      planName={plan.meta.name}
-      unseatedNames={unseatedGuests(plan).map((guest) => guest.name)}
-      seatedCount={seatedCount(plan)}
-      totalGuests={plan.guests.length}
-    >
+    <PrintLayout plan={plan}>
       {plan.tables.map((table) => (
         <PrintTable key={table.id} table={table} guests={plan.guests} assignments={plan.assignments} />
       ))}

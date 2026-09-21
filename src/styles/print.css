@@ -1,8 +1,30 @@
-/* Print-only rules (D-017, roadmap step 13): black on white, no chrome. */
+/* Print-only rules (D-017, roadmap step 20). Paper-first A4 portrait:
+ * single-column blocks, one table block per logical page break where
+ * possible, forced black on white, no chrome, no shadows, no
+ * backgrounds. Source the page-size from the most common paper sizes
+ * the user might switch to in the browser print dialog.
+ */
+
+@page {
+  size: A4 portrait;
+  margin: 14mm;
+}
+
+/* US Letter preview should also stay clean; explicit size to avoid
+ * browsers silently rescaling mid-render. */
+@media print and (min-width: 0) {
+  @page :first {
+    margin-top: 0;
+  }
+}
 
 @media print {
+  html,
   body {
     background: #fff !important;
+    color: #000 !important;
+    font-size: 11pt;
+    line-height: 1.35;
   }
 
   /* Strip backgrounds and force black text for ink savings. Scoped to the
@@ -13,5 +35,28 @@
     color: #000 !important;
     box-shadow: none !important;
     text-shadow: none !important;
+  }
+
+  .print-sheet {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Each table block, the unseated section, and the alphabetical index
+   * stay together; long plans flow to a new page on the next block. */
+  .print-sheet > main > section,
+  .print-sheet > main > div > section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border-color: #000 !important;
+  }
+
+  /* Avoid orphan headings above their first row. */
+  .print-sheet h1,
+  .print-sheet h2,
+  .print-sheet p {
+    orphans: 3;
+    widows: 3;
   }
 }

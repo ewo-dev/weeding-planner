@@ -89,9 +89,11 @@ describe('PrintPage', () => {
     expect(await screen.findByRole('heading', { name: 'Plan à imprimer' })).toBeInTheDocument()
     expect(screen.getByText(/1 \/ 2 invités placés/)).toBeInTheDocument()
     expect(screen.getByLabelText('Table 1')).toBeInTheDocument()
-    expect(screen.getByText('Alice')).toBeInTheDocument()
+    // Alice appears in the seat list and the index; assert both spots.
+    expect(screen.getAllByText('Alice').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByLabelText('Non placés')).toBeInTheDocument()
-    expect(screen.getByText('Bob')).toBeInTheDocument()
+    expect(screen.getAllByText('Bob').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByLabelText('Index alphabétique')).toBeInTheDocument()
   })
 
   it('shows the friendly error state when loading fails', async () => {

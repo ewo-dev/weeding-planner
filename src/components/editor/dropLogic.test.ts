@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Plan } from '@/types/plan'
-import { resolveGuestDrop, resolveTableDrop } from './dropLogic'
+import { isFullTableDrop, resolveGuestDrop, resolveTableDrop } from './dropLogic'
 
 const G = (n: number): string => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const T = (n: number): string => `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -105,5 +105,42 @@ describe('resolveTableDrop', () => {
   it('returns null for unknown tables and unchanged positions', () => {
     expect(resolveTableDrop(fixture(), T(9), { x: 200, y: 300 }, bounds)).toBeNull()
     expect(resolveTableDrop(fixture(), T(1), { x: 100, y: 100 }, bounds)).toBeNull()
+  })
+})
+
+describe('isFullTableDrop', () => {
+  // Table 1 (cap 4) is filled Alice:0 + Bob:1 + Carol:2 + Dan:3.
+  function fullFixture(): Plan {
+    return {
+      ...fixture(),
+      guests: [
+        { id: G(1), name: 'Alice' },
+        { id: G(2), name: 'Bob' },
+        { id: G(3), name: 'Carol' },
+        { id: G(4), name: 'Dan' },
+      ],
+      assignments: [
+        { guestId: G(1), tableId: T(1), seatIndex: 0 },
+        { guestId: G(2), tableId: T(1), seatIndex: 1 },
+        { guestId: G(3), tableId: T(1), seatIndex: 2 },
+        { guestId: G(4), tableId: T(1), seatIndex: 3 },
+      ],
+    }
+  }
+
+  it('flags a seat inside a full table', () => {
+    expect(isFullTableDrop(fullFixture(), `seat:${T(1)}:3`)).toBe(true)
+  })
+
+  it('does not flag a table that still has free seats', () => {
+    // `fixture` has only Alice:0 + Bob:1 seated in a cap-4 table.
+    expect(isFullTableDrop(fixture(), `seat:${T(1)}:3`)).toBe(false)
+  })
+
+  it('returns false for unknown tables and unrelated drop targets', () => {
+    expect(isFullTableDrop(fullFixture(), `seat:${T(9)}:0`)).toBe(false)
+    expect(isFullTableDrop(fullFixture(), 'seat:unseat')).toBe(false)
+    expect(isFullTableDrop(fullFixture(), 'workspace')).toBe(false)
+    expect(isFullTableDrop(fullFixture(), null)).toBe(false)
   })
 })
