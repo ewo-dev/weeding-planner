@@ -56,6 +56,16 @@ function renderCard(t: Table, guests: Guest[] = [], planTables?: Table[]) {
   )
 }
 
+function renderSelectableCard(t: Table, selected: boolean, onSelect: (tableId: string) => void) {
+  render(
+    <DndContext>
+      <PlanProvider initialPlan={makePlan([t])}>
+        <TableCard table={t} guests={[]} selected={selected} onSelect={onSelect} />
+      </PlanProvider>
+    </DndContext>,
+  )
+}
+
 beforeEach(() => {
   vi.spyOn(repoModule, 'getRepository').mockReturnValue({
     save: vi.fn(async () => undefined),
@@ -122,5 +132,23 @@ describe('TableCard', () => {
 
     expect(screen.getByRole('button', { name: 'Table 1' })).toBeInTheDocument()
     expect(screen.getByTestId('probe')).not.toHaveTextContent('Changed')
+  })
+
+  it('marks the selected card with emphasis and reports surface taps', () => {
+    const onSelect = vi.fn()
+    renderSelectableCard(table(), true, onSelect)
+
+    const surface = screen.getByLabelText('Déplacer Table 1')
+    expect(surface).toHaveAttribute('aria-pressed', 'true')
+    expect(surface).toHaveAttribute('data-selected', 'true')
+
+    fireEvent.click(surface)
+    expect(onSelect).toHaveBeenCalledWith(T(1))
+  })
+
+  it('leaves unselected cards without emphasis', () => {
+    renderSelectableCard(table(), false, vi.fn())
+
+    expect(screen.getByLabelText('Déplacer Table 1')).toHaveAttribute('aria-pressed', 'false')
   })
 })

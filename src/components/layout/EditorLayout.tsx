@@ -5,6 +5,8 @@ import type { ReactNode } from 'react'
 import { Users, Table2, LayoutTemplate } from 'lucide-react'
 import { GuestListPanel } from '@/components/guests/GuestListPanel'
 import { TablesPanel } from '@/components/tables/TablesPanel'
+import { TableDetailSheet } from '@/components/tables/TableDetailSheet'
+import { TableSelectionProvider, useTableSelection } from '@/components/tables/TableSelection'
 
 type EditorTab = 'guests' | 'tables' | 'plan'
 type AsideTab = 'guests' | 'tables'
@@ -41,6 +43,30 @@ const ASIDE_LABELS: Record<AsideTab, string> = {
  * independent local state — CSS keeps only one visible at a time.
  */
 export function EditorLayout({ children }: { children: ReactNode }) {
+  return (
+    <TableSelectionProvider>
+      <EditorLayoutInner>{children}</EditorLayoutInner>
+    </TableSelectionProvider>
+  )
+}
+
+/**
+ * Mobile bottom sheet for the selected table (roadmap step 15). Rendered
+ * once here — not inside `TablesPanel` (which mounts twice) — so a canvas
+ * tap on the mobile Plan tab still opens it. Hidden on `lg+` where the
+ * desktop side panel covers the detail.
+ */
+function MobileTableDetailSheet() {
+  const { selectedTableId, selectTable } = useTableSelection()
+  if (!selectedTableId) return null
+  return (
+    <div className="lg:hidden">
+      <TableDetailSheet tableId={selectedTableId} onClose={() => selectTable(null)} />
+    </div>
+  )
+}
+
+function EditorLayoutInner({ children }: { children: ReactNode }) {
   const [tab, setTab] = useState<EditorTab>('plan')
   const [asideTab, setAsideTab] = useState<AsideTab>('guests')
 
@@ -106,6 +132,7 @@ export function EditorLayout({ children }: { children: ReactNode }) {
           )}
         </div>
       </div>
+      <MobileTableDetailSheet />
     </div>
   )
 }

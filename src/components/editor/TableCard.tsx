@@ -14,7 +14,9 @@ interface TableCardProps {
   table: Table
   /** Guests seated here, ordered by seatIndex. */
   guests: Guest[]
+  /** Shared selection (roadmap step 16): list ↔ canvas ↔ detail view. */
   selected?: boolean
+  onSelect?: (tableId: string) => void
 }
 
 /** Seat slot touch-target diameter (docs/09-design-system.md § 12 + § 15). */
@@ -25,10 +27,12 @@ const SEAT = 44
  * a circular table surface surrounded by seat slots; rectangles render as a
  * long table surface with a row of seats below. The header/surface is the drag
  * handle; seats stay clickable because only the surface carries the listeners.
+ * Tapping the surface selects the table and opens the detail view (roadmap
+ * step 16) — the 6-px pointer activation keeps tap-to-select intact.
  * Clicking the name renames inline (reverts on empty/duplicate). While the card
  * follows the pointer via transform, guests use the overlay ghost instead.
  */
-export function TableCard({ table, guests, selected = false }: TableCardProps) {
+export function TableCard({ table, guests, selected = false, onSelect }: TableCardProps) {
   const { plan, dispatch } = usePlan()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -115,8 +119,13 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
 
   const surfaceBase =
     'bg-surface shadow-sm ring-1 ring-inset ring-border transition-shadow'
-  const selectedRing = selected ? 'ring-2 ring-brand' : ''
+  const selectedRing = selected ? 'ring-2 ring-brand ring-offset-2 ring-offset-bg shadow-md' : ''
   const draggingStyles = isDragging ? 'z-10 opacity-95 shadow-lg' : ''
+
+  function handleSurfaceClick(): void {
+    if (editingRef.current) return
+    onSelect?.(table.id)
+  }
 
   if (table.shape === 'round') {
     const radius = Math.max(64, Math.ceil((table.capacity * (SEAT + 8)) / (2 * Math.PI)))
@@ -151,12 +160,15 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
             </div>
           )
         })}
-        {/* Central table surface = drag handle + rename. */}
+        {/* Central table surface = drag handle + select + rename. */}
         <div
           ref={setNodeRef}
           {...listeners}
           {...attributes}
           aria-label={`Déplacer ${table.name}`}
+          aria-pressed={selected}
+          data-selected={selected || undefined}
+          onClick={handleSurfaceClick}
           className={`absolute left-1/2 top-1/2 flex h-[8.5rem] w-[8.5rem] -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 rounded-full ${surfaceBase} ${selectedRing}`}
         >
           {headerName}
@@ -181,12 +193,15 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
       }}
       className={`absolute ${draggingStyles}`}
     >
-      {/* Table surface = drag handle + rename. */}
+      {/* Table surface = drag handle + select + rename. */}
       <div
         ref={setNodeRef}
         {...listeners}
         {...attributes}
         aria-label={`Déplacer ${table.name}`}
+        aria-pressed={selected}
+        data-selected={selected || undefined}
+        onClick={handleSurfaceClick}
         className={`flex min-h-[52px] touch-none items-center justify-between gap-2 rounded-xl ${surfaceBase} ${selectedRing} px-4 py-2.5`}
       >
         <span className="min-w-0 flex-1 text-center">{headerName}</span>

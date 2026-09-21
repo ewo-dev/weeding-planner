@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
@@ -6,6 +6,7 @@ import type { Plan } from '@/types/plan'
 import { PlanProvider } from '@/lib/plan/context'
 import { usePlan } from '@/lib/plan/usePlan'
 import { TablesPanel } from './TablesPanel'
+import { TableSelectionProvider } from './TableSelection'
 
 const G = (n: number): string => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const T = (n: number): string => `10000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -42,7 +43,9 @@ function fixture(): Plan {
 function renderPanel(plan: Plan = fixture()): void {
   render(
     <PlanProvider initialPlan={plan}>
-      <TablesPanel />
+      <TableSelectionProvider>
+        <TablesPanel />
+      </TableSelectionProvider>
     </PlanProvider>,
   )
 }
@@ -83,10 +86,26 @@ describe('TablesPanel', () => {
     expect(screen.getByTestId('table-count')).toHaveTextContent('3 tables · 22 places')
   })
 
-  it('edits the selected table through the config sheet', () => {
+  it('selecting a table opens the detail view with its guests and empty seats', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: /^Table 1/ }))
+    expect(screen.getByRole('region', { name: 'Détails de la table' })).toBeInTheDocument()
+    // Seated guests with seat numbers.
+    expect(screen.getByText('Place 1')).toBeInTheDocument()
+    expect(screen.getByText(/Alice/)).toBeInTheDocument()
+    expect(screen.getByText(/Bob/)).toBeInTheDocument()
+    // Empty seats are listed (cap 8, 2 seated).
+    expect(screen.getByText('Places libres (6)')).toBeInTheDocument()
+  })
+
+  it('edits the selected table through the detail Configurer action', () => {
     renderPanel()
 
     fireEvent.click(screen.getByRole('button', { name: /^Table 2/ }))
+    expect(screen.getByRole('region', { name: 'Détails de la table' })).toBeInTheDocument()
+
+    fireEvent.click(within(screen.getByRole('region', { name: 'Détails de la table' })).getByRole('button', { name: 'Configurer' }))
     expect(screen.getByText('Configurer la table')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Nom'), { target: { value: 'Table VIP' } })
@@ -139,14 +158,14 @@ describe('TablesPanel', () => {
     expect(screen.getByTestId('table-count')).toHaveTextContent('1 tables · 6 places')
   })
 
-  it('Escape closes the config sheet', () => {
+  it('Escape closes the detail view', () => {
     renderPanel()
 
     fireEvent.click(screen.getByRole('button', { name: /^Table 1/ }))
-    expect(screen.getByText('Configurer la table')).toBeInTheDocument()
+    expect(screen.getByRole('region', { name: 'Détails de la table' })).toBeInTheDocument()
 
     fireEvent.keyDown(document, { key: 'Escape' })
-    expect(screen.queryByText('Configurer la table')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Détails de la table' })).not.toBeInTheDocument()
   })
 
   it('shows an empty state when the plan has no tables', () => {
@@ -204,7 +223,9 @@ function UndoHarness() {
 function renderGeneratePanel(plan: Plan) {
   render(
     <PlanProvider initialPlan={plan}>
-      <TablesPanel />
+      <TableSelectionProvider>
+        <TablesPanel />
+      </TableSelectionProvider>
       <UndoHarness />
     </PlanProvider>,
   )

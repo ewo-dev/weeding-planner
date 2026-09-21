@@ -1,10 +1,11 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DndContext } from '@dnd-kit/core'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
 import type { Plan } from '@/types/plan'
 import { PlanProvider } from '@/lib/plan/context'
+import { TableSelectionProvider } from '@/components/tables/TableSelection'
 import { Workspace } from './Workspace'
 
 const G = (n: number): string => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -35,7 +36,9 @@ function renderWorkspace(withTables: boolean) {
   render(
     <DndContext>
       <PlanProvider initialPlan={makePlan(withTables)}>
-        <Workspace />
+        <TableSelectionProvider>
+          <Workspace />
+        </TableSelectionProvider>
       </PlanProvider>
     </DndContext>,
   )
@@ -69,5 +72,20 @@ describe('Workspace', () => {
 
     expect(screen.getByText(/Aucune table pour l’instant/)).toBeInTheDocument()
     expect(screen.queryByTestId(`table-card-${T(1)}`)).not.toBeInTheDocument()
+  })
+
+  it('selects a table on surface tap and clears on empty canvas click', () => {
+    renderWorkspace(true)
+
+    const surface = screen.getByLabelText('Déplacer Table Ronde')
+    expect(surface).toHaveAttribute('aria-pressed', 'false')
+
+    fireEvent.click(surface)
+    expect(screen.getByLabelText('Déplacer Table Ronde')).toHaveAttribute('data-selected', 'true')
+    // The other card stays unselected.
+    expect(screen.getByLabelText('Déplacer Table Longue')).not.toHaveAttribute('data-selected')
+
+    fireEvent.click(screen.getByTestId('workspace'))
+    expect(screen.getByLabelText('Déplacer Table Ronde')).not.toHaveAttribute('data-selected')
   })
 })

@@ -11,7 +11,8 @@ import { GenerationReportDialog } from '@/components/plan-status/GenerationRepor
 import { EmptyState } from '@/components/ui/EmptyState'
 import { TablesToolbar } from './TablesToolbar'
 import { TableList } from './TableList'
-import { TableConfigSheet } from './TableConfigSheet'
+import { TableDetailPanel } from './TableDetailPanel'
+import { useTableSelection } from './TableSelection'
 import { BulkTableConfig } from './BulkTableConfig'
 import { TableDeleteDialog } from './TableDeleteDialog'
 import { DEFAULT_TABLE_CAPACITY, DEFAULT_TABLE_SHAPE, nextTableName } from './tables'
@@ -28,10 +29,11 @@ interface GenerationPreview {
 
 /**
  * Table management panel (docs/07-components.md § 8): toolbar, table list
- * with occupancy, per-table config sheet, bulk configuration, seating
- * generation. Selection is local UI state (not in the plan) per the
- * composition rules; all mutations dispatch through context and are undoable
- * (docs/10-interactions.md § 9).
+ * with occupancy, table detail view (desktop side panel; mobile uses the
+ * bottom sheet in `EditorLayout`), bulk configuration, seating
+ * generation. Selection is shared UI state via `TableSelectionProvider`
+ * (not in the plan) per the composition rules; all mutations dispatch
+ * through context and are undoable (docs/10-interactions.md § 9).
  *
  * Generation is preview-then-apply (docs/11-roadmap.md step 12): the engine
  * runs on click, the dialog shows the report, and Apply dispatches
@@ -41,32 +43,32 @@ interface GenerationPreview {
  */
 export function TablesPanel() {
   const { plan, dispatch } = usePlan()
+  const { selectedTableId, selectTable } = useTableSelection()
   const [defaults, setDefaults] = useState<{ capacity: number; shape: TableShape }>({
     capacity: DEFAULT_TABLE_CAPACITY,
     shape: DEFAULT_TABLE_SHAPE,
   })
-  const [editingId, setEditingId] = useState<string | null>(null)
   const [bulkOpen, setBulkOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [generating, setGenerating] = useState(false)
   const [generateError, setGenerateError] = useState<string | null>(null)
   const [preview, setPreview] = useState<GenerationPreview | null>(null)
 
-  // Escape closes the sheet/dialogs (docs/10-interactions.md § 10); skipped
-  // inside inputs so typing is never interrupted.
+  // Escape closes the detail/dialogs (docs/10-interactions.md § 8, § 10);
+  // skipped inside inputs so typing is never interrupted.
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent): void {
       const target = event.target as HTMLElement | null
       if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) return
       if (event.key === 'Escape') {
-        setEditingId(null)
+        selectTable(null)
         setBulkOpen(false)
         setDeleteTarget(null)
       }
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  }, [selectTable])
 
   const seatedByTable = useMemo(() => {
     const map = new Map<string, number>()
@@ -140,7 +142,7 @@ export function TablesPanel() {
       .map((a) => guestById(plan, a.guestId)?.name ?? '?')
     if (guestNames.length === 0) {
       dispatch(removeTable(tableId))
-      if (editingId === tableId) setEditingId(null)
+      if (selectedTableId === tableId) selectTable(null)
       return
     }
     setDeleteTarget({ table, guestNames })
@@ -149,12 +151,12 @@ export function TablesPanel() {
   function confirmDelete(): void {
     if (!deleteTarget) return
     dispatch(removeTable(deleteTarget.table.id))
-    if (editingId === deleteTarget.table.id) setEditingId(null)
+    if (selectedTableId === deleteTarget.table.id) selectTable(null)
     setDeleteTarget(null)
   }
 
-  const editingTable = editingId ? (tableById(plan, editingId) ?? null) : null
-  const takenNames = plan.tables.filter((t) => t.id !== editingId).map((t) => t.name)
+  // Stale selection (table removed elsewhere, e.g. undo/redo) shows nothing.
+  const selectedTable = selectedTableId ? (tableById(plan, selectedTableId) ?? null) : null
 
   return (
     <section aria-label="Tables" className="flex min-h-0 flex-col gap-4 p-4">
@@ -187,8 +189,8 @@ export function TablesPanel() {
       ) : (
         <TableList
           rows={rows}
-          selectedId={editingId}
-          onEdit={(tableId) => setEditingId(tableId)}
+          selectedId={selectedTableId}
+          onSelect={(tableId) => selectTable(tableId)}
           onRemove={requestDelete}
         />
       )}
@@ -205,15 +207,9 @@ export function TablesPanel() {
         </div>
       )}
 
-      {editingTable && (
-        <div className="rounded-xl border border-border bg-surface p-4 shadow-sm">
-          <TableConfigSheet
-            key={editingTable.id}
-            table={editingTable}
-            seated={seatedByTable.get(editingTable.id) ?? 0}
-            takenNames={takenNames}
-            onClose={() => setEditingId(null)}
-          />
+      {selectedTable && (
+        <div className="hidden lg:block">
+          <TableDetailPanel tableId={selectedTable.id} onClose={() => selectTable(null)} />
         </div>
       )}
 

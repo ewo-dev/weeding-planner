@@ -32,7 +32,16 @@ Each step:
 | 12   | Auto-generation + report dialog        | Done        | 3, 11           |
 | 13   | Print view                             | Done        | 7               |
 | 14   | JSON project import/export             | Done        | 2, 5, 6        |
-| 15   | Release validation: mobile, a11y, responsive | Planned | 1–14          |
+| 15   | Table detail panel / bottom sheet              | Planned     | 7, 9, 10      |
+| 16   | Canvas selection & emphasis for tables         | Planned     | 15            |
+| 17   | Guest list filters, sort, and table assignment | Planned     | 7, 8          |
+| 18   | Mobile placement flow (list → table → seat)    | Planned     | 15, 17        |
+| 19   | Capacity feedback & full-table handling        | Planned     | 9, 15, 18     |
+| 20   | Print redesign (A4 blocks + alphabetical index)| Planned     | 7, 13         |
+| 21   | Update smoke checks and component tests        | Planned     | 15–20         |
+| 22   | Release validation: mobile, a11y, responsive   | Planned     | 1–21          |
+
+**Note after UX challenge:** Steps 8–10 and 13 are functionally implemented but do not yet satisfy the UX direction in section 6. Steps 15–21 cover the rework and must be completed before release validation.
 
 ---
 
@@ -230,13 +239,105 @@ Add portability without adding a backend.
 
 ---
 
-### Step 15 — Release validation: mobile, accessibility, responsive behavior
+### Step 15 — Table detail panel / bottom sheet
+
+Add a dedicated table detail view that makes a table's guests readable and manageable, especially on mobile.
+
+* `src/components/tables/TableDetailPanel.tsx` (desktop side panel).
+* `src/components/tables/TableDetailSheet.tsx` (mobile bottom sheet).
+* Shows table name, shape, capacity, occupancy, seated guests with seat numbers, empty seats, and per-guest actions (remove, reassign).
+* Selecting a table in `TableList` or on the canvas opens the detail view.
+* Selecting a guest in the detail offers actions to move or remove them.
+
+**Validation gate:** Tapping a table shows its complete guest list and empty seats; actions dispatch correctly and are undoable.
+
+---
+
+### Step 16 — Canvas selection & emphasis for tables
+
+Make table selection visible on the canvas and connect the canvas to the detail view.
+
+* `TableCard` accepts a `selected` prop and renders a stronger emphasis ring.
+* `Workspace` tracks selected table id in local UI state and passes it to each `TableCard`.
+* Click/tap on a table surface opens the detail view instead of (or in addition to) starting a drag; the drag handle is limited to the table header/label area.
+
+**Validation gate:** Selecting a table in the list highlights it on the canvas; tapping a table on desktop opens the side panel and on mobile opens the bottom sheet.
+
+---
+
+### Step 17 — Guest list filters, sort, and table assignment display
+
+Refactor the guest list so large lists are comfortable to navigate.
+
+* `GuestListPanel` adds filter chips: Tous / Non placés / Placés / Par table / Par groupe.
+* `GuestListPanel` adds a sort select: Nom / Groupe / Table / Récemment ajouté.
+* `GuestRow` always shows the assigned table name clearly when seated.
+* `GuestRow` shows a prominent "Placer" action for unseated guests.
+* "Par table" view groups seated guests under their table name.
+
+**Validation gate:** Filters and sort update the list immediately; a seated guest's table is visible without opening the editor.
+
+---
+
+### Step 18 — Mobile placement flow (list → table → seat)
+
+Replace drag-and-drop as the primary mobile path with a clear list-driven placement flow.
+
+* Tapping "Placer" on an unseated `GuestRow` opens a bottom sheet.
+* The sheet first lists tables with occupancy; tapping a table shows its empty seats.
+* Tapping a seat dispatches `moveGuest`.
+* Optionally auto-assign to the first empty seat with a confirmation step.
+* The same flow is reachable from the table detail view ("Ajouter un invité").
+
+**Validation gate:** On a 390 px phone, an unseated guest is placed in three taps without dragging.
+
+---
+
+### Step 19 — Capacity feedback & full-table handling
+
+Make table capacity limits visible and prevent silent failures.
+
+* Full tables show a "Complète" badge in the list, detail view, and placement sheet.
+* Dropping a guest onto a full table shows a toast: "Cette table est complète. Retirez un invité ou augmentez la capacité."
+* The placement sheet disables or skips full tables.
+* Reducing capacity below seated count shows a confirmation that moves surplus guests to unseated.
+
+**Validation gate:** A full table cannot be silently overfilled; capacity shrink with seated guests shows a clear choice and result.
+
+---
+
+### Step 20 — Print redesign (A4 blocks + alphabetical index)
+
+Redesign `/print` as a paper-first output.
+
+* `src/components/print/PrintLayout.tsx` renders a header, one `PrintTable` block per table, an unseated section, and an alphabetical guest index.
+* `src/components/print/PrintTable.tsx` shows name, shape, occupancy, seated guests with seat numbers, and empty seats as "Place libre".
+* `src/styles/print.css` removes shadows, backgrounds, and UI chrome; forces black on white; uses `break-inside-avoid` per table block.
+* Optimize for A4 portrait; verify US Letter preview.
+
+**Validation gate:** A4 portrait print preview shows every table block without clipping and includes the alphabetical guest index.
+
+---
+
+### Step 21 — Update smoke checks and component tests
+
+Reflect the new flows in tests and the manual checklist.
+
+* Update `docs/13-smoke-checks.md` sections 4, 5, 9, and 10.
+* Add/update component tests for `TableDetailPanel`, `TableDetailSheet`, `GuestList` filters/sort, `MoveGuestSheet`, and capacity feedback.
+* Add release-a11y checks for bottom sheets and list-driven placement.
+
+**Validation gate:** Vitest suite green; `docs/13-smoke-checks.md` covers list-driven placement, table detail, capacity feedback, and print output.
+
+---
+
+### Step 22 — Release validation: mobile, accessibility, responsive behavior
 
 * No automated e2e runner (per D-018). Maintain `docs/13-smoke-checks.md` with the manual checklist:
-  local happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, export/import round-trip.
+  local happy path (create plan → add guests → add tables → place guests via list → generate → print), mandatory-constraint generation report, export/import round-trip.
 * Component test coverage for interactive components via Vitest + Testing Library.
 * A11y audit: contrast, keyboard parity, focus-visible, `prefers-reduced-motion`, hit targets ≥ 44 px, `aria-label` on seats and tables.
-* Mobile smoke checks on modern smartphones: portrait and landscape, touch-only core workflow, no horizontal overflow, readable dialogs, keyboard not required for touch users.
+* Mobile smoke checks on modern smartphones: portrait and landscape, touch-only core workflow, no horizontal overflow, readable dialogs/bottom sheets, keyboard not required for touch users.
 * Responsive check at common phone widths and `sm` / `md` / `lg`; desktop must retain efficient two-column editing.
 
 **Validation gate:** Vitest suite green. Manual review against `09-design-system.md` and the smoke checklist.
@@ -260,21 +361,40 @@ Add portability without adding a backend.
                          │                    │
                          └──> [7 Editor shell] │
                                    │           │
-                                   ├──> [8 Guests]
-                                   ├──> [9 Tables]
-                                   ├──> [10 DnD editor]
-                                   │       │
-                                   │       v
-                                   ├──> [11 Constraints]
-                                   │       │
-                                   │       v
-                                   │   [12 Generation + report]
-                                   │
-                                   └──> [13 Print view]
+                                   ├──> [8 Guests] ────────┐
+                                   │                       │
+                                   ├──> [9 Tables] ────┐   │
+                                   │                   │   │
+                                   ├──> [10 DnD editor]│   │
+                                   │       │           │   │
+                                   │       v           │   │
+                                   ├──> [11 Constraints]│   │
+                                   │       │           │   │
+                                   │       v           │   │
+                                   │   [12 Generation] │   │
+                                   │                   │   │
+                                   └──> [13 Print view]│   │
+                                                       │   │
+                              [15 Table detail] <──────┘   │
+                                  │                        │
+                                  ├──> [16 Canvas emphasis]│
+                                  │                        │
+                              [17 Guest list rework] <─────┘
+                                  │
+                                  ├──> [18 Mobile placement]
+                                  │
+                              [19 Capacity feedback]
+                                  │
+                              [20 Print redesign]
+                                  │
+                              [21 Tests + smoke checks]
+                                  │
+                                  v
+                              [22 Release validation]
 
 [14 JSON import/export] ──> additive to [2], [5], and [6]
 
-[15 E2E + polish] ──> validates 1–13
+[22 Release validation] ──> validates 1–21
 ```
 
 ---
@@ -287,7 +407,201 @@ Add portability without adding a backend.
 
 ---
 
-## 6. How to Update This Document
+## 6. UX / Product Challenge Outcomes
+
+This section records the result of a deliberate UX challenge before the next implementation phase. It supersedes or clarifies earlier assumptions in `01-product.md`, `09-design-system.md`, and the roadmap steps below where they conflict.
+
+---
+
+### 6.1 UX findings
+
+1. **The visual canvas is decorative but not readable on mobile.**
+   - Guest names on `SeatSlot` are reduced to initials; a user cannot read who sits where without tapping each seat.
+   - Round tables with more than ~8 seats grow large and force canvas scrolling on small screens.
+   - Selecting a table on the canvas starts a drag; there is no selection or detail affordance.
+
+2. **Drag-and-drop is not the right primary interaction for phones.**
+   - The 44 px seat targets are small when surrounded by many seats.
+   - Moving a guest from the guest list to a distant table requires precise pan/scroll + drag.
+   - An action-based "Placer" flow exists but is buried behind a small icon.
+
+3. **The guest list does not scale.**
+   - No filtering beyond search; seated guests from all tables are mixed together.
+   - No sorting or grouping by table or group.
+   - For 100+ guests, the list becomes very long and the "Placés / Non placés" split is not enough.
+
+4. **Capacity feedback is inconsistent and silent.**
+   - Full tables show "Complète" in the list, but a drag onto a full table silently snaps back.
+   - The `X / Y placés` indicator appears on the canvas and list, but not consistently in the placement sheet or guest row.
+   - Empty seats are shown as tiny circles, which is not actionable on mobile.
+
+5. **The table detail experience is missing.**
+   - There is no place to see a table's complete guest list, empty seats, and actions in one view.
+   - Table config (name/shape/capacity) is separate from seeing who sits there.
+
+6. **Printing is treated as "screen on paper."**
+   - Current `/print` reuses card styling (shadows, backgrounds) and a responsive 2-column grid.
+   - There is no consideration of page breaks, A4 optimization, or alternative formats (alphabetical index, visual map, individual table sheets).
+
+7. **Mobile workflow is fragmented by tabs.**
+   - The Invités / Tables / Plan tabs prevent seeing the guest list and the plan at the same time.
+   - Context is lost when switching tabs.
+
+---
+
+### 6.2 Product decisions
+
+The following decisions should be incorporated into the product. They do not require data-model changes unless noted.
+
+#### Table capacity
+
+- Every table keeps an explicit `capacity` (1–20 for MVP).
+- Capacity is configurable at table creation and editable afterward.
+- Capacity shrink that would orphan guests must show a clear choice: cancel, or shrink and move surplus guests to unseated.
+- Full tables must be visually distinct and must not silently reject drops. A brief toast or inline message explains "Cette table est complète."
+- Empty seats are represented in the table detail view and placement flows, not only as tiny circles on the canvas.
+
+#### Table + guest visualization
+
+- The canvas is a spatial overview, not the primary place to read or manage guests on small screens.
+- Selecting a table opens a detail view: desktop side panel, mobile bottom sheet or full-screen detail.
+- The detail view shows: table name, shape, capacity, occupancy, seated guests with seat numbers, empty seats, and per-guest actions (remove, reassign).
+- A selected table is visually emphasized on the canvas (ring/highlight).
+- Guests assigned to the selected table are highlighted in the guest list when practical.
+- Drag-and-drop remains a supplementary desktop interaction; it is not the primary mobile path.
+
+#### Large guest lists
+
+- Add filter chips: Tous / Non placés / Placés / Par table / Par groupe.
+- Add sort: Nom, Groupe, Table, Récemment ajouté.
+- Search remains.
+- Each row shows the guest's table assignment clearly.
+- Provide a prominent "Placer" action on unseated rows.
+- Consider grouping seated guests by table in a future "Par table" view.
+- For very large lists (>200), virtualization is a future optimization; filtering and search are the MVP fix.
+
+#### Mobile-first experience
+
+- Primary mobile flow: list-driven placement, not drag-and-drop.
+- Use bottom sheets for table/guest details and placement on mobile.
+- The tab switcher remains but should show contextual badges (e.g., "X non placés").
+- Keep search and primary actions sticky or always visible.
+- Avoid horizontal scrolling at 360 px.
+- Maintain touch targets ≥44 px and spacing ≥8 px.
+
+#### Printing
+
+- Print is a first-class output, not a screen dump.
+- MVP print format: A4 portrait table blocks with clear page breaks, occupancy, and a separate unseated list.
+- Add an alphabetical guest index with table assignment.
+- Hide all UI chrome, shadows, and backgrounds in print.
+- Future formats (post-MVP): visual seating map (landscape), individual table sheets, compact overview.
+- Test A4 and US Letter.
+
+---
+
+### 6.3 UX direction
+
+Recommended interaction patterns:
+
+**Guest placement (mobile)**
+
+1. User taps "Placer" on a guest row.
+2. A bottom sheet opens listing tables with occupancy.
+3. User taps a table; the sheet expands to show empty seats (or auto-assigns to the first empty seat with a confirmation step).
+4. User taps a seat to confirm.
+
+**Guest placement (desktop)**
+
+1. User can drag from the guest list or table detail to a seat.
+2. Alternatively, use the placement sheet.
+
+**Table inspection**
+
+1. User taps a table in the table list or on the canvas.
+2. A detail panel (desktop) or bottom sheet (mobile) opens.
+3. Detail shows seated guests, empty seats, and actions.
+4. Tapping a guest in the detail offers "Déplacer", "Retirer", or "Éditer".
+
+**Guest list navigation**
+
+1. Search at top, sticky.
+2. Filter chips below search.
+3. Sort control (small select).
+4. Rows are compact; tap opens detail/editor.
+
+**Capacity feedback**
+
+- Table row shows `X / Y` and a "Complète" badge when full.
+- Table detail shows a visual occupancy indicator.
+- Attempting to overfill shows a toast: "Cette table est complète. Retirez un invité ou augmentez la capacité."
+
+---
+
+### 6.4 Printing strategy
+
+1. Provide a dedicated `/print` route with print-specific CSS.
+2. Render one block per table:
+   - Table name and number.
+   - Shape and occupancy `X / Y`.
+   - Ordered guest list with seat numbers.
+   - Empty seats indicated as "Place libre".
+3. Add an alphabetical guest index at the end:
+   - Guest name → table name.
+   - Unseated guests marked as "Non placé".
+4. Use `break-inside-avoid` on each table block.
+5. Hide chrome with `print:hidden` and `@media print` rules.
+6. Force black-on-white, remove shadows/backgrounds.
+7. Optimize for A4 portrait first; US Letter second.
+8. Future: add a format selector (table blocks / visual map / compact overview / individual sheets).
+
+---
+
+### 6.5 Implementation plan
+
+The following order is recommended for a future coding phase. Each step builds on the previous and stays within MVP scope. The same steps are now tracked as roadmap steps 15–21 in section 2 and section 3.
+
+| Roadmap step | Step | Why first |
+|--------------|------|-----------|
+| 15 | Table detail panel / bottom sheet | Unblocks every other UX improvement; makes table contents readable on mobile. |
+| 16 | Canvas selection & emphasis for tables | Makes the canvas and list feel connected. |
+| 17 | Guest list filters, sort, and table assignment display | Addresses the largest friction for large guest lists. |
+| 18 | Mobile placement flow (list → table → seat) | Replaces drag-and-drop as the primary mobile path. |
+| 19 | Capacity feedback & full-table handling | Prevents silent failures and clarifies limits. |
+| 20 | Print redesign (A4 blocks + alphabetical index) | Treats print as a first-class output. |
+| 21 | Update smoke checks and component tests | Verifies the new flows. |
+
+Note: steps 15–19 change `src/components/` only. Step 20 changes `src/app/print/` and `src/components/print/`. Step 21 updates tests and docs. No data-model or engine changes are required.
+
+---
+
+### 6.6 Open questions
+
+1. Should the canvas show seat numbers on filled seats, or only in the detail view?
+2. Should the engine auto-assign guests to the first empty seat when a table is chosen, or should the user always pick a seat?
+3. Should round tables keep circular rendering on mobile, or switch to a vertical seat list within the card?
+4. Should the print view offer a format selector in MVP, or only one optimized format?
+5. Should the guest list default to "Non placés" when there are unseated guests, to speed up placement?
+
+---
+
+### 6.7 Acceptance criteria
+
+A future implementation can be considered successful when:
+
+- [ ] On a 390 px phone, a user can seat an unseated guest in three taps without dragging.
+- [ ] The table detail view shows all seated guests, empty seats, and capacity clearly.
+- [ ] A full table cannot be silently overfilled; the user sees an explicit message.
+- [ ] The guest list supports filtering (unseated/seated/by table/by group) and sorting.
+- [ ] No horizontal page scroll occurs at 360 px width.
+- [ ] Print preview on A4 portrait shows every table block without clipping and includes an alphabetical guest index.
+- [ ] All UI chrome, shadows, and colored backgrounds are hidden in print.
+- [ ] Touch targets remain ≥44 px and spaced ≥8 px.
+- [ ] Existing keyboard and screen-reader behaviors are preserved.
+
+---
+
+## 7. How to Update This Document
 
 * When a step is started, change its Status from `Planned` to `In progress`.
 * When a step is completed and its validation gate passes, change its Status to `Done` and append a one-line note with the commit hash.

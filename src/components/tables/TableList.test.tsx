@@ -20,7 +20,7 @@ describe('TableList', () => {
           { table: { ...T(2, 'Grande table', 10), shape: 'rectangle' }, seated: 0 },
         ]}
         selectedId={null}
-        onEdit={vi.fn()}
+        onSelect={vi.fn()}
         onRemove={vi.fn()}
       />,
     )
@@ -34,21 +34,21 @@ describe('TableList', () => {
 
   it('renders nothing when there are no tables', () => {
     const { container } = render(
-      <TableList rows={[]} selectedId={null} onEdit={vi.fn()} onRemove={vi.fn()} />,
+      <TableList rows={[]} selectedId={null} onSelect={vi.fn()} onRemove={vi.fn()} />,
     )
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('row click edits, × button removes', () => {
-    const onEdit = vi.fn()
+  it('row click selects, × button removes', () => {
+    const onSelect = vi.fn()
     const onRemove = vi.fn()
     const table = T(1, 'Table Ronde')
     render(
-      <TableList rows={[{ table, seated: 0 }]} selectedId={null} onEdit={onEdit} onRemove={onRemove} />,
+      <TableList rows={[{ table, seated: 0 }]} selectedId={null} onSelect={onSelect} onRemove={onRemove} />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /^Table Ronde/ }))
-    expect(onEdit).toHaveBeenCalledWith(table.id)
+    expect(onSelect).toHaveBeenCalledWith(table.id)
 
     fireEvent.click(screen.getByRole('button', { name: 'Supprimer Table Ronde' }))
     expect(onRemove).toHaveBeenCalledWith(table.id)

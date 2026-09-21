@@ -23,7 +23,7 @@ The components themselves are inventoried in `07-components.md`. This document i
 * **Quiet** — the seating plan is the hero. UI chrome stays out of the way.
 * **Familiar** — components use recognizable patterns. No novel interaction metaphors.
 * **Accessible by default** — contrast, focus, hit targets, and keyboard parity are non-negotiable.
-* **Print parity** — the on-screen design works on a printed page without redesign.
+* **Print as separate output** — the printed seating plan is designed for paper, not as a copy of the screen. Typography, spacing, and layout are chosen for readability on A4/US Letter.
 * **Wedding identity** — warm, elegant, and understated; never generic SaaS or cliché template.
 
 ---
@@ -372,11 +372,14 @@ This is **opt-in** in the MVP. The default is monochrome.
 
 ## 16. Print Stylesheet (`print.css`)
 
-Quick summary; full detail in `15-print-export.md` (when written):
+The print stylesheet produces a paper-first layout. It is not a screen dump.
 
-* Hide top bar, side panel, action buttons.
-* Use black on white.
-* One table per page is acceptable; long tables break across pages.
+* Hide top bar, side panel, action buttons, tab switchers, and all UI chrome.
+* Force black on white; remove shadows, background colors, and decorative images.
+* Render one table block per table with `break-inside-avoid`.
+* Show table name, shape, occupancy, seated guests (with seat numbers), and empty seats.
+* Add an alphabetical guest index at the end.
+* Optimize for A4 portrait; US Letter should also preview cleanly.
 * Apply via `@media print {}` in `print.css`, imported only on the print route.
 
 ---

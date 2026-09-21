@@ -370,7 +370,7 @@ Each table should have:
 
 * Table number/name.
 * Shape.
-* Seats.
+* Capacity (number of seats).
 * Current guests.
 * Available seats.
 
@@ -386,9 +386,16 @@ Example:
         6 / 8 seats
 ```
 
-Tables should be draggable within the workspace.
+Tables should be draggable within the workspace. The layout position is part of the seating plan and must be persisted.
 
-The layout position is part of the seating plan and must be persisted.
+Selecting a table opens a detail view:
+
+* Desktop: a side panel next to the canvas.
+* Mobile: a bottom sheet or full-screen detail.
+
+The detail view shows the table name, shape, capacity, current occupancy, the list of seated guests, empty seats, and actions to add, remove, or reassign guests. The selected table is also visually emphasized on the canvas.
+
+The canvas is a spatial overview; the detail view is the primary place to read and manage a table's guests, especially on small screens.
 
 ---
 
@@ -396,7 +403,7 @@ The layout position is part of the seating plan and must be persisted.
 
 The application should provide a clear relationship between the guest list and the visual editor.
 
-Example layout:
+On desktop, the guest list and the seating workspace are visible side by side:
 
 ```text
 ┌──────────────┬─────────────────────────────┐
@@ -407,13 +414,23 @@ Example layout:
 │              │      ○ T1 ○                 │
 │ ○ Marie      │       ○ ○ ○                 │
 │ ○ Thomas     │                             │
-│ ○ Sophie     │              ○ ○ ○          │
+│ ○ Sophie     │              ○ ○ ◓          │
 │ ○ Julien     │             ○ T2 ○          │
 │              │              ○ ○ ○           │
 └──────────────┴─────────────────────────────┘
 ```
 
-The exact layout can evolve during implementation, but the guest list and seating workspace should remain easily accessible.
+On mobile, the guest list, table list, and seating plan are accessed through tabs. The primary way to place a guest on a phone is list-driven: tap "Placer" on a guest row, choose a table, then choose a seat. Drag-and-drop remains available as a secondary desktop interaction.
+
+The guest list supports:
+
+* Search by name or group.
+* Filter chips: all, unseated, seated, by table, by group.
+* Sort by name, group, table, or recently added.
+* A clear indicator of each guest's table assignment.
+* A quick action to place an unseated guest.
+
+The exact layout can evolve during implementation, but the guest list and seating workspace should remain easily accessible, and large guest lists must remain comfortable to navigate.
 
 ---
 
@@ -475,20 +492,24 @@ The user should be able to produce a printable version of the seating plan.
 Primary action:
 
 ```text
-🖨 Print
+🖨 Imprimer le plan de table
 ```
 
-The print version should:
+The printed output is treated as a first-class UX, not as a screenshot of the screen. The MVP print layout is optimized for A4 portrait and shows:
 
-* Hide application controls.
-* Display the complete seating plan.
-* Display table names/numbers.
-* Display guest names.
-* Use a print-friendly layout.
+* One clearly separated block per table.
+* Table name/number and shape.
+* Occupancy (`X / Y` seats).
+* The ordered list of seated guests with seat numbers.
+* Empty seats marked as "Place libre".
+* A separate alphabetical guest index mapping each guest to their table.
+* A separate section for unseated guests.
 
-PDF export can initially rely on the browser's native print-to-PDF functionality.
+The print view hides all application controls, shadows, and colored backgrounds. Page breaks keep each table block together (`break-inside-avoid`). Both A4 and US Letter should preview cleanly.
 
-A dedicated PDF generation system is not required for the MVP.
+PDF export relies on the browser's native print-to-PDF functionality. A dedicated PDF generation system is not required for the MVP.
+
+Future formats may include a large visual seating map, a compact overview, or individual table sheets, but these are not part of the MVP.
 
 ---
 

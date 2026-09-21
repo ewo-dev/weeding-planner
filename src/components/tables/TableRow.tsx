@@ -9,16 +9,16 @@ interface TableRowProps {
   table: Table
   seated: number
   selected: boolean
-  onEdit: (tableId: string) => void
+  onSelect: (tableId: string) => void
   onRemove: (tableId: string) => void
 }
 
 /**
- * One table row. Clicking the row selects the table and opens the config
- * sheet; the × button removes (confirmation is owned by the parent per
- * docs/10-interactions.md § 12).
+ * One table row. Clicking the row selects the table and opens the detail
+ * view (roadmap step 15); the × button removes (confirmation is owned by the
+ * parent per docs/10-interactions.md § 12).
  */
-export function TableRow({ table, seated, selected, onEdit, onRemove }: TableRowProps) {
+export function TableRow({ table, seated, selected, onSelect, onRemove }: TableRowProps) {
   const ShapeIcon = table.shape === 'round' ? Circle : Square
   const full = seated >= table.capacity
 
@@ -30,7 +30,7 @@ export function TableRow({ table, seated, selected, onEdit, onRemove }: TableRow
     >
       <button
         type="button"
-        onClick={() => onEdit(table.id)}
+        onClick={() => onSelect(table.id)}
         aria-pressed={selected}
         className="flex min-h-[48px] min-w-0 flex-1 items-center gap-3 px-3 py-2 text-left"
       >

@@ -39,18 +39,24 @@ Tick every box. Any failure blocks the release.
 
 ## 4. Print
 
-1. `/print` for the active plan renders one clean section per table, black on
+1. `/print` for the active plan renders one clean block per table, black on
    white, no top bar / side panel / action buttons.
-2. Browser print preview (A4 + US Letter) shows no clipped tables and no
+2. Each table block shows the table name, shape, occupancy (`X / Y`), seated
+   guests with seat numbers, and empty seats.
+3. An alphabetical guest index at the end maps each guest to their table;
+   unseated guests are listed separately.
+4. Browser print preview (A4 + US Letter) shows no clipped tables and no
    background chrome.
 
 ## 5. Mobile (touch-only smartphone, portrait + landscape)
 
-- Whole happy path (§ 1) with touch only: tap to select, drag guests to seats,
-  drag tables by their header, pinch/scroll the workspace without losing the
-  drag handle.
-- No horizontal page overflow at 360 px and 390 px widths; dialogs (report,
-  delete confirmations, table config) fit without clipping; toasts readable.
+- Whole happy path (§ 1) with touch only, using the list-driven placement flow
+  as the primary path: tap "Placer" on a guest row, choose a table, choose a
+  seat. Drag-and-drop remains available but is not required.
+- Tap a table in the list or on the canvas to open a bottom sheet with its
+  seated guests, empty seats, and capacity.
+- No horizontal page overflow at 360 px and 390 px widths; dialogs and bottom
+  sheets fit without clipping; toasts readable.
 - No core action depends on hover; drop targets show active feedback on touch.
 
 ## 6. Responsive
@@ -86,6 +92,23 @@ npm run test      # Vitest suite green (unit + component, incl. release-a11y)
 npm run lint      # clean
 npm run typecheck # clean (tsc --noEmit)
 ```
+
+## 9. List-driven placement, table detail, and capacity feedback
+
+- Guest list filter chips show Tous / Non placés / Placés / Par table / Par groupe and update the list immediately.
+- Sort control orders guests by name, group, table, or recently added.
+- Each seated guest row shows their table assignment; each unseated row shows a prominent "Placer" action.
+- Tapping "Placer" on a phone opens a bottom sheet; a guest can be seated in three taps without dragging.
+- Tapping a table in the list or canvas opens a detail panel/desktop or bottom sheet/mobile showing seated guests, empty seats, and capacity.
+- A full table shows a "Complète" state; attempting to overfill via drag or sheet shows an explicit message instead of silently snapping back.
+- Reducing a table's capacity below its seated count triggers a clear confirmation and moves surplus guests to unseated.
+
+## 10. Print output
+
+- `/print` renders one block per table with name, shape, occupancy, guest list with seat numbers, and empty seats.
+- An alphabetical guest index appears at the end, mapping each guest to their table; unseated guests are marked "Non placé".
+- Browser print preview on A4 portrait shows all table blocks without clipping and hides all UI chrome, shadows, and backgrounds.
+- US Letter preview is also readable without clipped content.
 
 Record the release date, browser versions, and phone models used below.
 
