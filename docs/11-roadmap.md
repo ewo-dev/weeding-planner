@@ -29,8 +29,8 @@ Each step:
 | 9    | Table management                       | Done        | 7               |
 | 10   | Seating editor canvas (DnD)            | Done        | 7, 8, 9         |
 | 11   | Constraints UI                         | Done        | 8, 10           |
-| 12   | Auto-generation + report dialog        | Planned     | 3, 11           |
-| 13   | Print view                             | Planned     | 7               |
+| 12   | Auto-generation + report dialog        | Done        | 3, 11           |
+| 13   | Print view                             | Done        | 7               |
 | 14   | Auth + Supabase (additive layer)       | Planned     | 2, 5            |
 | 15   | Manual smoke checks + a11y/responsive polish | Planned | 1–13          |
 

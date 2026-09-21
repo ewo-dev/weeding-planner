@@ -1,1 +1,17 @@
-/* Step 13: print-only rules */
+/* Print-only rules (D-017, roadmap step 13): black on white, no chrome. */
+
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  /* Strip backgrounds and force black text for ink savings. Scoped to the
+   * print sheet so nothing else in the document is affected. */
+  .print-sheet,
+  .print-sheet * {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}

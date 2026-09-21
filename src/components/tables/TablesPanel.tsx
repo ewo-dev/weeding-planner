@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { generateSeating } from '@/lib/engine'
+import type { GenerationReport } from '@/lib/engine'
 import { usePlan } from '@/lib/plan/usePlan'
-import { addTable, removeTable, updateTable } from '@/lib/plan/actions'
+import { addTable, generateSeating as generateSeatingAction, removeTable, updateTable } from '@/lib/plan/actions'
 import { guestById, tableById } from '@/lib/plan/selectors'
 import type { Table, TableShape } from '@/types/plan'
+import { GenerationReportDialog } from '@/components/plan-status/GenerationReportDialog'
 import { TablesToolbar } from './TablesToolbar'
 import { TableList } from './TableList'
 import { TableConfigSheet } from './TableConfigSheet'
@@ -17,11 +20,23 @@ interface DeleteTarget {
   guestNames: string[]
 }
 
+interface GenerationPreview {
+  report: GenerationReport
+  seed: number
+}
+
 /**
  * Table management panel (docs/07-components.md § 8): toolbar, table list
- * with occupancy, per-table config sheet, bulk configuration. Selection is
- * local UI state (not in the plan) per the composition rules; all mutations
- * dispatch through context and are undoable (docs/10-interactions.md § 9).
+ * with occupancy, per-table config sheet, bulk configuration, seating
+ * generation. Selection is local UI state (not in the plan) per the
+ * composition rules; all mutations dispatch through context and are undoable
+ * (docs/10-interactions.md § 9).
+ *
+ * Generation is preview-then-apply (docs/11-roadmap.md step 12): the engine
+ * runs on click, the dialog shows the report, and Apply dispatches
+ * `generateSeating` with the same seed — deterministic for (plan, seed), so
+ * the applied assignments match the preview exactly. Discard dispatches
+ * nothing.
  */
 export function TablesPanel() {
   const { plan, dispatch } = usePlan()
@@ -32,6 +47,9 @@ export function TablesPanel() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [bulkOpen, setBulkOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [generating, setGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState<string | null>(null)
+  const [preview, setPreview] = useState<GenerationPreview | null>(null)
 
   // Escape closes the sheet/dialogs (docs/10-interactions.md § 10); skipped
   // inside inputs so typing is never interrupted.
@@ -81,6 +99,36 @@ export function TablesPanel() {
     setBulkOpen(false)
   }
 
+  // Runs the engine off-tick so the Generating state paints (the engine is
+  // synchronous; budgets in docs/04-seating-engine.md § 9 keep it brief).
+  // The plan snapshot is captured at click time; Apply replays the same seed.
+  function runGeneration(seed: number): void {
+    const snapshot = plan
+    setGenerating(true)
+    setGenerateError(null)
+    window.setTimeout(() => {
+      try {
+        const output = generateSeating(snapshot, { seed })
+        setPreview({ report: output.report, seed })
+      } catch (err) {
+        console.error('Failed to generate a seating plan', err)
+        setGenerateError('La génération a échoué. Vérifiez vos contraintes et réessayez.')
+      } finally {
+        setGenerating(false)
+      }
+    }, 30)
+  }
+
+  function handleGenerate(): void {
+    runGeneration(Math.floor(Math.random() * 2 ** 31))
+  }
+
+  function handleApplyPreview(): void {
+    if (!preview) return
+    dispatch(generateSeatingAction({ seed: preview.seed }))
+    setPreview(null)
+  }
+
   // Deletion needs a modal only when guests are seated at the table
   // (docs/10-interactions.md § 12); otherwise dispatch directly (Undo covers it).
   function requestDelete(tableId: string): void {
@@ -116,7 +164,19 @@ export function TablesPanel() {
         </span>
       </div>
 
-      <TablesToolbar onAdd={handleAdd} onBulk={() => setBulkOpen((open) => !open)} />
+      <TablesToolbar
+        onAdd={handleAdd}
+        onBulk={() => setBulkOpen((open) => !open)}
+        onGenerate={handleGenerate}
+        canGenerate={plan.tables.length > 0}
+        generating={generating}
+      />
+
+      {generateError && (
+        <p role="alert" className="rounded-lg border border-danger/30 bg-danger/10 p-3 text-sm text-danger">
+          {generateError}
+        </p>
+      )}
 
       {rows.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border bg-surface p-6 text-center">
@@ -162,6 +222,17 @@ export function TablesPanel() {
           guestNames={deleteTarget.guestNames}
           onConfirm={confirmDelete}
           onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {preview && (
+        <GenerationReportDialog
+          report={preview.report}
+          plan={plan}
+          regenerating={generating}
+          onApply={handleApplyPreview}
+          onRegenerate={() => runGeneration(Math.floor(Math.random() * 2 ** 31))}
+          onDiscard={() => setPreview(null)}
         />
       )}
     </section>
