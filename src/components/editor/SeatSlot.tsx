@@ -14,10 +14,11 @@ interface SeatSlotProps {
 
 /**
  * One seat (docs/07-components.md § 6): droppable slot with a stable
- * `seat:{tableId}:{n}` id. Empty seats render a 12-px-outlined-style circle
- * (sized up to 32 px for the 44-px-adjacent touch target baseline —
- * docs/09-design-system.md § 12 vs § 15); filled seats render the guest's
- * initial dot, itself draggable for seat-to-seat moves.
+ * `seat:{tableId}:{n}` id. The slot is a 44 px touch target
+ * (docs/09-design-system.md § 15); the empty-seat visual stays a small
+ * outlined circle centered inside it (docs/09-design-system.md § 12).
+ * Filled seats render the guest's initial dot, itself draggable for
+ * seat-to-seat moves.
  */
 export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -31,9 +32,10 @@ export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps
   return (
     <div
       ref={setNodeRef}
+      role="group"
       aria-label={label}
       data-over={isOver || undefined}
-      className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+      className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors motion-safe:transition-colors ${
         isOver ? 'bg-brand-soft ring-2 ring-brand' : ''
       }`}
     >

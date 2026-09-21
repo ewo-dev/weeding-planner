@@ -13,9 +13,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const SIZES: Record<ButtonSize, string> = {
-  // docs/09-design-system.md § 11: sm 32 px, md 40 px (mobile default), lg 48 px.
+  // docs/09-design-system.md § 11 sizes, raised to the § 15 baseline:
+  // interactive targets are min 44 px. `sm` stays compact for dense
+  // secondary actions (toasts); `md` is the mobile default.
   sm: 'h-8 px-3 text-sm',
-  md: 'h-10 px-4 text-sm',
+  md: 'h-11 px-4 text-sm',
   lg: 'h-12 px-5 text-base',
 }
 

@@ -38,10 +38,10 @@ export function EditorLayout({ children }: { children: ReactNode }) {
   const [asideTab, setAsideTab] = useState<AsideTab>('guests')
 
   const asideButton =
-    'flex-1 px-3 py-2 text-sm font-medium transition-colors rounded-t data-[active=true]:bg-surface'
+    'flex-1 min-h-[44px] px-3 py-2 text-sm font-medium transition-colors rounded-t data-[active=true]:bg-surface'
 
   return (
-    <div className="flex flex-1 flex-col lg:flex-row">
+    <div className="flex min-w-0 flex-1 flex-col overflow-x-clip lg:flex-row">
       {/* Side panel (desktop). */}
       <aside className="hidden lg:block lg:w-80 lg:shrink-0 lg:border-r lg:border-border">
         <nav aria-label="Panneau latéral" data-testid="aside-tabs" className="flex border-b border-border">
@@ -70,7 +70,7 @@ export function EditorLayout({ children }: { children: ReactNode }) {
               type="button"
               onClick={() => setTab(name)}
               aria-pressed={tab === name}
-              className={`flex-1 px-3 py-2 text-sm font-medium ${
+              className={`flex-1 min-h-[44px] px-3 py-2 text-sm font-medium ${
                 tab === name ? 'border-b-2 border-brand text-text' : 'text-text-muted'
               }`}
             >

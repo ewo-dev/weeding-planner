@@ -99,7 +99,7 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
           <button
             type="button"
             onClick={() => onDelete(guest.id)}
-            className="ml-auto rounded px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
+            className="ml-auto flex min-h-[44px] items-center rounded px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
           >
             Supprimer
           </button>

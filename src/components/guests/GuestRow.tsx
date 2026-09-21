@@ -44,7 +44,7 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         {...listeners}
         {...attributes}
         aria-pressed={selected}
-        className="min-w-0 flex-1 touch-none px-3 py-2.5 text-left"
+        className="flex min-h-[44px] min-w-0 flex-1 touch-none flex-col justify-center px-3 py-1.5 text-left"
       >
         <span className="block truncate text-sm font-medium text-text">{guest.name}</span>
         {(guest.group ?? tableName) && (
@@ -55,6 +55,7 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
       </button>
       {hasConflict && (
         <span
+          role="img"
           aria-label={`Conflit de placement pour ${guest.name}`}
           title="Conflit de placement — voir les contraintes"
           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"

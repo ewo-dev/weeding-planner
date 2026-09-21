@@ -68,13 +68,13 @@ describe('TopBar', () => {
     expect(screen.getByRole('button', { name: 'Plan A' })).toBeInTheDocument()
     // idle: no save indicator before the first mutation.
     expect(screen.queryByText('Enregistré')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'undo' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'redo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: "Rétablir l'action annulée" })).toBeDisabled()
 
     act(() => {
       fireEvent.click(screen.getByText('dispatch'))
     })
-    expect(screen.getByRole('button', { name: 'undo' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeEnabled()
 
     // Let the 500 ms autosave debounce elapse.
     await act(async () => {
@@ -112,11 +112,11 @@ describe('TopBar', () => {
     act(() => {
       fireEvent.click(screen.getByText('dispatch'))
     })
-    expect(screen.getByRole('button', { name: 'undo' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeEnabled()
 
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true })
 
-    expect(screen.getByRole('button', { name: 'undo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeDisabled()
   })
 
   it('redoes via Ctrl+Shift+Z', () => {
@@ -126,9 +126,9 @@ describe('TopBar', () => {
       fireEvent.click(screen.getByText('dispatch'))
     })
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true })
-    expect(screen.getByRole('button', { name: 'undo' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeDisabled()
 
     fireEvent.keyDown(document, { key: 'z', ctrlKey: true, shiftKey: true })
-    expect(screen.getByRole('button', { name: 'undo' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Annuler la dernière action' })).toBeEnabled()
   })
 })

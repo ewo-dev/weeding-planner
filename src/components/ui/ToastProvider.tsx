@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-4 left-1/2 z-50 flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 flex-col gap-2"
+          className="fixed bottom-4 left-1/2 z-[110] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 flex-col gap-2"
         >
           {toasts.map((toast) => (
             <div
@@ -106,7 +106,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   key={action.label}
                   type="button"
                   variant="secondary"
-                  size="sm"
                   onClick={() => {
                     action.onAction?.()
                     dismiss(toast.id)

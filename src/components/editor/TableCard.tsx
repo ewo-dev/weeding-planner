@@ -17,8 +17,8 @@ interface TableCardProps {
   selected?: boolean
 }
 
-/** Seat dot diameter (docs/09-design-system.md § 12, sized up — see SeatSlot). */
-const SEAT = 32
+/** Seat slot touch-target diameter (docs/09-design-system.md § 12 + § 15). */
+const SEAT = 44
 
 /**
  * One table on the canvas (docs/07-components.md § 6). Round tables render a
@@ -104,7 +104,7 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
       type="button"
       onClick={startRename}
       title="Renommer la table"
-      className="min-w-0 truncate text-sm font-semibold text-text hover:underline"
+      className="flex min-h-[44px] min-w-0 items-center truncate text-sm font-semibold text-text hover:underline"
     >
       {table.name}
     </button>
@@ -113,6 +113,8 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
   const cardClass = `absolute rounded-lg border bg-surface-raised ${
     selected ? 'border-2 border-brand' : 'border-border'
   } ${isDragging ? 'z-10 opacity-90 shadow-lg' : ''}`
+  // Screen-reader name for the table group (design § 15: tables expose names).
+  const cardLabel = `Table ${table.name}, ${guests.length} sur ${table.capacity} placés`
 
   if (table.shape === 'round') {
     const radius = Math.max(56, Math.ceil((table.capacity * (SEAT + 6)) / (2 * Math.PI)))
@@ -121,6 +123,8 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
     return (
       <div
         data-testid={`table-card-${table.id}`}
+        role="group"
+        aria-label={cardLabel}
         style={{
           left: table.position.x,
           top: table.position.y,
@@ -150,6 +154,7 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
           ref={setNodeRef}
           {...listeners}
           {...attributes}
+          aria-label={`Déplacer ${table.name}`}
           className="absolute left-1/2 top-1/2 flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 rounded-full border border-border bg-surface text-center"
         >
           {headerName}
@@ -164,6 +169,8 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
   return (
     <div
       data-testid={`table-card-${table.id}`}
+      role="group"
+      aria-label={cardLabel}
       style={{
         left: table.position.x,
         top: table.position.y,
@@ -177,7 +184,8 @@ export function TableCard({ table, guests, selected = false }: TableCardProps) {
         ref={setNodeRef}
         {...listeners}
         {...attributes}
-        className="flex touch-none items-center gap-2 border-b border-border px-3 py-2"
+        aria-label={`Déplacer ${table.name}`}
+        className="flex min-h-[44px] touch-none items-center gap-2 border-b border-border px-3 py-2"
       >
         <span className="min-w-0 flex-1">{headerName}</span>
         <span className="shrink-0 text-xs text-text-muted">

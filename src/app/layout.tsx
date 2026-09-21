@@ -12,7 +12,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <body>
-        <ToastProvider>{children}</ToastProvider>
+        {/* Skip link (docs/09-design-system.md § 15): first tab stop on every page. */}
+        <a
+          href="#contenu"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[120] focus:rounded focus:bg-surface-raised focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-text focus:outline-2 focus:outline-offset-2 focus:outline-brand"
+        >
+          Aller au contenu
+        </a>
+        <ToastProvider>
+          <div id="contenu">{children}</div>
+        </ToastProvider>
       </body>
     </html>
   )

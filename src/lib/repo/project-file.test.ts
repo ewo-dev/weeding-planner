@@ -41,7 +41,14 @@ describe('project-file', () => {
     const parsed = parseProjectFileText(text)
     expect(parsed.tables).toEqual(plan.tables)
     expect(parsed.guests).toEqual(plan.guests)
-    expect(parsed.constraints).toEqual(plan.constraints)
+    // Constraint pairs are canonicalized at the persistence boundary
+    // (D-009): (a, b) sorted lexicographically on export.
+    const [constraint] = plan.constraints
+    const expectedConstraints =
+      constraint.a <= constraint.b
+        ? plan.constraints
+        : [{ ...constraint, a: constraint.b, b: constraint.a }]
+    expect(parsed.constraints).toEqual(expectedConstraints)
     expect(parsed.assignments).toEqual(plan.assignments)
     expect(parsed.meta.schemaVersion).toBe(CURRENT_VERSION)
   })

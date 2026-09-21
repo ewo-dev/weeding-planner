@@ -42,7 +42,7 @@ export function GuestChip({ guest, variant }: GuestChipProps) {
         aria-label={guest.name}
         {...listeners}
         {...attributes}
-        className="flex h-8 w-8 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse"
+        className="flex h-11 w-11 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse"
       >
         {initial}
       </button>

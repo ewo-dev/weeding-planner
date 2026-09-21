@@ -74,7 +74,7 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/40 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCloseRef.current()
       }}
@@ -85,7 +85,7 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={`w-full rounded-lg border border-border bg-surface-raised p-6 shadow-lg outline-none ${
+        className={`my-auto max-h-[90dvh] w-full overflow-y-auto rounded-lg border border-border bg-surface-raised p-6 shadow-lg outline-none ${
           size === 'lg' ? 'max-w-lg' : 'max-w-md'
         }`}
       >

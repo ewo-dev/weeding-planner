@@ -90,7 +90,6 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
         <Button
           type="button"
           variant="secondary"
-          size="sm"
           onClick={handleExport}
           aria-label="Exporter le plan (JSON)"
         >
@@ -100,7 +99,6 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
       <Button
         type="button"
         variant="secondary"
-        size="sm"
         loading={importing}
         onClick={() => fileRef.current?.click()}
         aria-label="Importer un plan (JSON)"

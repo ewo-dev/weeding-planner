@@ -45,6 +45,8 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
       <div
         ref={setRefs}
         data-testid="workspace"
+        role="group"
+        aria-label="Plan des tables"
         data-over={isOver || undefined}
         className="relative"
         style={{ width, height }}

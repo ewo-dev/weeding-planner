@@ -33,7 +33,7 @@ export function Select({ label, hideLabel = false, error, options, id: idProp, .
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={error ? errorId : undefined}
-        className={`h-10 w-full rounded border border-border bg-surface-raised px-3 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft ${
+        className={`h-11 w-full rounded border border-border bg-surface-raised px-3 text-sm text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft ${
           error ? 'border-danger' : ''
         }`}
         {...rest}

@@ -68,7 +68,8 @@ export function TopBar() {
       <button
         type="button"
         onClick={() => router.push('/')}
-        className="text-sm font-medium text-text-muted transition-colors hover:text-text"
+        aria-label="Retour à l'accueil"
+        className="flex min-h-[44px] items-center text-sm font-medium text-text-muted transition-colors hover:text-text"
       >
         ← Plan de Table
       </button>
@@ -95,20 +96,20 @@ export function TopBar() {
           type="button"
           onClick={startRename}
           title="Renommer le plan"
-          className="min-w-0 truncate text-base font-semibold text-text hover:underline"
+          className="flex min-h-[44px] min-w-0 items-center truncate text-base font-semibold text-text hover:underline"
         >
           {plan.meta.name}
         </button>
       )}
 
       <div className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1">
-        <Button type="button" variant="secondary" size="sm" onClick={undo} disabled={!canUndo} aria-label="undo">
+        <Button type="button" variant="secondary" onClick={undo} disabled={!canUndo} aria-label="Annuler la dernière action">
           Annuler
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={redo} disabled={!canRedo} aria-label="redo">
+        <Button type="button" variant="secondary" onClick={redo} disabled={!canRedo} aria-label="Rétablir l'action annulée">
           Rétablir
         </Button>
-        <Button type="button" variant="secondary" size="sm" onClick={() => router.push('/print')}>
+        <Button type="button" variant="secondary" onClick={() => router.push('/print')}>
           Imprimer
         </Button>
         <ProjectActions plan={plan} onImported={() => window.location.reload()} />

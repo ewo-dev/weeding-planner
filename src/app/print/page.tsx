@@ -53,10 +53,10 @@ export default function PrintPage() {
       <main className="p-8">
         <h1 className="text-xl font-semibold text-danger">Le plan n&apos;a pas pu être chargé.</h1>
         <p className="mt-2 text-sm text-text-muted">{error}</p>
-        <div className="mt-4 flex gap-3">
+        <div className="mt-4 flex flex-wrap gap-3">
           <button
             type="button"
-            className="underline"
+            className="flex min-h-[44px] items-center underline"
             onClick={() => {
               setError(null)
               setAttempt((n) => n + 1)
@@ -64,7 +64,7 @@ export default function PrintPage() {
           >
             Réessayer
           </button>
-          <button type="button" className="underline" onClick={() => router.replace('/')}>
+          <button type="button" className="flex min-h-[44px] items-center underline" onClick={() => router.replace('/')}>
             Retour à l&apos;accueil
           </button>
         </div>

@@ -12,7 +12,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const inputClassName =
-  'h-10 w-full rounded border border-border bg-surface-raised px-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft'
+  'h-11 w-full rounded border border-border bg-surface-raised px-3 text-sm text-text placeholder:text-text-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft'
 
 /**
  * Labeled text input (docs/07-components.md § 4, visual rules § 11).
