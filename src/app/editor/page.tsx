@@ -8,8 +8,8 @@ import { PlanProvider } from '@/lib/plan/context'
 import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
 import { EditorSkeleton } from '@/components/layout/EditorSkeleton'
 import { TopBar } from '@/components/layout/TopBar'
-import { EditorLayout } from '@/components/layout/EditorLayout'
 import { PlanStatsBar } from '@/components/plan-status/PlanStatsBar'
+import { SeatingEditor } from '@/components/editor/SeatingEditor'
 
 // Editor route (docs/06-routing-and-pages.md § 6). Reads the active plan id
 // from localStorage, loads it via the repository, and mounts the editor
@@ -77,16 +77,13 @@ export default function EditorPage() {
 
   if (!plan) return <EditorSkeleton />
 
+  // SeatingEditor owns the DnD context and the editor layout (side panel +
+  // canvas) inside it (docs/10-interactions.md § 3).
   return (
     <PlanProvider initialPlan={plan}>
       <TopBar />
       <PlanStatsBar />
-      <EditorLayout>
-        {/* Placeholder for the seating editor canvas (step 10). */}
-        <div className="rounded border border-dashed border-border p-8 text-center text-sm text-text-muted">
-          L&apos;éditeur de plan arrive à l&apos;étape suivante (étape 10).
-        </div>
-      </EditorLayout>
+      <SeatingEditor />
     </PlanProvider>
   )
 }

@@ -114,24 +114,27 @@ export function GuestListPanel() {
 
       <GuestSearchInput onSearch={handleSearch} />
 
-      {total === 0 ? (
+      {total === 0 && (
         <div className="rounded-lg border border-dashed border-border bg-surface p-6 text-center">
           <p className="text-sm font-medium text-text">Aucun invité pour l’instant</p>
           <p className="mt-1 text-sm text-text-muted">Ajoutez votre premier invité ci-dessus.</p>
         </div>
-      ) : visible.length === 0 ? (
+      )}
+
+      {total > 0 && visible.length === 0 && (
         <p className="rounded-lg border border-dashed border-border bg-surface p-6 text-center text-sm text-text-muted">
           Aucun résultat pour « {query.trim()} ».
         </p>
-      ) : (
-        <GuestList
-          unseated={unseated}
-          seated={seated}
-          selectedId={editor?.mode === 'edit' ? editor.guestId : null}
-          onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
-          onRemove={requestDelete}
-        />
       )}
+
+      {/* Always mounted: the list doubles as the `seat:unseat` dropzone. */}
+      <GuestList
+        unseated={unseated}
+        seated={seated}
+        selectedId={editor?.mode === 'edit' ? editor.guestId : null}
+        onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
+        onRemove={requestDelete}
+      />
 
       {showEditor && (
         <div className="rounded-lg border border-border bg-surface p-4">

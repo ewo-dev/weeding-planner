@@ -26,8 +26,8 @@ Each step:
 | 6    | Entry page (`/`)                       | Done        | 5               |
 | 7    | Editor shell + TopBar + PlanStatsBar   | Done        | 5               |
 | 8    | Guest management                       | Done        | 7               |
-| 9    | Table management                       | Planned     | 7               |
-| 10   | Seating editor canvas (DnD)            | Planned     | 7, 8, 9         |
+| 9    | Table management                       | Done        | 7               |
+| 10   | Seating editor canvas (DnD)            | Done        | 7, 8, 9         |
 | 11   | Constraints UI                         | Planned     | 8, 10           |
 | 12   | Auto-generation + report dialog        | Planned     | 3, 11           |
 | 13   | Print view                             | Planned     | 7               |

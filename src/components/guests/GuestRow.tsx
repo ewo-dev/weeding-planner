@@ -1,6 +1,8 @@
 'use client'
 
+import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
+import { guestDragId } from '@/components/editor/dnd'
 
 interface GuestRowProps {
   guest: Guest
@@ -14,8 +16,18 @@ interface GuestRowProps {
  * One guest row (docs/07-components.md § 7). Clicking the row selects the
  * guest and opens the editor; the × button removes (confirmation is owned by
  * the parent per docs/10-interactions.md § 12).
+ *
+ * The row button doubles as the guest drag source (`guest:{id}`): the 6-px
+ * pointer activation keeps click-to-select intact, and keyboard users get one
+ * tab stop (Enter edits, Space drags). Requires a `<DndContext>` ancestor —
+ * provided by `<SeatingEditor>`.
  */
 export function GuestRow({ guest, tableName, selected, onEdit, onRemove }: GuestRowProps) {
+  const { setNodeRef, listeners, attributes } = useDraggable({
+    id: guestDragId(guest.id),
+    data: { kind: 'guest', guestId: guest.id },
+  })
+
   return (
     <li
       className={`flex items-center gap-1 rounded ${
@@ -23,10 +35,13 @@ export function GuestRow({ guest, tableName, selected, onEdit, onRemove }: Guest
       }`}
     >
       <button
+        ref={setNodeRef}
         type="button"
         onClick={() => onEdit(guest.id)}
+        {...listeners}
+        {...attributes}
         aria-pressed={selected}
-        className="min-w-0 flex-1 px-3 py-2.5 text-left"
+        className="min-w-0 flex-1 touch-none px-3 py-2.5 text-left"
       >
         <span className="block truncate text-sm font-medium text-text">{guest.name}</span>
         {(guest.group ?? tableName) && (

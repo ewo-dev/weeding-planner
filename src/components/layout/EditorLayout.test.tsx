@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { DndContext } from '@dnd-kit/core'
 import type { ReactNode } from 'react'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
@@ -23,12 +24,29 @@ function emptyPlan(): Plan {
   }
 }
 
+// The side panels contain drag sources/dropzones, so the layout needs a
+// DndContext ancestor (provided by SeatingEditor in production).
 function renderLayout(children: ReactNode = <div>CANVAS</div>) {
   return render(
-    <PlanProvider initialPlan={emptyPlan()}>
-      <EditorLayout>{children}</EditorLayout>
-    </PlanProvider>,
+    <DndContext>
+      <PlanProvider initialPlan={emptyPlan()}>
+        <EditorLayout>{children}</EditorLayout>
+      </PlanProvider>
+    </DndContext>,
   )
+}
+
+/** Aside and mobile switchers share labels — scope queries per switcher. */
+function asideTabs(): HTMLElement {
+  const nav = screen.getByTestId('aside-tabs')
+  if (!nav) throw new Error('expected the aside tab switcher')
+  return nav
+}
+
+function mobileTabs(): HTMLElement {
+  const nav = screen.getByTestId('mobile-tabs')
+  if (!nav) throw new Error('expected the mobile tab switcher')
+  return nav
 }
 
 beforeEach(() => {
@@ -42,22 +60,34 @@ afterEach(() => {
 })
 
 describe('EditorLayout', () => {
-  it('renders children by default, the guest panel, and the mobile tab switcher', () => {
+  it('renders children by default, the guest panel in the aside, and both switchers', () => {
     renderLayout()
 
-    // Default tab is "plan", so the canvas is in the DOM even in a < lg viewport.
+    // Default mobile tab is "plan", so the canvas is in the DOM even in a < lg viewport.
     expect(screen.getByText('CANVAS')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Invités' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Tables' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Plan' })).toBeInTheDocument()
-    // Desktop aside mounts the guest panel (single searchbox while on the Plan tab).
+    expect(within(mobileTabs()).getByRole('button', { name: 'Invités' })).toBeInTheDocument()
+    expect(within(mobileTabs()).getByRole('button', { name: 'Tables' })).toBeInTheDocument()
+    expect(within(mobileTabs()).getByRole('button', { name: 'Plan' })).toBeInTheDocument()
+    // Desktop aside defaults to the guest panel (single searchbox while on the Plan tab).
     expect(screen.getAllByRole('searchbox')).toHaveLength(1)
+    expect(screen.queryByText('Aucune table pour l’instant')).not.toBeInTheDocument()
   })
 
-  it('shows the guest panel under the Invités tab', () => {
+  it('switches the desktop aside between guests and tables', () => {
     renderLayout()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Invités' }))
+    fireEvent.click(within(asideTabs()).getByRole('button', { name: 'Tables' }))
+    expect(screen.getByText('Aucune table pour l’instant')).toBeInTheDocument()
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
+
+    fireEvent.click(within(asideTabs()).getByRole('button', { name: 'Invités' }))
+    expect(screen.getByRole('searchbox')).toBeInTheDocument()
+  })
+
+  it('shows the guest panel under the mobile Invités tab', () => {
+    renderLayout()
+
+    fireEvent.click(within(mobileTabs()).getByRole('button', { name: 'Invités' }))
     // Aside + mobile instances both mount; only one is visible per breakpoint.
     expect(screen.getAllByRole('searchbox')).toHaveLength(2)
     expect(screen.getAllByText('Aucun invité pour l’instant')).toHaveLength(2)
@@ -65,14 +95,16 @@ describe('EditorLayout', () => {
     expect(screen.getByText('CANVAS')).toBeInTheDocument()
   })
 
-  it('keeps the tables placeholder and restores the canvas under Plan', () => {
+  it('shows the tables panel under the mobile Tables tab', () => {
     renderLayout()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Tables' }))
-    expect(screen.getByText('Tables — contenu à venir')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Plan' }))
+    fireEvent.click(within(mobileTabs()).getByRole('button', { name: 'Tables' }))
+    expect(screen.getByText('Aucune table pour l’instant')).toBeInTheDocument()
+    // Canvas stays mounted for lg+.
     expect(screen.getByText('CANVAS')).toBeInTheDocument()
-    expect(screen.queryByText(/contenu à venir/)).not.toBeInTheDocument()
+
+    fireEvent.click(within(mobileTabs()).getByRole('button', { name: 'Plan' }))
+    expect(screen.getByText('CANVAS')).toBeInTheDocument()
+    expect(screen.queryByText('Aucune table pour l’instant')).not.toBeInTheDocument()
   })
 })

@@ -77,8 +77,9 @@ describe('EditorPage', () => {
     expect(await screen.findByRole('button', { name: 'Plan de test' })).toBeInTheDocument()
     // PlanStatsBar renders its tiles.
     expect(screen.getByTestId('stat-guests')).toBeInTheDocument()
-    // EditorLayout children (step 10 placeholder).
-    expect(screen.getByText(/L'éditeur de plan arrive à l'étape suivante/)).toBeInTheDocument()
+    // SeatingEditor renders the canvas and the side-panel dropzone.
+    expect(screen.getByTestId('workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('unseat-dropzone')).toBeInTheDocument()
   })
 
   it('shows the skeleton while loading', () => {

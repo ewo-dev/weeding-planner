@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { DndContext } from '@dnd-kit/core'
 import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
 import type { Plan } from '@/types/plan'
@@ -35,11 +36,15 @@ function fixture(): Plan {
   }
 }
 
-function renderPanel(): void {
+// Rows are drag sources and the list is the unseat dropzone, so the panel
+// needs a DndContext ancestor (provided by SeatingEditor in production).
+function renderPanel(plan: Plan = fixture()): void {
   render(
-    <PlanProvider initialPlan={fixture()}>
-      <GuestListPanel />
-    </PlanProvider>,
+    <DndContext>
+      <PlanProvider initialPlan={plan}>
+        <GuestListPanel />
+      </PlanProvider>
+    </DndContext>,
   )
 }
 
@@ -174,13 +179,11 @@ describe('GuestListPanel', () => {
   })
 
   it('shows an empty state when the plan has no guests', () => {
-    render(
-      <PlanProvider initialPlan={{ ...fixture(), guests: [], assignments: [], constraints: [] }}>
-        <GuestListPanel />
-      </PlanProvider>,
-    )
+    renderPanel({ ...fixture(), guests: [], assignments: [], constraints: [] })
 
     expect(screen.getByTestId('guest-count')).toHaveTextContent('0 / 0 placés')
     expect(screen.getByText('Aucun invité pour l’instant')).toBeInTheDocument()
+    // The dropzone still exists so seated guests could be unseated here.
+    expect(screen.getByTestId('unseat-dropzone')).toBeInTheDocument()
   })
 })
