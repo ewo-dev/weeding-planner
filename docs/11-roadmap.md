@@ -4,7 +4,7 @@
 
 This document defines the implementation order for the MVP.
 
-The project documentation is complete (`00-overview` → `10-interactions`) and 17 architectural decisions are recorded (`08-decisions.md`). This roadmap turns that design into a sequenced build plan.
+The project documentation is complete (`00-overview` → `10-interactions`) and the architectural decisions are recorded in `08-decisions.md`. This roadmap turns that design into a sequenced build plan.
 
 Each step:
 
@@ -31,8 +31,8 @@ Each step:
 | 11   | Constraints UI                         | Done        | 8, 10           |
 | 12   | Auto-generation + report dialog        | Done        | 3, 11           |
 | 13   | Print view                             | Done        | 7               |
-| 14   | Auth + Supabase (additive layer)       | Planned     | 2, 5            |
-| 15   | Manual smoke checks + a11y/responsive polish | Planned | 1–13          |
+| 14   | JSON project import/export             | Planned     | 2, 5, 6        |
+| 15   | Release validation: mobile, a11y, responsive | Planned | 1–14          |
 
 ---
 
@@ -43,12 +43,13 @@ Each step:
 Bootstrap the project skeleton.
 
 * `create-next-app` (App Router, TypeScript strict, Tailwind, no `src/` flag — we add `src/` manually to match `02-architecture.md`).
-* Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `lucide-react`. (`@supabase/ssr` is not used; step 14 installs `@supabase/supabase-js` instead — see D-019.)
+* Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `lucide-react`.
 * Install dev deps: `vitest`, `@testing-library/react`, `@testing-library/user-event`.
 * Configure `tailwind.config.ts` with design tokens from `09-design-system.md` § 4–8 (colors, spacing, radii, shadows, font families).
 * Configure `globals.css`: Tailwind base + reduced-motion rule (`10-interactions.md` § 15).
 * Create the `src/` folder structure exactly as defined in `02-architecture.md` § 5 (empty placeholder files allowed).
-* Add `.env.example` with placeholder `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+* Configure static export and the GitHub Pages base path. No application secrets or backend environment variables are required.
+* Establish mobile-first defaults: narrow portrait layout, 44 px minimum controls, no hover-only actions, and responsive behavior from the first screen.
 
 **Validation gate:** `npm run dev` serves a blank page, `npm run build` succeeds, `npm run lint` clean, `tsc --noEmit` clean.
 
@@ -61,9 +62,10 @@ The persistence foundation. Everything that reads or writes a plan goes through 
 * `src/lib/schema/plan.ts` — zod schemas (`PlanSchema`, `GuestSchema`, `TableSchema`, `ConstraintSchema`, `AssignmentSchema`, `TableShape`, `ConstraintKind`, `PlanMeta`).
 * `src/lib/schema/migrations.ts` — `CURRENT_VERSION = 1`, `migrate(raw)` runs migrations from stored version to current.
 * `src/lib/repo/types.ts` — `PlanSummary`, `PlanRepository` interface (per `05-persistence.md` § 3).
-* `src/lib/repo/local.ts` — `LocalPlanRepository` with `list`, `load`, `save`, `remove`. Keys: `weeding-planner:plan:<id>`, `weeding-planner:plan-index`, `weeding-planner:active-plan`. Throws `RepoError("quota")` on `QuotaExceededError`.
-* `src/lib/repo/index.ts` — factory stub returning `LocalPlanRepository` (Supabase added in step 14).
-* `src/lib/repo/errors.ts` — `RepoError` with codes (`not_found`, `quota`, `network`, `auth`, `corrupt`, `unknown`).
+* `src/lib/repo/indexed-db.ts` — `IndexedDbPlanRepository` with `list`, `load`, `save`, and `remove`.
+* `src/lib/repo/project-file.ts` — versioned JSON project export/import helpers.
+* `src/lib/repo/index.ts` — browser repository entry point; no remote fallback.
+* `src/lib/repo/errors.ts` — `RepoError` with codes (`not_found`, `quota`, `unavailable`, `corrupt`, `unknown`).
 * `src/lib/id.ts` — `newId()` wrapping `crypto.randomUUID()`.
 * `src/types/plan.ts` — re-exports from `lib/schema/plan`.
 * Vitest unit tests: schema round-trips, invariant rejections, migration identity, local repo CRUD, quota error, index update.
@@ -120,12 +122,12 @@ The single source of truth for an open plan.
 
 ### Step 6 — Entry page (`/`)
 
-* `src/app/page.tsx` (server): reads `LocalPlanRepository.list()`, renders `<PlanList>` with "Nouveau plan" CTA.
-* `createBlankPlan()` is a client-side helper that calls `LocalPlanRepository.save(plan)`, sets `weeding-planner:active-plan`, and `router.push('/editor')`. No server action (see D-019).
+* `src/app/page.tsx` (client): reads `IndexedDbPlanRepository.list()`, renders `<PlanList>` with "Nouveau plan" CTA.
+* `createBlankPlan()` is a client-side helper that calls `IndexedDbPlanRepository.save(plan)`, sets the active-plan preference, and `router.push('/editor')`.
 * `src/components/layout/PlanList.tsx` (client) — rows with Open / Rename / Delete / Duplicate (Delete with confirm).
 * Empty state when no plans.
 
-**Validation gate:** Page renders. Creating a plan navigates to its editor URL.
+**Validation gate:** Page renders and remains usable at common phone widths in portrait orientation. Creating a plan navigates to its editor URL without requiring a mouse.
 
 ---
 
@@ -174,10 +176,11 @@ The heart of the application.
 * `src/components/editor/GuestChip.tsx` — compact (list) and card (canvas) presentations; draggable.
 * `src/components/editor/DragGhost.tsx` — overlay using `DragOverlay`.
 * Sensors: `PointerSensor` (6 px activation), `KeyboardSensor` (mandatory).
-* Auto-scroll near edges on desktop.
+* Touch-safe drag behavior: preserve page scrolling, show active/drop feedback without hover, and expose action-based move/assign alternatives.
+* Auto-scroll near workspace edges on touch and pointer devices where it does not conflict with page scrolling.
 * Per `09-design-system.md` § 12 visual rules (dotted grid, no shadow on tables).
 
-**Validation gate:** Drag guest onto empty seat; drag between tables; drag to unseat; drag table around; keyboard drag works.
+**Validation gate:** On a phone in portrait orientation, assign and move a guest, unseat a guest, move a table, and complete the same workflows with keyboard and mouse on desktop. No core action depends on hover.
 
 ---
 
@@ -205,7 +208,7 @@ The heart of the application.
 
 ### Step 13 — Print view
 
-* `src/app/print/page.tsx` (client, see D-019) — reads `weeding-planner:active-plan`, loads plan, renders `<PrintLayout>` + one `<PrintTable>` per table.
+* `src/app/print/page.tsx` (client, see D-019) — reads the active-plan preference from IndexedDB, loads the plan, and renders `<PrintLayout>` + one `<PrintTable>` per table.
 * `src/components/print/PrintLayout.tsx`, `src/components/print/PrintTable.tsx`.
 * `src/styles/print.css` — `@media print` rules hide chrome, set black on white (D-017).
 * Browser print dialog = PDF export (D-017).
@@ -214,33 +217,27 @@ The heart of the application.
 
 ---
 
-### Step 14 — Auth + Supabase (additive)
+### Step 14 — JSON project import/export
 
-The optional layer. The app already works without it.
+Add portability without adding a backend.
 
-* `src/lib/auth/client.ts` — Supabase client (browser).
-* `src/lib/auth/server.ts` — server-side session helper.
-* `src/lib/auth/AuthProvider.tsx` (client) — provides `useUser()`.
-* `src/lib/auth/useUser.ts` — typed hook.
-* `src/lib/repo/supabase.ts` — `SupabasePlanRepository` per `05-persistence.md` § 5.
-* `src/lib/repo/composite.ts` — `CompositeRepository` (local + cloud) per D-005.
-* `src/lib/repo/index.ts` updated: factory picks `CompositeRepository` when signed in.
-* `src/app/sign-in/page.tsx` + `<SignInForm>` + `<AuthMenu>` in `TopBar`.
-* ~~`src/middleware.ts`~~ — not created; static export has no middleware (see D-019). Supabase session handling is fully client-side via `@supabase/supabase-js`.
-* Stale-plan banner per `05-persistence.md` § 7.
-* Error mapping per `05-persistence.md` § 9.
+* Implement `ProjectFile` validation, migration, and deterministic JSON serialization.
+* Add `ProjectActions` with Export and Import controls.
+* Import as a new plan by default and activate it only after a successful IndexedDB transaction.
+* Surface malformed, unsupported, and storage-failure errors without modifying existing plans.
 
-**Validation gate:** Sign in / sign out works. Save to cloud → reload from another device → plan matches. Local save still works for anonymous users.
+**Validation gate:** Export → clear browser storage → import restores an identical plan. Malformed and future-version files are rejected without data loss.
 
 ---
 
-### Step 15 — Manual smoke checks + a11y/responsive polish
+### Step 15 — Release validation: mobile, accessibility, responsive behavior
 
 * No automated e2e runner (per D-018). Maintain `docs/13-smoke-checks.md` with the manual checklist:
-  anonymous happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, cloud save round-trip.
+  local happy path (create plan → add guests → add tables → drag seat → generate → print), mandatory-constraint generation report, export/import round-trip.
 * Component test coverage for interactive components via Vitest + Testing Library.
 * A11y audit: contrast, keyboard parity, focus-visible, `prefers-reduced-motion`, hit targets ≥ 44 px, `aria-label` on seats and tables.
-* Responsive check at `sm` / `md` / `lg`.
+* Mobile smoke checks on modern smartphones: portrait and landscape, touch-only core workflow, no horizontal overflow, readable dialogs, keyboard not required for touch users.
+* Responsive check at common phone widths and `sm` / `md` / `lg`; desktop must retain efficient two-column editing.
 
 **Validation gate:** Vitest suite green. Manual review against `09-design-system.md` and the smoke checklist.
 
@@ -275,7 +272,7 @@ The optional layer. The app already works without it.
                                    │
                                    └──> [13 Print view]
 
-[14 Auth + Supabase] ──> additive to [2] and [5]
+[14 JSON import/export] ──> additive to [2], [5], and [6]
 
 [15 E2E + polish] ──> validates 1–13
 ```

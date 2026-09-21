@@ -2,362 +2,136 @@
 
 ## 1. Purpose
 
-This document defines how plans are stored and synchronized.
+This document defines browser persistence, automatic saving, project-file portability, and recovery. The application has no account, authentication, backend, remote database, or cloud sync.
 
-It covers:
-
-* The repository abstraction.
-* Local-first persistence in the browser.
-* Cloud persistence in Supabase (optional).
-* Authentication flow.
-* The sync model between local and cloud.
-* Schema migrations.
-* Error handling.
-
-The data model itself is defined in `03-data-model.md`.
-
----
+The canonical data model is defined in `03-data-model.md`. The repository is the only layer that talks to browser storage.
 
 ## 2. Goals and Non-Goals
 
 ### Goals
 
-* The application **must work without authentication**.
-* Saving must be **transparent** — the user never loses work on a refresh.
-* Cloud sync must be **opt-in** and **additive** — never block local usage.
-* Persistence must be **fast enough** to feel instant (autosave debounced, < 200 ms perceived).
-* Plans must be **portable** between local and cloud without loss.
+* Work without a network connection after the application assets are loaded.
+* Automatically persist edits locally without requiring user action.
+* Preserve complete plans across reloads and browser sessions.
+* Export and import complete, validated, versioned JSON project files.
+* Make storage failures and recovery options visible to the user.
 
 ### Non-goals
 
-* Real-time collaboration (no presence, no concurrent edits).
-* Version history / undo across sessions (in-session undo/redo is enough for MVP).
-* Offline-first PWA infrastructure beyond what `localStorage` gives us (no IndexedDB for MVP).
-* Multi-device conflict-resolution UI (last-write-wins with a warning is enough).
-
----
+* Accounts, authentication, remote persistence, or synchronization.
+* Automatic cross-device access. Use export/import instead.
+* Real-time collaboration or version history across sessions.
+* Treating browser storage as a backup. Users must be encouraged to export.
 
 ## 3. Repository Abstraction
 
-All persistence goes through a single interface in `lib/repo/types.ts`:
+All plan persistence goes through `src/lib/repo/types.ts`:
 
 ```ts
-import { Plan, PlanSummary } from '@/lib/schema/plan'
-
-export interface PlanSummary {
-  id: string
-  name: string
-  updatedAt: string
-}
-
 export interface PlanRepository {
-  /** List all plans visible to the current user. */
   list(): Promise<PlanSummary[]>
-
-  /** Load a plan by id. Returns null if not found. */
   load(id: string): Promise<Plan | null>
-
-  /** Persist a plan (insert or update). */
   save(plan: Plan): Promise<void>
-
-  /** Delete a plan by id. */
   remove(id: string): Promise<void>
-
-  /**
-   * Optional: stream of remote changes.
-   * Implemented by SupabasePlanRepository for cross-device updates.
-   * Local repository returns a never-yielding async iterable.
-   */
-  watch?(): AsyncIterable<PlanSummary[]>
 }
 ```
 
-Implementations:
+The MVP has one implementation: `IndexedDbPlanRepository`. Keeping the interface small leaves room for a future remote adapter without adding remote behavior now.
 
-* `LocalPlanRepository` — always present, uses `localStorage`.
-* `SupabasePlanRepository` — present when the user is signed in.
+## 4. IndexedDB Persistence
 
-A factory in `lib/repo/index.ts` selects which to use based on auth state.
+Use IndexedDB, not `localStorage`, for plan data.
 
----
+Reasons:
 
-## 4. Local Persistence
+* IndexedDB is asynchronous and avoids blocking the editor while serializing or writing.
+* Records are stored transactionally, so a plan and its summary/index cannot be partially updated.
+* It has more headroom than the typical 5–10 MB `localStorage` quota.
+* Structured records are a better extension point for multiple plans, snapshots, and future binary assets.
+* The expected MVP plans are small, but choosing the more durable primitive avoids a migration caused by reasonable future growth.
 
-### Storage
-
-Browser `localStorage` only. No IndexedDB, no Service Worker.
-
-Two keys:
+Use one database named `weeding-planner` with:
 
 ```text
-weeding-planner:plan:<planId>   -> JSON-encoded Plan
-weeding-planner:plan-index      -> JSON array of PlanSummary
-weeding-planner:active-plan     -> planId currently open (string | null)
+plans        -> Plan records keyed by meta.id
+preferences  -> active plan id and non-plan preferences
 ```
 
-The full plan is stored under its own key so that listing plans and listing plan contents are independent operations. The index is a derived cache and can be rebuilt from the keys.
+Do not store derived duplicate indexes unless profiling demonstrates a need. Plan summaries can be read from records or maintained transactionally in the same database.
 
-### Repository implementation
+All database access is browser-only and must be initialized from client code. Handle unavailable storage, blocked upgrades, aborted transactions, and quota failures as typed repository errors.
+
+## 5. Autosave and Durability
+
+Plan mutations trigger a debounced save, initially 500 ms after the last mutation. The provider should expose `saved`, `saving`, and `error` status.
+
+* Await the IndexedDB write before reporting the plan as saved.
+* Flush pending work when the page is hidden where practical; `beforeunload` is not a reliable async-save mechanism.
+* Keep the last successfully saved plan intact if a newer save fails.
+* Do not silently discard unsaved in-memory edits.
+* Provide a prominent export action and a clear warning when persistence is unavailable or quota is exceeded.
+
+Browser storage can be evicted, cleared, or made unavailable by private browsing, browser policy, device cleanup, or user action. The app must not promise permanent backup. A future release may add explicit local snapshots, but that is not required for the MVP.
+
+## 6. Project Export and Import
+
+Export a complete project, not only the current assignments. The file includes the plan model and a separate file-format version:
 
 ```ts
-class LocalPlanRepository implements PlanRepository {
-  async list(): Promise<PlanSummary[]> {
-    const raw = localStorage.getItem('weeding-planner:plan-index')
-    return raw ? JSON.parse(raw) : []
-  }
-
-  async load(id: string): Promise<Plan | null> {
-    const raw = localStorage.getItem(`weeding-planner:plan:${id}`)
-    if (!raw) return null
-    const parsed = migrate(JSON.parse(raw))    // see schema migrations
-    return PlanSchema.parse(parsed)              // validation
-  }
-
-  async save(plan: Plan): Promise<void> {
-    const next: Plan = { ...plan, meta: { ...plan.meta, updatedAt: new Date().toISOString() } }
-    PlanSchema.parse(next)                       // validate before write
-    localStorage.setItem(`weeding-planner:plan:${plan.meta.id}`, JSON.stringify(next))
-    await this.#updateIndex(next)
-  }
-
-  async remove(id: string): Promise<void> {
-    localStorage.removeItem(`weeding-planner:plan:${id}`)
-    await this.#updateIndexExcluding(id)
-  }
-
-  async #updateIndex(plan: Plan) {
-    const list = await this.list()
-    const summary: PlanSummary = {
-      id: plan.meta.id, name: plan.meta.name, updatedAt: plan.meta.updatedAt,
-    }
-    const next = [summary, ...list.filter(s => s.id !== plan.meta.id)]
-    localStorage.setItem('weeding-planner:plan-index', JSON.stringify(next))
-  }
+type ProjectFile = {
+  format: 'plan-de-table-project'
+  formatVersion: number
+  exportedAt: string
+  plan: Plan
 }
 ```
 
-### Quota handling
-
-`localStorage` is typically capped at 5–10 MB. The application never stores anything except plan JSON. With 200 guests and 25 tables, a plan is on the order of tens of KB — well within quota.
-
-If `save` throws a `QuotaExceededError`, the repository throws `RepoError("quota")`. The UI surfaces this through a toast: "Storage limit reached — clear old plans or sign in to save online."
-
-### Autosave
-
-Plan mutations trigger an autosave with these rules:
-
-* Debounced 500 ms after the last mutation.
-* Immediate save on `beforeunload`.
-* Immediate save before auto-generation runs (so the engine operates on a persisted baseline).
-
-The autosave is owned by the plan context (see `02-architecture.md` § 7).
-
----
-
-## 5. Cloud Persistence (Supabase)
-
-### When it applies
-
-Cloud persistence is only used when the user is signed in. The active repository is selected by the factory:
-
-```ts
-function getRepository(user: User | null): PlanRepository {
-  if (!user) return new LocalPlanRepository()
-  return new CompositeRepository([
-    new LocalPlanRepository(),
-    new SupabasePlanRepository(user.id),
-  ])
-}
-```
+Export rules:
 
-`CompositeRepository` writes to both backends in parallel and reads from local first, falling back to cloud only when local is missing. The local copy is the source of truth for the current session; the cloud copy is a backup and a cross-device mirror.
+* Serialize deterministic JSON where practical for useful diffs and reliable tests.
+* Include all tables, guests, constraints, assignments, layout positions, and plan metadata.
+* Never include browser-only preferences or private runtime state.
+* Use a filename derived from the plan name with a safe `.json` suffix.
 
-### Supabase schema
+Import rules:
 
-A single table:
+1. Parse the selected file as JSON.
+2. Validate the envelope and reject unknown `format` values.
+3. Migrate `formatVersion` sequentially to the current file version.
+4. Migrate and validate `plan.meta.schemaVersion` using the data-model migrations.
+5. Validate all invariants before writing anything.
+6. Import as a new plan ID by default to avoid overwriting existing work; offer replacement only through an explicit user action.
+7. Persist the imported plan in one IndexedDB transaction and make it active only after the write succeeds.
 
-```sql
-create table plans (
-  id              uuid primary key,
-  owner_id        uuid not null references auth.users(id) on delete cascade,
-  name            text not null,
-  created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now(),
-  schema_version  int  not null,
-  data            jsonb not null
-);
+Malformed or unsupported files must leave existing plans untouched. Offer a friendly error and, where safe, preserve the original file for the user to retry with a newer application version.
 
-create index plans_owner_updated_idx
-  on plans (owner_id, updated_at desc);
+## 7. Schema Versioning and Backward Compatibility
 
-alter table plans enable row level security;
+The plan's `meta.schemaVersion` and the project file's `formatVersion` are separate:
 
-create policy "owner_read"
-  on plans for select
-  using (auth.uid() = owner_id);
+* `schemaVersion` versions the internal `Plan` model.
+* `formatVersion` versions the JSON envelope and import/export contract.
 
-create policy "owner_write"
-  on plans for all
-  using (auth.uid() = owner_id)
-  with check (auth.uid() = owner_id);
-```
+On load or import, migrate sequentially, then validate with the schema. Saves and exports write the current versions. Keep migrations pure, deterministic, and covered by fixtures for every supported historical version.
 
-The columns mirror `PlanMeta` for indexing and list queries; `data` is the full plan object.
+Older files should remain importable for as long as their migration code is shipped. Unknown future versions must be rejected rather than guessed. If validation fails after migration, show recovery options without deleting the source record or file.
 
-### Repository implementation (outline)
+## 8. Errors and Recovery
 
-```ts
-class SupabasePlanRepository implements PlanRepository {
-  constructor(private supabase: SupabaseClient, private ownerId: string) {}
+Use typed `RepoError` codes:
 
-  async list(): Promise<PlanSummary[]> {
-    const { data, error } = await this.supabase
-      .from('plans')
-      .select('id, name, updated_at')
-      .eq('owner_id', this.ownerId)
-      .order('updated_at', { ascending: false })
-    if (error) throw new RepoError('network', error.message)
-    return data.map(r => ({ id: r.id, name: r.name, updatedAt: r.updated_at }))
-  }
+| Code          | Meaning                                  | UI behavior |
+| ------------- | ---------------------------------------- | ----------- |
+| `not_found`   | Plan id does not exist                   | Return to entry page. |
+| `quota`       | Browser storage quota was exceeded       | Explain export/cleanup options. |
+| `unavailable` | IndexedDB is blocked or unavailable      | Offer export of the in-memory plan and explain the limitation. |
+| `corrupt`     | Record or imported file failed validation | Keep source intact; offer retry/export recovery. |
+| `unknown`     | Unexpected failure                       | Friendly message and developer log. |
 
-  async load(id: string): Promise<Plan | null> {
-    const { data, error } = await this.supabase
-      .from('plans').select('data').eq('id', id).single()
-    if (error) {
-      if (error.code === 'PGRST116') return null    // not found
-      throw new RepoError('network', error.message)
-    }
-    return PlanSchema.parse(migrate(data))
-  }
+Never reset or overwrite a plan automatically after a load or import failure.
 
-  async save(plan: Plan): Promise<void> {
-    const next = { ...plan, meta: { ...plan.meta, updatedAt: new Date().toISOString() } }
-    const { error } = await this.supabase.from('plans').upsert({
-      id: next.meta.id,
-      owner_id: this.ownerId,
-      name: next.meta.name,
-      created_at: next.meta.createdAt,
-      updated_at: next.meta.updatedAt,
-      schema_version: next.meta.schemaVersion,
-      data: next,
-    })
-    if (error) throw new RepoError('network', error.message)
-  }
+## 9. Offline and Future Extensions
 
-  async remove(id: string): Promise<void> {
-    const { error } = await this.supabase.from('plans').delete().eq('id', id)
-    if (error) throw new RepoError('network', error.message)
-  }
-}
-```
+The core editor, engine, IndexedDB repository, and JSON import/export require no network request. GitHub Pages serves the static application; hosting does not participate in data storage.
 
----
-
-## 6. Authentication
-
-* Library: `@supabase/supabase-js` (the official browser client; see D-019 — `@supabase/ssr` is not used because the app has no Node runtime).
-* Email + password, magic link, and OAuth (Google) for the MVP.
-* Sign-in lives behind a small `AuthMenu` in the top bar. Anonymous use is the default; auth is never required.
-* Client components use `useUser()` from `lib/auth/useUser.ts`. No `lib/auth/server.ts` exists — there is no server-side session.
-
-### Routes
-
-* `/sign-in` — sign-in form (client component; auth state lives in the browser).
-* `/auth/callback` — Supabase OAuth callback (client-side hash params handled in the same client form).
-
-There is no "you must sign in to continue" page.
-
----
-
-## 7. Sync Model
-
-### Read path
-
-```text
-PlanProvider mounts
-  -> local.load(id)
-  -> if local has it: use it
-  -> else: supabase.load(id) -> use it
-```
-
-If neither has it: redirect to entry page with a "Plan not found" toast.
-
-### Write path
-
-```text
-user mutation -> reducer
-  -> debounce 500 ms
-  -> local.save(plan)            // synchronous-ish, ~5 ms
-  -> supabase.save(plan)         // best-effort, fire-and-forget
-```
-
-Cloud saves are **fire-and-forget** during editing. They are not awaited for UI responsiveness. On failure, the local copy remains valid and a toast informs the user: "Cloud sync failed — your changes are saved locally and will retry."
-
-### Cross-device
-
-* On mount, if the local `updatedAt` is older than the cloud `updatedAt`, the UI shows a banner:
-  "This plan has newer changes on another device. Load them?"
-* Loading remote overwrites local without merge.
-* This is intentional for MVP. A merge UI is out of scope.
-
-### Conflict policy
-
-Last-write-wins by `updatedAt`. No per-field merge.
-
----
-
-## 8. Migrations on Load
-
-Whenever the repository loads a plan (local or cloud):
-
-1. Parse JSON.
-2. Run migrations from the stored `meta.schemaVersion` up to `CURRENT_VERSION` (see `03-data-model.md` § 9).
-3. Validate with `PlanSchema`.
-4. If validation fails, throw `RepoError("corrupt")` — the UI offers a "Discard plan" or "Keep editing in memory" choice.
-
-Migrations run on load, never on save. Saves always write at `CURRENT_VERSION`.
-
----
-
-## 9. Errors
-
-The repository throws `RepoError` with a `code`:
-
-| Code        | Meaning                              | UI behavior                          |
-| ----------- | ------------------------------------ | ------------------------------------ |
-| `not_found` | Plan id does not exist anywhere      | Redirect to entry.                   |
-| `quota`     | localStorage full                    | Toast + link to manage plans.        |
-| `network`   | Supabase request failed              | Toast: "Cloud sync failed".          |
-| `auth`      | User lost session mid-action        | Sign-in prompt, retry once.          |
-| `corrupt`   | Plan failed validation after migration | Recovery dialog (see below).       |
-| `unknown`   | Anything else                        | Generic toast, log to console.       |
-
-### Recovery dialog for `corrupt`
-
-* "This plan could not be loaded. It may be from an older version of the app."
-* Options: **Discard plan**, **Export raw JSON**, **Try to load as draft** (read-only view of the raw shape).
-
----
-
-## 10. Listing and Plan Management UI
-
-The entry page (`/`) lists:
-
-* All local plans (from `LocalPlanRepository.list`).
-* All cloud plans (from `SupabasePlanRepository.list`) when signed in.
-* A combined, deduplicated view, with a small badge indicating source.
-
-Each row supports:
-
-* Open
-* Rename (inline edit)
-* Delete (with confirm)
-* Duplicate (creates a copy with a new id)
-
----
-
-## 11. Open Persistence Questions
-
-1. **IndexedDB upgrade path** — if plans grow beyond ~100 KB, move from `localStorage` to IndexedDB. Not in MVP.
-2. **Background retry for cloud saves** — current model is fire-and-forget; a queue with retry could improve reliability. Post-MVP.
-3. **Sharing** — explicitly out of scope. The schema does not include a `shared_with` field yet; adding it later is non-breaking.
+Native browser print remains the MVP PDF path. A dedicated PDF generator can be added later as another client-side export capability. A future backend, authentication system, or sync service can be introduced behind a new repository adapter if product demand justifies its complexity; it is not part of the current architecture.

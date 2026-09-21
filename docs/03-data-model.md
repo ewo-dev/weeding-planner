@@ -9,7 +9,7 @@ It is the single source of truth for:
 * Entity names and fields.
 * Type definitions (TypeScript).
 * Validation rules.
-* The serialized shape stored locally and in Supabase.
+* The serialized shape stored locally and in exported project files.
 * Migration strategy when the schema evolves.
 
 The engine (`04-seating-engine.md`) and repository (`05-persistence.md`) consume this model.
@@ -222,7 +222,7 @@ All reads and writes go through `zod` schemas in `lib/schema/plan.ts`:
 
 Validation happens at:
 
-1. **Repository load** — reject corrupted local/cloud plans with a typed error.
+1. **Repository load/import** — reject corrupted local plans or project files with a typed error.
 2. **Action dispatch** — actions accept plain objects and validate before reducing.
 3. **Form submit** — client-side before the reducer sees the value.
 
@@ -232,39 +232,32 @@ The engine never trusts its inputs. It re-validates internally.
 
 ## 7. Serialization
 
-### Local storage shape
+### IndexedDB shape
 
-`localStorage` stores the active plan under a single key:
-
-```text
-weeding-planner:plan:<planId>
-```
-
-Each value is a JSON-encoded `Plan`. A separate index lists known plans:
+IndexedDB stores plans as structured records in one database:
 
 ```text
-weeding-planner:plan-index   -> [{ id, name, updatedAt }, ...]
+database: weeding-planner
+store: plans        -> Plan, keyed by meta.id
+store: preferences  -> active plan id and non-plan UI preferences
 ```
 
-The local repository never stores anything else.
+The repository owns transactions and indexes. The plan record is the canonical local copy; summaries may be indexed or derived without duplicating plan data.
 
-### Cloud (Supabase) shape
+### JSON project-file shape
 
-The plan is stored in a single row of `plans` table:
+Exported files use a versioned envelope so the file format can evolve independently from the browser database:
 
-| Column        | Type        | Notes                          |
-| ------------- | ----------- | ------------------------------ |
-| `id`          | uuid        | Primary key.                   |
-| `owner_id`    | uuid        | FK -> auth.users.              |
-| `name`        | text        |                                |
-| `created_at`  | timestamptz |                                |
-| `updated_at`  | timestamptz |                                |
-| `schema_version` | int      |                                |
-| `data`        | jsonb       | Full plan object (excluding meta duplicates). |
+```json
+{
+  "format": "plan-de-table-project",
+  "formatVersion": 1,
+  "exportedAt": "2026-09-21T10:42:11.000Z",
+  "plan": { "meta": {}, "tables": [], "guests": [], "constraints": [], "assignments": [] }
+}
+```
 
-The columns `id`, `name`, `created_at`, `updated_at`, `schema_version` mirror `PlanMeta` to allow indexing and list queries without parsing `data`. The `data` JSONB contains the full plan.
-
-Row-level security (RLS) ensures a user only sees their own rows.
+Import must validate the envelope, migrate supported older format versions, then validate and persist the contained plan. Unknown future versions must be rejected without overwriting existing data.
 
 ---
 

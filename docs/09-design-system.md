@@ -18,7 +18,8 @@ The components themselves are inventoried in `07-components.md`. This document i
 
 ## 2. Principles
 
-* **Mobile-first** — every layout starts at the smallest screen, then scales up. Per `AGENTS.md`.
+* **Mobile-first** — every layout starts at the smallest screen, then scales up. Per `AGENTS.md`. Mobile is part of the MVP, not a later polish pass.
+* **Touch-first** — every core action works through touch or keyboard; hover only enhances pointer interactions.
 * **Quiet** — the seating plan is the hero. UI chrome stays out of the way.
 * **Familiar** — components use recognizable patterns. No novel interaction metaphors.
 * **Accessible by default** — contrast, focus, hit targets, and keyboard parity are non-negotiable.
@@ -207,7 +208,7 @@ Tailwind defaults:
 * `xl` 1280 — desktop
 * `2xl` 1536 — large desktop
 
-The editor requires `lg` for full 2-column layout. Below `lg`, the editor collapses to a tab-switcher (see `07-components.md` § 5).
+The editor is usable as a single-column portrait layout from the smallest supported phone width. At `md` it may add more workspace room; at `lg` it can expose the full 2-column layout.
 
 ### Z-index layers
 
@@ -230,9 +231,9 @@ The editor requires `lg` for full 2-column layout. Below `lg`, the editor collap
 * Padding: `px-3` (`sm`), `px-4` (`md`), `px-5` (`lg`).
 * Radius: `rounded`.
 * Variants:
-  * `primary` — `bg-brand text-text-inverse`, hover `bg-brand-hover`.
-  * `secondary` — `bg-surface border border-border text-text`, hover `bg-surface-raised`.
-  * `ghost` — transparent, hover `bg-surface`.
+  * `primary` — `bg-brand text-text-inverse`, optional pointer hover `bg-brand-hover`.
+  * `secondary` — `bg-surface border border-border text-text`, optional pointer hover `bg-surface-raised`.
+  * `ghost` — transparent, optional pointer hover `bg-surface`.
   * `danger` — `bg-danger text-text-inverse`.
 
 ### Input
@@ -276,6 +277,8 @@ The canvas is the most visual surface. Specific rules:
 * Empty seats: 12-px outlined circle, `border-border`.
 * Filled seats: filled circle with the guest's initial, `bg-brand text-text-inverse` (color optionally varied by group — see § 14).
 * Drag overlay: 1.05x scale, `shadow-lg`, slight rotation (1-2 degrees) for feel.
+* Touch dragging must preserve scroll access, use a visible active state, and never rely on hover to reveal a drop target.
+* Provide action-based alternatives for assigning a guest or moving a table when canvas precision is poor on a phone.
 
 ---
 
@@ -333,6 +336,8 @@ This is **opt-in** in the MVP. The default is monochrome.
 
 * Minimum 44 x 44 px for any interactive element on touch.
 * Spacing between touch targets: minimum 8 px.
+* No core action may be available only on hover.
+* Verify controls and dialogs in portrait orientation at common phone widths.
 
 ### Motion
 

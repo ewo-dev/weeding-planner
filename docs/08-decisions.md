@@ -44,7 +44,7 @@ Consequences
 
 ### D-001 — Local-first is mandatory (2026-01-12)
 
-**Status:** Accepted.
+**Status:** Superseded by D-020.
 
 **Context**
 The product philosophy (`00-overview.md` § 2) says the application must feel "progressive": authentication and cloud persistence should not be required to try the app. We need a storage story that works without a backend.
@@ -114,7 +114,7 @@ Use `@dnd-kit/core` (plus `@dnd-kit/sortable` if needed later). Native HTML5 DnD
 
 ### D-005 — Sync model: last-write-wins, debounced fire-and-forget (2026-01-12)
 
-**Status:** Accepted.
+**Status:** Superseded by D-020.
 
 **Context**
 Authenticated users want their plans available on multiple devices. We need to keep the local copy responsive and not block on network.
@@ -131,7 +131,7 @@ Local writes are awaited (sub-millisecond). Cloud writes are debounced 500 ms an
 
 ### D-006 — Persistence: `localStorage` for MVP, IndexedDB deferred (2026-01-12)
 
-**Status:** Accepted.
+**Status:** Superseded by D-021.
 
 **Context**
 `localStorage` is simple, synchronous, and broadly supported. IndexedDB is async, more complex, and supports much larger data.
@@ -199,7 +199,7 @@ Constraints are always between two distinct guests, identified by their unordere
 
 ### D-010 — Authentication is optional, never gating (2026-01-12)
 
-**Status:** Accepted.
+**Status:** Superseded by D-020.
 
 **Context**
 The product philosophy says authentication should not block core usage. We want auth where it adds value (cloud save, multi-device) without adding friction.
@@ -375,7 +375,7 @@ D-016 added Playwright for e2e coverage. For a project of this size, the mainten
 
 ### D-019 — Static export to GitHub Pages; client-only routes (2026-09-21)
 
-**Status:** Accepted.
+**Status:** Superseded by D-023.
 
 **Context**
 The MVP is local-first: every user-visible state lives in `localStorage`, and the cloud is an optional backup (D-001, D-010). The product spec explicitly excludes shareable plan URLs and public links (`01-product.md` § 22). Given this, a static-only deployment on GitHub Pages fits the app's needs without paying for server capacity. Earlier docs assumed a Node runtime for middleware (Supabase SSR session refresh) and server actions (e.g. `createBlankPlan()`), which are not available in static export.
@@ -397,4 +397,64 @@ The MVP is local-first: every user-visible state lives in `localStorage`, and th
 * No SSR; pages are pre-rendered at build time. The editor and print view are full client islands that hydrate from `localStorage`.
 * Plan URLs are not deep-linkable. The "active plan" lives in localStorage. This was already true for anonymous users and matches the "private" principle of the product.
 * `next/image` is used with `unoptimized: true` (no runtime image processor on GH Pages).
-* The architecture becomes simpler overall: one runtime (the browser), one store (localStorage), one cloud (Supabase via HTTPS).
+* This decision was later superseded by D-020 and D-023, which remove the optional cloud layer and use IndexedDB.
+
+### D-020 — Fully local-first MVP with project files (2026-09-21)
+
+**Status:** Accepted. Supersedes D-001, D-005, and D-010.
+
+**Context**
+The product is a bounded seating-plan editor. The MVP excludes sharing, collaboration, and public links, while the deployment target is static GitHub Pages. Accounts and remote persistence would add friction, privacy obligations, and operational complexity without supporting a required MVP workflow.
+
+**Decision**
+Use no account, authentication, backend, remote database, or synchronization. Keep all user data in the browser and provide complete versioned JSON project export/import for portability between browsers and devices.
+
+**Consequences**
+* No automatic cross-device access or cloud backup; export/import is explicit.
+* User data is not sent to project servers, improving privacy and reducing infrastructure.
+* A future backend remains possible behind a repository adapter if product demand justifies it.
+
+### D-021 — IndexedDB for local persistence (2026-09-21)
+
+**Status:** Accepted. Supersedes D-006.
+
+**Context**
+`localStorage` is adequate for tiny strings but is synchronous, quota-constrained, and awkward for atomic multi-plan persistence. The application needs reliable autosave, multiple plans, and future extensibility.
+
+**Decision**
+Use IndexedDB as the only MVP persistence store. Keep storage access behind the repository, validate records on load, and handle unavailable storage and quota errors explicitly.
+
+**Consequences**
+* Asynchronous transactions improve write safety and leave room for larger plans or future assets.
+* The repository is more complex than a `localStorage` wrapper.
+* Browser storage is still not a backup; export remains a first-class feature.
+
+### D-022 — Versioned JSON project files (2026-09-21)
+
+**Status:** Accepted.
+
+**Context**
+Without a server, import/export is the only cross-device restore path. Files must survive schema evolution and must not overwrite valid local data when malformed.
+
+**Decision**
+Export a complete `plan-de-table-project` envelope with `formatVersion`, `exportedAt`, and a validated `Plan`. Import migrates supported versions before validation and persists as a new plan by default.
+
+**Consequences**
+* Projects are portable, inspectable, and testable without an account.
+* Migration code must be retained for supported historical versions.
+* Unknown future versions are rejected rather than guessed.
+
+### D-023 — GitHub Pages static deployment (2026-09-21)
+
+**Status:** Accepted. Supersedes the cloud assumptions in D-019.
+
+**Context**
+The application is fully client-side and has no server runtime requirement. GitHub Pages is sufficient for the initial deployment and keeps hosting simple.
+
+**Decision**
+Build with Next.js static export and deploy to GitHub Pages via GitHub Actions. Keep routes and persistence client-side. Do not introduce Vercel or another hosting platform unless future server-side requirements emerge.
+
+**Consequences**
+* Hosting and deployment are simple and inexpensive.
+* No SSR, server actions, API routes, or server-side data access.
+* A future hosting migration remains possible because application logic is not coupled to GitHub APIs.

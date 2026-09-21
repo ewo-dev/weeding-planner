@@ -28,8 +28,9 @@ The application should be:
 * **Visual** — the seating plan is the central part of the application.
 * **Fast** — creating a basic plan should take only a few minutes.
 * **Flexible** — users can manually modify anything generated automatically.
-* **Private** — users should only access their own saved plans.
-* **Progressive** — authentication and cloud persistence should not be required to try the application.
+* **Private** — plan data stays in the user's browser unless the user exports it.
+* **Portable** — complete projects can be exported as JSON and restored elsewhere.
+* **Offline-capable** — the core editor works without a network connection after the application is loaded.
 
 The application should avoid unnecessary features and complexity.
 
@@ -64,35 +65,29 @@ A user should be able to start building a plan without creating an account.
 
 ## 4. Local-first Experience
 
-The application must work without authentication.
+The application has no account, authentication, backend, or remote database.
 
-When a user is not authenticated:
+The normal data flow is:
 
 ```text
 User
   ↓
 Application state
   ↓
-Browser local storage
+Browser IndexedDB
 ```
 
 Users should be able to create and edit a complete seating plan without an account.
 
-Authentication becomes useful when the user wants to:
-
-* Save plans permanently in the cloud.
-* Access plans from another device.
-* Manage multiple saved plans.
-
-When authenticated:
+To move a project to another browser or device, the user exports the complete project JSON and imports it there:
 
 ```text
 Application state
        ↓
-Supabase
+Versioned JSON project file
 ```
 
-Local state and cloud state should remain conceptually separate.
+Browser persistence and project-file export remain separate concerns. Browser storage is convenient working storage, not a backup guarantee.
 
 ---
 
@@ -186,8 +181,8 @@ The initial MVP focuses exclusively on seating plans.
 * Automatic seating generation.
 * Manual adjustments.
 * Local persistence.
-* Optional authentication.
-* Cloud persistence through Supabase.
+* Automatic local persistence in IndexedDB.
+* Complete JSON project import/export.
 * Printing/exporting the seating plan.
 
 ### Out of scope

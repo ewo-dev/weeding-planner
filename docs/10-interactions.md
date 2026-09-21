@@ -81,7 +81,9 @@ Rules:
 
 * `PointerSensor` activation distance: **6 px**. This prevents accidental drags on tap-to-select.
 * `KeyboardSensor` is mandatory and wired to native Tab order. Every draggable is reachable by `Tab`; `Space` starts a drag; arrow keys move the dragged item; `Space` again drops; `Escape` cancels.
-* Touch is handled by `PointerSensor`. No separate touch sensor needed.
+* Touch is handled by `PointerSensor`, but the implementation must preserve native page scrolling. Use appropriate `touch-action` rules on drag handles rather than disabling scrolling across the whole editor.
+* Drag handles and drop targets must provide visible pressed/active states; hover is never the only drop feedback.
+* Every drag operation has an action-based alternative for small screens: select a guest, choose "Assign seat" or "Move to table", then choose the destination from a large, scrollable list.
 
 ---
 
@@ -113,7 +115,7 @@ If validation fails, the ghost snaps back to source. No toast for validation fai
 
 ### Auto-scroll
 
-When dragging near the edges of the canvas, the workspace auto-scrolls at 8 px / frame. Used only on desktop.
+When dragging near the edges of the canvas, the workspace auto-scrolls at 8 px / frame. This must work with touch; if browser scrolling conflicts with canvas auto-scroll, the action-based move flow remains available.
 
 ---
 
@@ -123,6 +125,7 @@ When dragging near the edges of the canvas, the workspace auto-scrolls at 8 px /
 
 * Drag handle: the table label (`TableCard` header). The rest of the card is not draggable (so users can still click on seats without accidentally dragging the table).
 * Activation: same 6 px distance.
+* The table header is a touch-sized handle. Users can also select a table and use an explicit "Move table" action on phones.
 
 ### Drop
 

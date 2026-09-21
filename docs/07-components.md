@@ -38,7 +38,7 @@ src/components/
   constraints/         # Constraint rows and editors
   plan-status/         # Statistics and conflict summary
   empty-states/        # Reusable empty state component
-  auth/                # Sign-in widget and menu
+  persistence/         # Import/export controls and save status
 ```
 
 ---
@@ -74,12 +74,12 @@ Top-level frame.
 
 * Props: `children`.
 * Renders: top bar + main slot.
-* Client component (top bar contains the auth menu).
+* Client component (top bar contains save status and project actions).
 
 ### `TopBar`
 
 * Props: `planName`, `onRename`.
-* Contains: app title, plan name (click to rename), `AuthMenu`, save indicator.
+* Contains: app title, plan name (click to rename), project actions, save indicator.
 * Save indicator shows three states: `saved`, `saving`, `error` — derived from repository status.
 
 ### `EditorLayout`
@@ -93,7 +93,8 @@ Two-column responsive layout:
 +---------------------------+---------------------------+
 ```
 
-On mobile, collapses to a tab switcher (`Guests` / `Tables` / `Plan`).
+On mobile and portrait tablet, collapses to a touch-friendly tab switcher (`Guests` / `Tables` / `Plan`).
+Tabs and primary actions remain reachable without hover and meet the 44 px minimum target.
 
 ---
 
@@ -130,7 +131,8 @@ Root of the editor canvas.
 * Two presentations:
   * Compact (in guest list): name only.
   * Card (in editor): name + small group badge if present.
-* Draggable in DnD context.
+* Draggable in DnD context with a visible touch affordance.
+* Must also expose an action-based assignment/move path for users who cannot precisely drag on a small screen.
 
 ### `DragGhost`
 
@@ -227,21 +229,13 @@ Each is a thin wrapper around `<EmptyState>` with copy from `01-product.md` § 1
 
 ---
 
-## 12. Auth (`components/auth/`)
+## 12. Persistence Actions (`components/persistence/`)
 
-### `AuthMenu`
+### `ProjectActions`
 
-* Renders `Sign in` button when logged out.
-* Renders avatar + dropdown (with `Sign out`, `My plans`) when logged in.
-
-### `SignInForm`
-
-* Email + password (and optional magic link button).
-* Submits to Supabase via the browser client SDK (`@supabase/supabase-js` — see D-019).
-
-### `AuthGate`
-
-* A soft gate: when the user attempts a cloud-only action while signed out, show a modal explaining what signing in enables. Never blocks.
+* Provides export and import controls for complete JSON project files.
+* Uses repository/project-file helpers rather than accessing IndexedDB directly.
+* Shows validation, migration, and storage errors in user-facing language.
 
 ---
 
@@ -256,7 +250,7 @@ Each is a thin wrapper around `<EmptyState>` with copy from `01-product.md` § 1
 | Drag-in-progress         | `@dnd-kit` internal + `PlanContext`   |
 | Modal open state         | Local `useState` in parent            |
 | Toast queue              | `ToastProvider` (singleton)           |
-| Auth                     | `AuthProvider` (root client wrapper)  |
+| Persistence status       | `PlanProvider` and repository          |
 
 ### Reading data
 

@@ -60,7 +60,7 @@ Example:
 └─────────────────────────────────────────┘
 ```
 
-If saved plans exist locally or in the user's account, they can also be accessed from the entry screen.
+If saved plans exist locally, they can also be accessed from the entry screen. The entry screen also provides project import and export.
 
 ---
 
@@ -445,31 +445,26 @@ Useful indicators:
 
 ---
 
-# 15. Persistence
+# 15. Persistence and Portability
 
-The application must work without authentication.
+The application has no authentication, account system, backend, or remote database.
 
 ## Anonymous users
 
-The current plan is automatically saved locally.
+The current plan is automatically saved locally in IndexedDB.
 
 The user should not lose their work when refreshing the page.
 
-Use browser storage for the local version.
+Use browser storage for the local version. Storage failures must be visible to the user; the app must never claim a change was saved when it was not.
 
-## Authenticated users
+Users must be able to:
 
-Authenticated users can save plans to Supabase.
+* Create, rename, open, duplicate, and delete local plans.
+* Export one complete project as a versioned JSON file.
+* Import a project JSON file after validation and migration.
+* Restore a project on another browser or device through export/import.
 
-They should be able to:
-
-* Create a plan.
-* Rename a plan.
-* Open a saved plan.
-* Delete a plan.
-* Continue editing it from another device.
-
-Authentication is optional and must not block the core application.
+Browser storage is not a guaranteed backup. The UI should make export easy and warn users when local persistence is unavailable or full.
 
 ---
 
@@ -514,24 +509,31 @@ It must not delay the core MVP.
 
 ---
 
-# 18. Responsive Behaviour
+# 18. Mobile-First Responsive Behaviour
 
-The application should work on:
+Mobile is a first-class MVP requirement, not a later enhancement. The application must work comfortably on:
 
 * Desktop.
 * Tablet.
 * Mobile.
 
-The seating editor is primarily designed for desktop because of its visual nature.
+The seating editor must be designed for touch first, then adapted to larger screens. Desktop may expose more panels simultaneously, but it must not be the only practical editing environment.
 
-On mobile, the UI should prioritize:
+On small screens and in portrait orientation, the UI should prioritize:
 
 * Guest management.
 * Table management.
 * Viewing the seating plan.
-* Basic guest movement.
+* Basic guest movement using touch-friendly controls.
 
-A mobile user should still be able to use the application, but desktop remains the primary editing experience.
+Mobile requirements:
+
+* Core workflows require no mouse or hover interaction.
+* Touch targets are at least 44 x 44 px with sufficient spacing.
+* Layouts reflow without horizontal page scrolling at common phone widths.
+* Dragging guests and tables has a clear touch affordance and does not depend on hover feedback.
+* Where precise canvas dragging is difficult on a phone, provide an accessible action-based alternative such as "Move to table" or "Assign seat".
+* Test portrait and landscape behavior on modern smartphones before release.
 
 ---
 
@@ -612,8 +614,8 @@ The MVP is complete when the user can:
 * [ ] Manually modify generated plans.
 * [ ] Save the plan locally.
 * [ ] Print the seating plan.
-* [ ] Optionally authenticate.
-* [ ] Save plans to Supabase when authenticated.
+* [ ] Export a complete project as JSON.
+* [ ] Import and restore a project from JSON.
 
 ---
 

@@ -24,14 +24,17 @@ The architecture must support the product philosophy:
 
 * **Simple** — minimal moving parts, no premature abstractions.
 * **Local-first** — the application must work fully without a backend.
-* **Progressive** — authentication and cloud sync are optional layers on top of a local core.
+* **Private by default** — there is no account or remote data store.
+* **Portable** — JSON import/export is the cross-device mechanism.
 * **Visual** — the seating editor is the central feature; everything else supports it.
 * **Mobile-first** — UI primitives and layouts default to small screens, then scale up.
+* **Touch-capable** — core workflows work with touch, keyboard, or pointer; hover is enhancement only.
 
 Concretely:
 
 * Prefer server components by default.
 * Client components only where required (interactivity, drag & drop, local state).
+* Design the editor around a narrow portrait layout first; larger breakpoints progressively add workspace area and panels.
 * Avoid introducing dependencies without a clear reason.
 * Keep components small and reusable.
 
@@ -44,14 +47,14 @@ The stack is fixed by `AGENTS.md`:
 * **Next.js** (App Router) — routing, static export to GitHub Pages (no server runtime in production, see D-019).
 * **TypeScript** — strict typing for the data model and engine.
 * **Tailwind CSS** — styling, mobile-first utility-first CSS.
-* **Supabase** — authentication and cloud persistence (optional layer).
+* **IndexedDB** — local plan persistence and browser-first offline operation.
 
 Additional libraries are only added when justified:
 
 * **Drag & drop** — `@dnd-kit/core` (preferred for accessibility and headless control).
 * **State** — React local state + URL state. No global store required for MVP.
 * **IDs** — `crypto.randomUUID()` (native, no dependency).
-* **Persistence (local)** — `localStorage` via a thin typed wrapper.
+* **Persistence (local)** — IndexedDB via a thin typed repository.
 * **Schema validation** — `zod` for engine inputs/outputs and persisted plan validation.
 
 ---
@@ -70,7 +73,7 @@ Additional libraries are only added when justified:
 |           v                     v                            |
 |  +----------------+    +----------------+                    |
 |  |  Local Store   |    |  Plan Context  |                    |
-|  |  (localStorage)|    |   (React)      |                    |
+|  |  (IndexedDB)   |    |   (React)      |                    |
 |  +----------------+    +----------------+                    |
 |           |                     |                            |
 |           +----------+-----------+                            |
@@ -79,13 +82,7 @@ Additional libraries are only added when justified:
 |              |  Plan Repo     |                               |
 |              |  (adapter)     |                               |
 |              +----------------+                               |
-+----------------------+---------------------------------------+
-                       | (only when authenticated, HTTPS)
-                       v
-                +--------------+
-                |   Supabase   |
-                |  Auth + DB   |
-                +--------------+
++--------------------------------------------------------------+
 ```
 
 The application is statically exported (`output: 'export'`) and served by GitHub Pages. There is no Node.js runtime in production; see D-019.
@@ -93,8 +90,10 @@ The application is statically exported (`output: 'export'`) and served by GitHub
 Key points:
 
 * The seating plan UI runs entirely on the client.
+* Mobile and desktop use the same plan actions; responsive layouts must not create separate data behavior.
 * Persistence is behind a single `PlanRepository` interface.
-* Two implementations: `LocalPlanRepository` (always active) and `SupabasePlanRepository` (active when signed in).
+* One implementation: `IndexedDbPlanRepository`.
+* Project-file import/export uses the same schema validation and migration boundary.
 * The seating engine is a pure function module — no React, no I/O.
 
 ---
@@ -105,11 +104,11 @@ Key points:
 src/
   app/                          # Next.js App Router
     layout.tsx                  # Root layout (server, prerendered)
-    page.tsx                    # Entry / plan list (client, hydrates from localStorage)
+    page.tsx                    # Entry / plan list (client, hydrates from IndexedDB)
     editor/
-      page.tsx                  # Plan editor (client; reads active plan from localStorage)
+      page.tsx                  # Plan editor (client; reads active plan from IndexedDB)
     print/
-      page.tsx                  # Print-friendly view (client; reads active plan from localStorage)
+      page.tsx                  # Print-friendly view (client; reads active plan from IndexedDB)
     not-found.tsx               # 404
 
   components/                   # Reusable UI components
@@ -128,9 +127,9 @@ src/
       index.ts
     repo/                       # Plan repository
       types.ts                  # PlanRepository interface
-      local.ts                  # LocalPlanRepository
-      supabase.ts               # SupabasePlanRepository
-      index.ts                  # Factory: pick implementation
+      indexed-db.ts             # IndexedDbPlanRepository
+      project-file.ts           # JSON import/export
+      index.ts                  # Repository entry point
     schema/                     # zod schemas + migration helpers
       plan.ts
       migrations.ts
@@ -138,9 +137,6 @@ src/
       context.tsx
       usePlan.ts
       selectors.ts
-    auth/                       # Supabase auth client + hooks
-      client.ts
-      useUser.ts
     id.ts                       # uuid helper
     cn.ts                       # className helper
 
@@ -174,15 +170,15 @@ Default rule: **server component unless interactivity is required.**
 
 The application is statically exported (D-019). Every page that needs state, hydration, or browser APIs is a client component:
 
-* Entry page (`app/page.tsx`) — reads the plan index from `localStorage`.
-* Editor (`app/editor/page.tsx`) — reads the active plan id from `localStorage`, loads via the repository, mounts `<PlanProvider>`.
+* Entry page (`app/page.tsx`) — reads plan summaries from IndexedDB.
+* Editor (`app/editor/page.tsx`) — reads the active plan id from IndexedDB, loads via the repository, mounts `<PlanProvider>`.
 * Print view (`app/print/page.tsx`) — same pattern, read-only.
 * All editor subcomponents: seating canvas, guest list, constraint editor, auth widget, etc.
 
 ### Boundary contract
 
 * Server-rendered shells provide layout and chrome only.
-* Client components own all data access. The repository is invoked directly from client code (`localStorage` is browser-only).
+* Client components own all data access. The repository is invoked directly from client code because IndexedDB is browser-only.
 * The plan context is provided at the top of the editor subtree.
 
 ---
@@ -194,7 +190,7 @@ The application is statically exported (D-019). Every page that needs state, hyd
 1. **URL state** — current plan ID, current view (editor / print).
 2. **Plan state** — the in-memory `Plan` object (the only mutable state of consequence).
 3. **UI state** — selection, dragged item, open modals. Local to the editor.
-4. **Auth state** — Supabase session, provided through a small `useUser()` hook.
+4. **Persistence state** — loading, saving, import, and export status owned by the client shell.
 
 ### Plan state — single source of truth
 
@@ -215,10 +211,10 @@ The application is statically exported (D-019). Every page that needs state, hyd
 ### Reading a plan
 
 ```text
-URL: /editor (active plan read from localStorage by the client component)
+URL: /editor (active plan read from IndexedDB by the client component)
   |
   v
-Client component loads plan via repository (local first, then cloud)
+Client component loads plan via the IndexedDB repository
   |
   v
 Pass plan as prop to <PlanProvider initialPlan={...}>
@@ -239,7 +235,7 @@ Dispatch action through PlanContext
 Reducer updates plan immutably
   |
   v
-Repository autosaves (debounced) to active backend
+Repository autosaves (debounced) to IndexedDB
   |
   v
 UI re-renders from new context value
@@ -282,14 +278,10 @@ interface PlanRepository {
 
 Implementations:
 
-* `LocalPlanRepository` — uses `localStorage`, always available.
-* `SupabasePlanRepository` — uses Supabase tables + RLS.
+* `IndexedDbPlanRepository` — the only persistence implementation.
+* `ProjectFile` helpers — validate, migrate, import, and export the complete JSON envelope.
 
-Selection:
-
-* Anonymous user -> `LocalPlanRepository`.
-* Authenticated user -> both available; UI exposes a "Save to cloud" toggle.
-  By default, the local repo stays active so the app remains responsive offline.
+The repository is browser-only and is called from client components. There is no remote fallback or sync state.
 
 Detailed rules, schema, and migration strategy: see `05-persistence.md`.
 
@@ -329,6 +321,7 @@ Detailed algorithm, scoring, and conflict reporting: see `04-seating-engine.md`.
 * Two drag layers:
   * **Guest -> table seat** (within the editor).
   * **Table -> workspace** (positioning).
+  * On touch screens, provide explicit move/assign actions when a precise drag is impractical.
 * Sensors:
   * `PointerSensor` for mouse/touch.
   * `KeyboardSensor` for accessibility (mandatory).
@@ -351,7 +344,7 @@ Two surfaces:
 The repository and engine throw typed errors:
 
 * `EngineError` — unrecoverable engine failure (invalid input, timeout).
-* `RepoError` — persistence failure (quota, network, auth).
+* `RepoError` — persistence failure (quota, unavailable, corrupt file).
 
 The UI maps these to messages without exposing stack traces.
 
@@ -364,7 +357,8 @@ The UI maps these to messages without exposing stack traces.
 * **End-to-end checks** — manual smoke flows documented per release (no automated e2e runner — see D-018):
   * Anonymous user can build a plan end-to-end.
   * Auto-generation respects mandatory constraints.
-  * Cloud save and reload round-trip works.
+  * IndexedDB save and reload round-trip works.
+  * JSON export/import round-trip works.
 
 Detailed plan: see `11-testing.md` (when written).
 
@@ -374,7 +368,7 @@ Detailed plan: see `11-testing.md` (when written).
 
 Targets for the MVP:
 
-* Editor remains at 60 fps while dragging a guest (up to 200 guests, 25 tables).
+* Editor remains at 60 fps while dragging a guest on a mid-range mobile device (up to 200 guests, 25 tables).
 * Initial editor render under 200 ms on a mid-range mobile device.
 * Auto-generation completes in under 500 ms for 200 guests / 25 tables.
 
@@ -391,6 +385,6 @@ Practices:
 These are intentionally left open and tracked here:
 
 1. **Auto-save cadence** — debounce window to settle before deciding.
-2. **Multi-device conflict resolution** — last-write-wins vs explicit merge UI. MVP target: last-write-wins with a clear "stale plan" warning.
+2. **Export UX** — explicit user export versus an optional reminder after major edits.
 3. **Undo/redo scope** — full plan snapshots vs action stack. MVP target: action stack with bounded history.
-4. **Real-time collaboration** — explicitly out of scope; the schema should not preclude it later.
+4. **Future sync** — explicitly deferred. A future backend can implement a repository adapter without changing the plan model or editor.
