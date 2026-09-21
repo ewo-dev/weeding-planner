@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { removeGuest } from '@/lib/plan/actions'
-import { constraintsForGuest, guestById, seatedCount, tableById } from '@/lib/plan/selectors'
+import { conflicts, constraintsForGuest, guestById, seatedCount, tableById } from '@/lib/plan/selectors'
 import type { Guest } from '@/types/plan'
+import { ConstraintsPanel } from '@/components/constraints/ConstraintsPanel'
 import { GuestSearchInput } from './GuestSearchInput'
 import { GuestList } from './GuestList'
 import { GuestEditor } from './GuestEditor'
@@ -67,6 +68,18 @@ export function GuestListPanel() {
 
   const total = plan.guests.length
   const seatedTotal = seatedCount(plan)
+
+  // Guests involved in a mandatory placement conflict get an inline warning
+  // badge (docs/10-interactions.md § 14). Recomputed on every plan change.
+  const conflictGuestIds = useMemo(() => {
+    const report = conflicts(plan)
+    const ids = new Set<string>()
+    for (const ref of [...report.mandatoryUnsatisfied, ...report.separationViolations]) {
+      ids.add(ref.a)
+      ids.add(ref.b)
+    }
+    return ids
+  }, [plan])
 
   function closeEditorFor(guestId: string): void {
     setEditor((current) => (current?.mode === 'edit' && current.guestId === guestId ? null : current))
@@ -132,9 +145,12 @@ export function GuestListPanel() {
         unseated={unseated}
         seated={seated}
         selectedId={editor?.mode === 'edit' ? editor.guestId : null}
+        conflictIds={conflictGuestIds}
         onEdit={(guestId) => setEditor({ mode: 'edit', guestId })}
         onRemove={requestDelete}
       />
+
+      <ConstraintsPanel guestId={editor?.mode === 'edit' ? editor.guestId : null} />
 
       {showEditor && (
         <div className="rounded-lg border border-border bg-surface p-4">

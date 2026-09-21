@@ -16,8 +16,8 @@ function renderList(children: ReactNode) {
   return render(<DndContext>{children}</DndContext>)
 }
 
-function listProps() {
-  return { selectedId: null, onEdit: vi.fn(), onRemove: vi.fn() }
+function listProps(conflictIds: Set<string> = new Set()) {
+  return { selectedId: null, conflictIds, onEdit: vi.fn(), onRemove: vi.fn() }
 }
 
 describe('GuestList', () => {
@@ -29,6 +29,7 @@ describe('GuestList', () => {
         unseated={[G(1, 'Carol')]}
         seated={[{ guest: G(2, 'Alice'), tableName: 'Table 1' }]}
         selectedId={null}
+        conflictIds={new Set()}
         onEdit={onEdit}
         onRemove={onRemove}
       />,
@@ -50,12 +51,36 @@ describe('GuestList', () => {
     expect(screen.getByTestId('unseat-dropzone')).toBeInTheDocument()
   })
 
+  it('marks guests carrying a placement conflict', () => {
+    const carol = G(1, 'Carol')
+    renderList(
+      <GuestList
+        unseated={[carol, G(2, 'Dave')]}
+        seated={[]}
+        selectedId={null}
+        conflictIds={new Set([carol.id])}
+        onEdit={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByLabelText('Conflit de placement pour Carol')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Conflit de placement pour Dave')).not.toBeInTheDocument()
+  })
+
   it('row click edits, × button removes', () => {
     const onEdit = vi.fn()
     const onRemove = vi.fn()
     const carol = G(1, 'Carol')
     renderList(
-      <GuestList unseated={[carol]} seated={[]} selectedId={null} onEdit={onEdit} onRemove={onRemove} />,
+      <GuestList
+        unseated={[carol]}
+        seated={[]}
+        selectedId={null}
+        conflictIds={new Set()}
+        onEdit={onEdit}
+        onRemove={onRemove}
+      />,
     )
 
     fireEvent.click(screen.getByRole('button', { name: /^Carol/ }))

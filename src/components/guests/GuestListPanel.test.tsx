@@ -97,6 +97,16 @@ describe('GuestListPanel', () => {
     expect(screen.getByRole('button', { name: /^Dave/ })).toHaveTextContent('Amis')
   })
 
+  it('badges guests involved in a mandatory conflict', () => {
+    renderPanel()
+
+    // must_together(Carol, Dave) with both unseated is unsatisfied.
+    expect(screen.getByLabelText('Conflit de placement pour Carol')).toBeInTheDocument()
+    expect(screen.getByLabelText('Conflit de placement pour Dave')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Conflit de placement pour Alice')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Conflit de placement pour Bob')).not.toBeInTheDocument()
+  })
+
   it('filters the list through the debounced search', async () => {
     renderPanel()
 

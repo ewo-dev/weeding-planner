@@ -6,6 +6,7 @@ import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
 import type { Plan } from '@/types/plan'
 import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
+import { ToastProvider } from '@/components/ui/ToastProvider'
 import EditorPage from './page'
 
 const { replaceMock } = vi.hoisted(() => ({ replaceMock: vi.fn() }))
@@ -50,8 +51,17 @@ beforeEach(() => {
 })
 
 describe('EditorPage', () => {
+  // The toast queue lives in the root layout in production; tests provide it here.
+  function renderPage() {
+    return render(
+      <ToastProvider>
+        <EditorPage />
+      </ToastProvider>,
+    )
+  }
+
   it('redirects to / when no active plan key is set', async () => {
-    render(<EditorPage />)
+    renderPage()
 
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
     expect(loadSpy).not.toHaveBeenCalled()
@@ -61,7 +71,7 @@ describe('EditorPage', () => {
     localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
     loadSpy.mockResolvedValue(null)
 
-    render(<EditorPage />)
+    renderPage()
 
     await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
     expect(loadSpy).toHaveBeenCalledWith('plan-id')
@@ -71,7 +81,7 @@ describe('EditorPage', () => {
     localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
     loadSpy.mockResolvedValue(makePlan())
 
-    render(<EditorPage />)
+    renderPage()
 
     // TopBar shows the plan name.
     expect(await screen.findByRole('button', { name: 'Plan de test' })).toBeInTheDocument()
@@ -86,7 +96,7 @@ describe('EditorPage', () => {
     localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
     loadSpy.mockImplementation(() => new Promise<Plan | null>(() => {})) // never resolves
 
-    const { container } = render(<EditorPage />)
+    const { container } = renderPage()
 
     expect(container.querySelector('.animate-pulse')).not.toBeNull()
   })
@@ -95,7 +105,7 @@ describe('EditorPage', () => {
     localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
     loadSpy.mockRejectedValue(new Error('storage boom'))
 
-    render(<EditorPage />)
+    renderPage()
 
     expect(await screen.findByText(/Le plan n'a pas pu être chargé/i)).toBeInTheDocument()
     expect(screen.getByText('storage boom')).toBeInTheDocument()

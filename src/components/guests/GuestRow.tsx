@@ -8,6 +8,8 @@ interface GuestRowProps {
   guest: Guest
   tableName: string | null
   selected: boolean
+  /** Mandatory placement conflict involving this guest (§ 14 badge). */
+  hasConflict: boolean
   onEdit: (guestId: string) => void
   onRemove: (guestId: string) => void
 }
@@ -22,7 +24,7 @@ interface GuestRowProps {
  * tab stop (Enter edits, Space drags). Requires a `<DndContext>` ancestor —
  * provided by `<SeatingEditor>`.
  */
-export function GuestRow({ guest, tableName, selected, onEdit, onRemove }: GuestRowProps) {
+export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRemove }: GuestRowProps) {
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: guestDragId(guest.id),
     data: { kind: 'guest', guestId: guest.id },
@@ -50,6 +52,15 @@ export function GuestRow({ guest, tableName, selected, onEdit, onRemove }: Guest
           </span>
         )}
       </button>
+      {hasConflict && (
+        <span
+          aria-label={`Conflit de placement pour ${guest.name}`}
+          title="Conflit de placement — voir les contraintes"
+          className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"
+        >
+          !
+        </span>
+      )}
       <button
         type="button"
         onClick={() => onRemove(guest.id)}

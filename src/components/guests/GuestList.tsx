@@ -14,6 +14,8 @@ interface GuestListProps {
   unseated: Guest[]
   seated: SeatedGuest[]
   selectedId: string | null
+  /** Guests involved in a mandatory placement conflict (§ 14 badges). */
+  conflictIds: Set<string>
   onEdit: (guestId: string) => void
   onRemove: (guestId: string) => void
 }
@@ -28,7 +30,7 @@ interface GuestListProps {
  * renders so the dropzone exists even with an empty list. Requires a
  * `<DndContext>` ancestor — provided by `<SeatingEditor>`.
  */
-export function GuestList({ unseated, seated, selectedId, onEdit, onRemove }: GuestListProps) {
+export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, onRemove }: GuestListProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: UNSEAT_DROP_ID,
     data: { kind: 'unseat' },
@@ -52,6 +54,7 @@ export function GuestList({ unseated, seated, selectedId, onEdit, onRemove }: Gu
                 guest={guest}
                 tableName={null}
                 selected={guest.id === selectedId}
+                hasConflict={conflictIds.has(guest.id)}
                 onEdit={onEdit}
                 onRemove={onRemove}
               />
@@ -70,6 +73,7 @@ export function GuestList({ unseated, seated, selectedId, onEdit, onRemove }: Gu
                 guest={guest}
                 tableName={tableName}
                 selected={guest.id === selectedId}
+                hasConflict={conflictIds.has(guest.id)}
                 onEdit={onEdit}
                 onRemove={onRemove}
               />

@@ -4,6 +4,7 @@ import * as repoModule from '@/lib/repo'
 import type { PlanRepository } from '@/lib/repo/types'
 import type { Plan } from '@/types/plan'
 import { PlanProvider } from '@/lib/plan/context'
+import { ToastProvider } from '@/components/ui/ToastProvider'
 import { SeatingEditor } from './SeatingEditor'
 
 const G = (n: number): string => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
@@ -46,9 +47,11 @@ afterEach(() => {
 describe('SeatingEditor', () => {
   it('renders the canvas cards, seats and the side-panel dropzone in one context', () => {
     render(
-      <PlanProvider initialPlan={fixture()}>
-        <SeatingEditor />
-      </PlanProvider>,
+      <ToastProvider>
+        <PlanProvider initialPlan={fixture()}>
+          <SeatingEditor />
+        </PlanProvider>
+      </ToastProvider>,
     )
 
     // Canvas: both cards with their seats.

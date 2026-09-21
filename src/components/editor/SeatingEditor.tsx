@@ -9,6 +9,7 @@ import { EditorLayout } from '@/components/layout/EditorLayout'
 import { arrowKeyboardCoordinates, parseDndId, type ActiveDrag, type DragKind } from './dnd'
 import { resolveGuestDrop, resolveTableDrop } from './dropLogic'
 import { DragGhost } from './DragGhost'
+import { ConflictWatcher } from '@/components/constraints/ConflictWatcher'
 import { Workspace } from './Workspace'
 
 interface ActivatorWithCoords {
@@ -132,6 +133,8 @@ export function SeatingEditor() {
           }}
         />
       </EditorLayout>
+      {/* Conflict toasts after manual edits (docs/10-interactions.md § 14). */}
+      <ConflictWatcher />
       <DragOverlay>
         {activeGuest ? <DragGhost kind="guest" guest={activeGuest} /> : null}
         {activeTable ? <DragGhost kind="table" table={activeTable} seated={activeSeated} /> : null}
