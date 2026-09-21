@@ -237,7 +237,7 @@ Each is a thin wrapper around `<EmptyState>` with copy from `01-product.md` § 1
 ### `SignInForm`
 
 * Email + password (and optional magic link button).
-* Submits to Supabase via server action.
+* Submits to Supabase via the browser client SDK (`@supabase/supabase-js` — see D-019).
 
 ### `AuthGate`
 

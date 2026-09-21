@@ -43,7 +43,7 @@ Each step:
 Bootstrap the project skeleton.
 
 * `create-next-app` (App Router, TypeScript strict, Tailwind, no `src/` flag — we add `src/` manually to match `02-architecture.md`).
-* Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `@supabase/ssr`, `lucide-react`.
+* Install runtime deps justified by decisions: `zod`, `@dnd-kit/core`, `@dnd-kit/utilities`, `lucide-react`. (`@supabase/ssr` is not used; step 14 installs `@supabase/supabase-js` instead — see D-019.)
 * Install dev deps: `vitest`, `@testing-library/react`, `@testing-library/user-event`.
 * Configure `tailwind.config.ts` with design tokens from `09-design-system.md` § 4–8 (colors, spacing, radii, shadows, font families).
 * Configure `globals.css`: Tailwind base + reduced-motion rule (`10-interactions.md` § 15).
@@ -121,7 +121,7 @@ The single source of truth for an open plan.
 ### Step 6 — Entry page (`/`)
 
 * `src/app/page.tsx` (server): reads `LocalPlanRepository.list()`, renders `<PlanList>` with "Nouveau plan" CTA.
-* Server action `createBlankPlan()` in `src/app/actions.ts` creates a blank plan and redirects to `/plan/[id]`.
+* `createBlankPlan()` is a client-side helper that calls `LocalPlanRepository.save(plan)`, sets `weeding-planner:active-plan`, and `router.push('/editor')`. No server action (see D-019).
 * `src/components/layout/PlanList.tsx` (client) — rows with Open / Rename / Delete / Duplicate (Delete with confirm).
 * Empty state when no plans.
 
@@ -131,9 +131,7 @@ The single source of truth for an open plan.
 
 ### Step 7 — Editor shell + TopBar + EditorLayout + PlanStatsBar
 
-* `src/app/plan/[planId]/page.tsx` (server): validates UUID, loads via repo, `notFound()` on miss, passes to `<PlanProvider>`.
-* `src/app/plan/[planId]/loading.tsx` — `<EditorSkeleton>`.
-* `src/app/plan/[planId]/error.tsx` (client) — friendly message + retry.
+* `src/app/editor/page.tsx` (client, see D-019): reads `weeding-planner:active-plan`, loads via repo, redirects to `/` on miss, passes to `<PlanProvider>`. Inline `<EditorSkeleton>` and inline error state — no `loading.tsx` / `error.tsx` because the page is fully client.
 * `src/components/layout/TopBar.tsx` (client) — plan name (click to rename), save indicator (`saved` / `saving` / `error`).
 * `src/components/layout/EditorLayout.tsx` — two-column on `lg+`, tab-switcher below.
 * `src/components/plan-status/PlanStatsBar.tsx` — guests, tables, seated/unseated, conflicts.
@@ -207,12 +205,12 @@ The heart of the application.
 
 ### Step 13 — Print view
 
-* `src/app/plan/[planId]/print/page.tsx` (server) — loads plan, renders `<PrintLayout>` + one `<PrintTable>` per table.
+* `src/app/print/page.tsx` (client, see D-019) — reads `weeding-planner:active-plan`, loads plan, renders `<PrintLayout>` + one `<PrintTable>` per table.
 * `src/components/print/PrintLayout.tsx`, `src/components/print/PrintTable.tsx`.
 * `src/styles/print.css` — `@media print` rules hide chrome, set black on white (D-017).
 * Browser print dialog = PDF export (D-017).
 
-**Validation gate:** `/plan/[id]/print` renders cleanly; browser print preview matches design.
+**Validation gate:** `/print` renders cleanly for an active plan; browser print preview matches design.
 
 ---
 
@@ -228,7 +226,7 @@ The optional layer. The app already works without it.
 * `src/lib/repo/composite.ts` — `CompositeRepository` (local + cloud) per D-005.
 * `src/lib/repo/index.ts` updated: factory picks `CompositeRepository` when signed in.
 * `src/app/sign-in/page.tsx` + `<SignInForm>` + `<AuthMenu>` in `TopBar`.
-* `src/middleware.ts` — refreshes Supabase session cookie (no gating).
+* ~~`src/middleware.ts`~~ — not created; static export has no middleware (see D-019). Supabase session handling is fully client-side via `@supabase/supabase-js`.
 * Stale-plan banner per `05-persistence.md` § 7.
 * Error mapping per `05-persistence.md` § 9.
 

@@ -29,25 +29,25 @@ The architecture itself is described in `02-architecture.md`. The data model in 
 
 ## 3. Route Tree
 
+The application is statically exported (D-019). The route tree has no dynamic routes and no API surface.
+
 ```text
 src/app/
-  layout.tsx                    # Root layout (server)
-  globals.css                   # Tailwind base + tokens
-  page.tsx                      # Entry / plan list (/, public)
+  layout.tsx                    # Root layout (server, pre-rendered)
+  page.tsx                      # Entry / plan list (/, client, hydrates from localStorage)
   not-found.tsx                 # 404
   sign-in/
-    page.tsx                    # Sign-in (/sign-in, public)
-  plan/
-    [planId]/
-      page.tsx                  # Editor (/plan/:planId, requires plan access)
-      loading.tsx               # Editor skeleton
-      error.tsx                 # Editor error boundary
-      print/
-        page.tsx                # Print view (/plan/:planId/print)
-  api/                          # (reserved) — no routes in MVP
+    page.tsx                    # Sign-in (/sign-in, client)
+  editor/
+    page.tsx                    # Editor (/editor, client; reads active plan from localStorage)
+  print/
+    page.tsx                    # Print view (/print, client; reads active plan from localStorage)
 ```
 
-The `api/` folder is reserved for server actions or route handlers if needed later. Server actions are preferred for mutations in MVP.
+Notes:
+
+* The `api/` folder does not exist. Server actions and route handlers have no place in a static export.
+* The active plan is addressed by the `weeding-planner:active-plan` key in `localStorage` (see `05-persistence.md` § 4). No plan id appears in the URL.
 
 ---
 
@@ -92,7 +92,7 @@ The landing/plan list. Server component.
 * Reads the local plan index (`LocalPlanRepository.list()`).
 * If the user is signed in, also reads the Supabase index and merges.
 * Renders `<PlanList>` with summaries.
-* Shows a primary action: "Nouveau plan" — creates a blank plan and redirects to `/plan/[id]`.
+* Shows a primary action: "Nouveau plan" — creates a blank plan in `localStorage`, sets `weeding-planner:active-plan`, and navigates to `/editor`.
 
 ### Composition
 
@@ -107,98 +107,106 @@ The landing/plan list. Server component.
 
 ---
 
-## 6. Plan Editor (`app/plan/[planId]/page.tsx`) — `/plan/[planId]`
+## 6. Plan Editor (`app/editor/page.tsx`) — `/editor`
 
-The core experience. The shell is a server component; the editor itself is a client subtree.
+The core experience. Fully client: it reads the active plan id from `localStorage`, loads the plan via the repository, and mounts `<PlanProvider>`.
 
-### Server shell (`page.tsx`)
+### Client component (`page.tsx`)
 
-* Validates `planId` is a UUID. Otherwise `notFound()`.
-* Loads the plan via `PlanRepository.load(planId)`.
-* If null: `notFound()` with a custom message ("Ce plan n'existe pas ou a été supprimé").
-* Passes the loaded plan to `<PlanProvider initialPlan={plan}>`.
+* On mount, reads the `weeding-planner:active-plan` key from `localStorage`.
+* Calls `PlanRepository.load(activeId)` (local first, cloud when signed in — see `05-persistence.md` § 7).
+* If null (no active plan, or plan missing): redirect to `/` and surface a toast.
+* Otherwise, passes the loaded plan to `<PlanProvider initialPlan={plan}>`.
 
-### Loading state (`loading.tsx`)
+### Loading state
 
-Renders `<EditorSkeleton>`:
+Rendered inline by the client component (no `loading.tsx` in static export — every page is either pre-rendered or rendered on the client). A small `<EditorSkeleton>` shows during the initial `load()` call.
 
-* Header placeholder.
-* Left panel placeholder with five `GuestRowSkeleton`.
-* Right canvas placeholder with one `TableCardSkeleton`.
-* Skeletons use the same dimensions as the real components to avoid layout shift.
+### Error state
 
-### Error state (`error.tsx`)
-
-* Client component (required by Next.js).
-* Catches thrown errors in the editor subtree.
-* Friendly message: "Le plan n'a pas pu être chargé. Réessayer ?" + a button that calls `reset()`.
-* Logs the error to `console.error`. No stack trace in the UI.
+Rendered inline by the client component. Friendly message: "Le plan n'a pas pu être chargé. Réessayer ?" + a retry button. Errors are logged to `console.error`. No stack trace in the UI.
 
 ### Composition
 
 ```tsx
-// app/plan/[planId]/page.tsx (server)
+// app/editor/page.tsx (client)
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { getRepository } from '@/lib/repo'
 import { PlanProvider } from '@/lib/plan/PlanProvider'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { TopBar } from '@/components/layout/TopBar'
 import { SeatingEditor } from '@/components/editor/SeatingEditor'
-import { getRepository } from '@/lib/repo'
 
-export default async function PlanPage({ params }: { params: { planId: string } }) {
-  const repo = getRepository(await getUser())
-  const plan = await repo.load(params.planId)
-  if (!plan) notFound()
+export default function EditorPage() {
+  const router = useRouter()
+  const [plan, setPlan] = useState<Plan | null>(null)
+  const [error, setError] = useState<Error | null>(null)
 
+  useEffect(() => {
+    const activeId = localStorage.getItem('weeding-planner:active-plan')
+    if (!activeId) { router.replace('/'); return }
+    getRepository().load(activeId)
+      .then((p) => p ? setPlan(p) : router.replace('/'))
+      .catch((e) => setError(e))
+  }, [router])
+
+  if (error) return <EditorError error={error} onRetry={() => setError(null)} />
+  if (!plan) return <EditorSkeleton />
   return (
     <PlanProvider initialPlan={plan}>
       <TopBar planName={plan.meta.name} />
-      <EditorLayout>
-        <SeatingEditor />
-      </EditorLayout>
+      <EditorLayout><SeatingEditor /></EditorLayout>
     </PlanProvider>
   )
 }
 ```
 
-The editor subtree inside `<PlanProvider>` is fully client and owns all interactivity.
-
 ### Authentication gate
 
-There is **no auth gate**. Anyone with a link to `/plan/[planId]` who can present that ID can edit the plan if it exists in their local storage. Cloud plans require the owner session.
-
-When loading a plan that exists in the cloud but not locally for an authenticated user:
-
-* Server fetches via `SupabasePlanRepository`.
-* If 404, redirect to `/`.
+There is **no auth gate**. Anonymous users load from `localStorage`; signed-in users additionally see their cloud plans. The active plan is whatever is in `weeding-planner:active-plan` — there are no shareable plan URLs in MVP (see `01-product.md` § 22 and D-019).
 
 ---
 
-## 7. Print View (`app/plan/[planId]/print/page.tsx`) — `/plan/[planId]/print`
+## 7. Print View (`app/print/page.tsx`) — `/print`
 
-Read-only, print-friendly rendering of the plan.
+Read-only, print-friendly rendering of the active plan. Fully client (D-019).
 
 ### Behavior
 
-* Server component. Loads the plan via the repository (no auth needed if local).
-* Renders `<PrintLayout>` with `<PrintTable>` per table.
-* No top bar, no edit controls, no JS-heavy interactivity.
+* On mount, reads the `weeding-planner:active-plan` key from `localStorage` and loads the plan via the repository.
+* If no active plan: redirect to `/`.
+* Renders `<PrintLayout>` with one `<PrintTable>` per table.
+* No top bar, no edit controls, no JS-heavy interactivity beyond the initial load.
 
 ### Composition
 
 ```tsx
-// app/plan/[planId]/print/page.tsx (server)
+// app/print/page.tsx (client)
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { getRepository } from '@/lib/repo'
 import { PrintLayout } from '@/components/print/PrintLayout'
 import { PrintTable } from '@/components/print/PrintTable'
-import { getRepository } from '@/lib/repo'
 
-export default async function PrintPage({ params }: { params: { planId: string } }) {
-  const repo = getRepository(await getUser())
-  const plan = await repo.load(params.planId)
-  if (!plan) notFound()
+export default function PrintPage() {
+  const router = useRouter()
+  const [plan, setPlan] = useState<Plan | null>(null)
 
+  useEffect(() => {
+    const activeId = localStorage.getItem('weeding-planner:active-plan')
+    if (!activeId) { router.replace('/'); return }
+    getRepository().load(activeId).then((p) => p ? setPlan(p) : router.replace('/'))
+  }, [router])
+
+  if (!plan) return null
   return (
     <PrintLayout planName={plan.meta.name}>
-      {plan.tables.map(table => (
+      {plan.tables.map((table) => (
         <PrintTable key={table.id} table={table} guests={plan.guests} assignments={plan.assignments} />
       ))}
     </PrintLayout>
@@ -208,10 +216,8 @@ export default async function PrintPage({ params }: { params: { planId: string }
 
 ### Styles
 
-* `app/plan/[planId]/print/page.tsx` imports `print.css` directly.
+* `app/print/page.tsx` imports `print.css` directly.
 * `@media print` rules hide everything outside `<PrintLayout>` and remove backgrounds for ink savings.
-
-Detailed rules: see `15-print-export.md` (when written).
 
 ---
 
@@ -234,7 +240,7 @@ Public route. Server component shell.
 
 ## 9. Not Found (`app/not-found.tsx`)
 
-Generic 404.
+Generic 404. Pre-rendered at build time.
 
 * Renders `<EmptyState>` with copy: "Cette page n'existe pas. Retour à l'accueil."
 * "Retour à l'accueil" link goes to `/`.
@@ -243,72 +249,49 @@ Generic 404.
 
 ## 10. Middleware
 
-`src/middleware.ts` (Next.js middleware):
-
-* Refreshes the Supabase session cookie on every request.
-* Does **not** gate routes. The app is open by design.
-
-```ts
-import { createMiddlewareClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
-
-export async function middleware(req: NextRequest) {
-  const res = NextResponse.next()
-  const supabase = createMiddlewareClient({ req, res })
-  await supabase.auth.getSession()
-  return res
-}
-
-export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
-}
-```
+There is no `src/middleware.ts`. Static export runs without a Node runtime, so middleware is unavailable. Supabase session handling (step 14) is fully client-side. See D-019.
 
 ---
 
-## 11. Server Actions (reserved)
+## 11. Server Actions
 
-For MVP we minimize server actions. The two that may exist:
-
-* `createBlankPlan()` — invoked from `/` to create a new plan and redirect.
-* `signInWithPassword(formData)` — used by `<SignInForm>`.
-
-Server actions live in files marked with `"use server"` (top of file) and are called directly from client components.
+There are no server actions. All mutations are client-side calls into `LocalPlanRepository` or `SupabasePlanRepository`. See D-019.
 
 ---
 
 ## 12. Route Inventory
 
-| Route                  | Method  | Auth | Server/Client | Loads                  |
-| ---------------------- | ------- | ---- | ------------- | ---------------------- |
-| `/`                    | GET     | No   | Server        | Plan index (local + cloud) |
-| `/sign-in`             | GET     | No   | Server        | Session check          |
-| `/plan/[planId]`       | GET     | No*  | Server shell + client editor | Plan by id       |
-| `/plan/[planId]/print` | GET     | No*  | Server        | Plan by id             |
-| Anything else          | -       | -    | 404           | -                      |
+| Route        | Auth | Renders                 | Notes                                           |
+| ------------ | ---- | ----------------------- | ----------------------------------------------- |
+| `/`          | No   | Client (entry / list)   | Reads local plan index on mount.                |
+| `/editor`    | No   | Client (editor)         | Reads active plan from `localStorage`.          |
+| `/print`     | No   | Client (print view)     | Reads active plan from `localStorage`.          |
+| `/sign-in`   | No   | Client (auth form)      | Supabase Auth via browser SDK.                  |
+| Anything else | -   | 404                     |                                                 |
 
-*Cloud plans require the owner; the server component enforces this when loading from Supabase.
+When signed in, cloud plans appear in the entry list and are loaded as the active plan via the same repository.
 
 ---
 
 ## 13. SEO and Metadata
 
-* `/` and `/sign-in` set `metadata` with title and description.
-* `/plan/[planId]` sets `metadata: { robots: { index: false, follow: false } }` — private content.
+* `/` sets `metadata` with title and description.
+* `/sign-in` sets `metadata` with title and description.
+* `/editor` and `/print` set `metadata: { robots: { index: false, follow: false } }` — private content.
 * Open Graph and Twitter cards are out of scope for MVP.
 
 ---
 
 ## 14. URL Conventions
 
-* Plan IDs are UUIDs in the URL. No human-readable slugs in MVP (avoids collisions and simplifies migration).
-* The active plan id is also stored in `localStorage` (`weeding-planner:active-plan`) so a hard refresh doesn't lose the editor context.
-* Query parameters are avoided. The editor has no shareable state beyond the plan id itself.
+* There is no plan id in the URL. Plans are addressed by the `weeding-planner:active-plan` key in `localStorage`.
+* Bookmarking a specific plan is out of scope per `01-product.md` § 22. The MVP is single-device, single-active-plan.
+* Query parameters are avoided.
 
 ---
 
 ## 15. Open Routing Questions
 
-1. **Plan slug** — human-readable URL like `/plan/wedding-alice-bob`. Post-MVP, requires uniqueness checks in the repo.
+1. **Deep-linkable plans** — encoding the plan id in the URL (e.g. `/editor?id=<uuid>`) would allow sharing specific plans across devices for the same user. Post-MVP.
 2. **Share links** — public read-only URLs for printing. Out of scope per `01-product.md` § 22 but the route group `(public)` could host them later.
 3. **Internationalization** — currently French-only. If i18n is added, route prefixes (`/en/...`, `/fr/...`) become relevant.

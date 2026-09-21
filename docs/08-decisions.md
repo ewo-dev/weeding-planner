@@ -327,7 +327,7 @@ The engine is pure; components are interactive. We need both unit and e2e covera
 `01-product.md` § 16 says PDF export can rely on the browser's native print-to-PDF.
 
 **Decision**
-No dedicated PDF library in MVP. The print view (`/plan/[planId]/print`) is the source for both paper printing and PDF export via the browser dialog.
+No dedicated PDF library in MVP. The print view (`/print`, reads the active plan from `localStorage` — see D-019) is the source for both paper printing and PDF export via the browser dialog.
 
 **Consequences**
 * One stylesheet to maintain (`print.css`).
@@ -372,3 +372,29 @@ D-016 added Playwright for e2e coverage. For a project of this size, the mainten
 * One test runner only (Vitest). Less context for contributors.
 * We accept the trade-off that interactive regressions (drag & drop, print layout) are caught manually before each release rather than in CI.
 * The schema and contract tests still guarantee the critical invariants (engine correctness, repo round-trip, schema validation).
+
+### D-019 — Static export to GitHub Pages; client-only routes (2026-09-21)
+
+**Status:** Accepted.
+
+**Context**
+The MVP is local-first: every user-visible state lives in `localStorage`, and the cloud is an optional backup (D-001, D-010). The product spec explicitly excludes shareable plan URLs and public links (`01-product.md` § 22). Given this, a static-only deployment on GitHub Pages fits the app's needs without paying for server capacity. Earlier docs assumed a Node runtime for middleware (Supabase SSR session refresh) and server actions (e.g. `createBlankPlan()`), which are not available in static export.
+
+**Decision**
+* Build with Next.js `output: 'export'`. Deploy to GitHub Pages via GitHub Actions on every push to `main`.
+* **Drop `src/middleware.ts`.** No server runtime means no middleware; Supabase session refresh, when needed in step 14, is handled client-side.
+* **Drop server actions.** All mutations (e.g. creating a blank plan) become client-side calls into `LocalPlanRepository`.
+* **Simplify the route tree.** Drop the dynamic route `/plan/[planId]` and replace it with:
+  * `/editor` — client component that reads the active plan id from the `weeding-planner:active-plan` localStorage key (already designed in `05-persistence.md` § 4).
+  * `/print` — same pattern.
+  * The active-plan key was already part of the local repo design; this decision makes it the sole addressing mechanism. Per `01-product.md` § 22, plan URLs are not shareable in MVP, so this is not a regression.
+* **Replace `@supabase/ssr` with `@supabase/supabase-js` for step 14.** Supabase is reached over HTTPS from the browser; no server binding needed.
+* **Drop the `api/` folder reservation** — server actions / route handlers have no place in static export.
+* No `trailingSlash` enforcement needed; `basePath: '/weeding-planner'` handles GH Pages subpath.
+
+**Consequences**
+* Hosting is free on GitHub Pages; the deployment pipeline is `git push` and a single Actions workflow.
+* No SSR; pages are pre-rendered at build time. The editor and print view are full client islands that hydrate from `localStorage`.
+* Plan URLs are not deep-linkable. The "active plan" lives in localStorage. This was already true for anonymous users and matches the "private" principle of the product.
+* `next/image` is used with `unoptimized: true` (no runtime image processor on GH Pages).
+* The architecture becomes simpler overall: one runtime (the browser), one store (localStorage), one cloud (Supabase via HTTPS).

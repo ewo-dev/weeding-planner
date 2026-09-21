@@ -41,7 +41,7 @@ Concretely:
 
 The stack is fixed by `AGENTS.md`:
 
-* **Next.js** (App Router) — routing, server components, server actions.
+* **Next.js** (App Router) — routing, static export to GitHub Pages (no server runtime in production, see D-019).
 * **TypeScript** — strict typing for the data model and engine.
 * **Tailwind CSS** — styling, mobile-first utility-first CSS.
 * **Supabase** — authentication and cloud persistence (optional layer).
@@ -64,7 +64,7 @@ Additional libraries are only added when justified:
 |                                                              |
 |  +----------------+    +----------------+    +------------+  |
 |  |  Entry / List  |--->|  Seating Plan  |--->| Print View |  |
-|  |  (server comp) |    |   (client)     |    | (server)   |  |
+|  |   (client)     |    |   (client)     |    |  (client)  |  |
 |  +----------------+    +----------------+    +------------+  |
 |           |                     |                            |
 |           v                     v                            |
@@ -80,13 +80,15 @@ Additional libraries are only added when justified:
 |              |  (adapter)     |                               |
 |              +----------------+                               |
 +----------------------+---------------------------------------+
-                       | (only when authenticated)
+                       | (only when authenticated, HTTPS)
                        v
                 +--------------+
                 |   Supabase   |
                 |  Auth + DB   |
                 +--------------+
 ```
+
+The application is statically exported (`output: 'export'`) and served by GitHub Pages. There is no Node.js runtime in production; see D-019.
 
 Key points:
 
@@ -102,14 +104,13 @@ Key points:
 ```text
 src/
   app/                          # Next.js App Router
-    layout.tsx                  # Root layout (server)
-    page.tsx                    # Entry / plan list (server)
-    plan/
-      [planId]/
-        page.tsx                # Plan editor (server shell + client editor)
-        print/
-          page.tsx              # Print-friendly view (server)
-    api/                        # (reserved) server actions / route handlers
+    layout.tsx                  # Root layout (server, prerendered)
+    page.tsx                    # Entry / plan list (client, hydrates from localStorage)
+    editor/
+      page.tsx                  # Plan editor (client; reads active plan from localStorage)
+    print/
+      page.tsx                  # Print-friendly view (client; reads active plan from localStorage)
+    not-found.tsx               # 404
 
   components/                   # Reusable UI components
     editor/                     # Seating editor pieces
@@ -164,26 +165,25 @@ Notes:
 
 Default rule: **server component unless interactivity is required.**
 
-### Server components (default)
+### Server components (pre-rendered at build time)
 
 * Root layout.
-* Entry page (`app/page.tsx`).
-* Plan editor shell (`app/plan/[planId]/page.tsx`).
-* Print view (`app/plan/[planId]/print/page.tsx`).
+* `not-found.tsx`.
 
 ### Client components (`"use client"`)
 
-* The seating editor canvas and its drag & drop logic.
-* Guest list with search/filter.
-* Constraint editor.
-* Any component using `useState`, `useEffect`, drag events, or browser APIs.
-* Auth widget.
+The application is statically exported (D-019). Every page that needs state, hydration, or browser APIs is a client component:
+
+* Entry page (`app/page.tsx`) — reads the plan index from `localStorage`.
+* Editor (`app/editor/page.tsx`) — reads the active plan id from `localStorage`, loads via the repository, mounts `<PlanProvider>`.
+* Print view (`app/print/page.tsx`) — same pattern, read-only.
+* All editor subcomponents: seating canvas, guest list, constraint editor, auth widget, etc.
 
 ### Boundary contract
 
-* Server components fetch data via the repository and pass plain props down.
-* Client components receive data as props and read/write through plan context.
-* The plan context is provided at the top of any client subtree that edits a plan.
+* Server-rendered shells provide layout and chrome only.
+* Client components own all data access. The repository is invoked directly from client code (`localStorage` is browser-only).
+* The plan context is provided at the top of the editor subtree.
 
 ---
 
@@ -215,10 +215,10 @@ Default rule: **server component unless interactivity is required.**
 ### Reading a plan
 
 ```text
-URL: /plan/[planId]
+URL: /editor (active plan read from localStorage by the client component)
   |
   v
-Server component loads plan via repository (local first, then cloud)
+Client component loads plan via repository (local first, then cloud)
   |
   v
 Pass plan as prop to <PlanProvider initialPlan={...}>

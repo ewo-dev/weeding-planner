@@ -255,16 +255,15 @@ class SupabasePlanRepository implements PlanRepository {
 
 ## 6. Authentication
 
-* Library: `@supabase/ssr` (the official Next.js App Router binding).
+* Library: `@supabase/supabase-js` (the official browser client; see D-019 — `@supabase/ssr` is not used because the app has no Node runtime).
 * Email + password, magic link, and OAuth (Google) for the MVP.
 * Sign-in lives behind a small `AuthMenu` in the top bar. Anonymous use is the default; auth is never required.
-* Server components read the session via `lib/auth/server.ts`; client components use `useUser()` from `lib/auth/useUser.ts`.
+* Client components use `useUser()` from `lib/auth/useUser.ts`. No `lib/auth/server.ts` exists — there is no server-side session.
 
 ### Routes
 
-* `/sign-in` — sign-in form (server component with a client form island).
-* `/auth/callback` — Supabase OAuth callback.
-* `/(app)/plan/...` — the editor, gated only by plan ownership, not by auth.
+* `/sign-in` — sign-in form (client component; auth state lives in the browser).
+* `/auth/callback` — Supabase OAuth callback (client-side hash params handled in the same client form).
 
 There is no "you must sign in to continue" page.
 
