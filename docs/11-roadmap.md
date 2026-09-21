@@ -24,8 +24,8 @@ Each step:
 | 4    | UI primitives + design tokens          | Planned     | 1               |
 | 5    | Plan context, reducer, actions, history| Done        | 2, 4            |
 | 6    | Entry page (`/`)                       | Done        | 5               |
-| 7    | Editor shell + TopBar + PlanStatsBar   | Planned     | 5               |
-| 8    | Guest management                       | Planned     | 7               |
+| 7    | Editor shell + TopBar + PlanStatsBar   | Done        | 5               |
+| 8    | Guest management                       | Done        | 7               |
 | 9    | Table management                       | Planned     | 7               |
 | 10   | Seating editor canvas (DnD)            | Planned     | 7, 8, 9         |
 | 11   | Constraints UI                         | Planned     | 8, 10           |

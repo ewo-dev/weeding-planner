@@ -1,0 +1,14 @@
+
+> weeding-planner@0.1.0 dev
+> next dev
+
+▲ Next.js 16.3.5 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.3:3000
+✓ Ready in 405ms
+✓ Running next.config.ts took 43ms
+
+ GET / 404 in 681ms (next.js: 542ms, application-code: 139ms)
+ GET / 404 in 45ms (next.js: 9ms, application-code: 36ms)
+ GET / 404 in 53ms (next.js: 8ms, application-code: 44ms)
+[?25h

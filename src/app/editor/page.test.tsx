@@ -1,0 +1,102 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Mock } from 'vitest'
+import '@testing-library/jest-dom/vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import * as repoModule from '@/lib/repo'
+import type { PlanRepository } from '@/lib/repo/types'
+import type { Plan } from '@/types/plan'
+import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
+import EditorPage from './page'
+
+const { replaceMock } = vi.hoisted(() => ({ replaceMock: vi.fn() }))
+
+// The editor page's load effect depends on `router`; the mocked useRouter must
+// return a stable object or the effect re-runs on every render.
+vi.mock('next/navigation', () => {
+  const router = { push: vi.fn(), replace: replaceMock }
+  return { useRouter: () => router }
+})
+
+function makePlan(): Plan {
+  return {
+    meta: {
+      id: '00000000-0000-4000-8000-000000000000',
+      name: 'Plan de test',
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      schemaVersion: 1,
+    },
+    tables: [],
+    guests: [],
+    constraints: [],
+    assignments: [],
+  }
+}
+
+let loadSpy: Mock<(id: string) => Promise<Plan | null>>
+
+beforeEach(() => {
+  vi.restoreAllMocks()
+  localStorage.clear()
+  loadSpy = vi.fn()
+  const stub = {
+    list: vi.fn(async () => []),
+    load: loadSpy,
+    save: vi.fn(async () => undefined),
+    remove: vi.fn(async () => undefined),
+  } as unknown as PlanRepository
+  vi.spyOn(repoModule, 'getRepository').mockReturnValue(stub)
+  replaceMock.mockClear()
+})
+
+describe('EditorPage', () => {
+  it('redirects to / when no active plan key is set', async () => {
+    render(<EditorPage />)
+
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    expect(loadSpy).not.toHaveBeenCalled()
+  })
+
+  it('redirects to / when the active plan cannot be loaded', async () => {
+    localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
+    loadSpy.mockResolvedValue(null)
+
+    render(<EditorPage />)
+
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    expect(loadSpy).toHaveBeenCalledWith('plan-id')
+  })
+
+  it('renders the editor chrome when a plan loads', async () => {
+    localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
+    loadSpy.mockResolvedValue(makePlan())
+
+    render(<EditorPage />)
+
+    // TopBar shows the plan name.
+    expect(await screen.findByRole('button', { name: 'Plan de test' })).toBeInTheDocument()
+    // PlanStatsBar renders its tiles.
+    expect(screen.getByTestId('stat-guests')).toBeInTheDocument()
+    // EditorLayout children (step 10 placeholder).
+    expect(screen.getByText(/L'éditeur de plan arrive à l'étape suivante/)).toBeInTheDocument()
+  })
+
+  it('shows the skeleton while loading', () => {
+    localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
+    loadSpy.mockImplementation(() => new Promise<Plan | null>(() => {})) // never resolves
+
+    const { container } = render(<EditorPage />)
+
+    expect(container.querySelector('.animate-pulse')).not.toBeNull()
+  })
+
+  it('shows the friendly error state when loading fails', async () => {
+    localStorage.setItem(ACTIVE_PLAN_KEY, 'plan-id')
+    loadSpy.mockRejectedValue(new Error('storage boom'))
+
+    render(<EditorPage />)
+
+    expect(await screen.findByText(/Le plan n'a pas pu être chargé/i)).toBeInTheDocument()
+    expect(screen.getByText('storage boom')).toBeInTheDocument()
+  })
+})
