@@ -134,6 +134,24 @@ describe('MoveGuestSheet', () => {
     expect(fullButton).toBeDisabled()
   })
 
+  it('explains a full table instead of offering seats', () => {
+    const full: Plan = {
+      ...fixture(),
+      tables: [...fixture().tables, { id: T(2), name: 'Table Pleine', shape: 'round', capacity: 1, position: { x: 0, y: 0 } }],
+      guests: [...fixture().guests, { id: G(3), name: 'Dave' }],
+      assignments: [...fixture().assignments, { guestId: G(3), tableId: T(2), seatIndex: 0 }],
+    }
+    render(
+      <PlanProvider initialPlan={full}>
+        <AssignmentsProbe />
+        <MoveGuestSheet guestId={G(2)} initialTableId={T(2)} onClose={vi.fn()} />
+      </PlanProvider>,
+    )
+
+    expect(screen.getByText(/Cette table est complète/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Place / })).not.toBeInTheDocument()
+  })
+
   it('offers unseating for a seated guest', () => {
     const onClose = vi.fn()
     renderSheet(fixture(), G(1), onClose)

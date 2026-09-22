@@ -32,7 +32,7 @@ export function TextArea({ label, hideLabel = false, error, hint, id: idProp, ..
         id={id}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
-        className={`w-full min-h-[5rem] resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-text placeholder:text-text-muted/70 focus:border-brand focus:bg-surface-raised focus:outline-none focus:ring-2 focus:ring-brand-soft ${
+        className={`w-full min-h-[5rem] resize-y rounded-md border border-border bg-surface px-3 py-2.5 text-sm text-text placeholder:text-text-muted focus:border-brand focus:bg-surface-raised focus:outline-none focus:ring-2 focus:ring-brand-soft ${
           error ? 'border-danger focus:border-danger focus:ring-danger/20' : ''
         }`}
         {...rest}

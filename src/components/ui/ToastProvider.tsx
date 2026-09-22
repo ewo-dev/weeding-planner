@@ -114,6 +114,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   type="button"
                   variant="ghost"
                   size="sm"
+                  className="min-h-[44px]"
                   onClick={() => {
                     action.onAction?.()
                     dismiss(toast.id)

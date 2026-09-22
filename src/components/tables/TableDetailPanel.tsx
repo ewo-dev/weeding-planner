@@ -87,7 +87,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
                 <button
                   type="button"
                   onClick={() => setMoveGuestId(guest.id)}
-                  className="shrink-0 rounded-md px-2 py-2 text-xs font-medium text-brand hover:bg-brand-soft"
+                  className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md px-2 py-2 text-xs font-medium text-brand hover:bg-brand-soft"
                 >
                   Déplacer
                 </button>
@@ -95,7 +95,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
                   type="button"
                   onClick={() => dispatch(unseatGuest(guest.id))}
                   aria-label={`Retirer ${guest.name} de ${table.name}`}
-                  className="shrink-0 rounded-md px-2 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
+                  className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md px-2 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
                 >
                   Retirer
                 </button>

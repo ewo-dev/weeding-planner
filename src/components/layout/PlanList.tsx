@@ -137,28 +137,28 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
               <button
                 type="button"
                 onClick={() => openPlan(summary.id)}
-                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
+                className="flex min-h-[44px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Ouvrir
               </button>
               <button
                 type="button"
                 onClick={() => startRename(summary)}
-                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
+                className="flex min-h-[44px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Renommer
               </button>
               <button
                 type="button"
                 onClick={() => void handleDuplicate(summary.id)}
-                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
+                className="flex min-h-[44px] flex-1 items-center justify-center rounded-md border border-border bg-surface-raised px-4 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted sm:flex-initial"
               >
                 Dupliquer
               </button>
               <button
                 type="button"
                 onClick={() => setDeleting(summary)}
-                className="flex min-h-[40px] flex-1 items-center justify-center rounded-md border border-danger/30 bg-danger/10 px-4 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-white sm:flex-initial"
+                className="flex min-h-[44px] flex-1 items-center justify-center rounded-md border border-danger/30 bg-danger/10 px-4 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger hover:text-white sm:flex-initial"
               >
                 Supprimer
               </button>

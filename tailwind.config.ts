@@ -14,7 +14,7 @@ const config: Config = {
 
         // Text (docs/09-design-system.md § 4)
         text: { DEFAULT: '#2F302B', dark: '#F2F0EB' }, // charcoal | ivory
-        'text-muted': { DEFAULT: '#77776E', dark: '#A8A59B' }, // warm gray
+        'text-muted': { DEFAULT: '#6B6A62', dark: '#A8A59B' }, // warm gray (AA on all light surfaces)
         'text-inverse': { DEFAULT: '#FFFFFF', dark: '#1C1B18' }, // white | dark
 
         // Brand (docs/09-design-system.md § 4)
@@ -28,15 +28,15 @@ const config: Config = {
         // Accent (champagne gold)
         accent: {
           DEFAULT: '#C8A978',
-          hover: '#B89868',
+          hover: '#7A6234',
           soft: 'rgba(200, 169, 120, 0.14)',
         },
 
         // Status (docs/09-design-system.md § 4) — warm, muted but legible
         success: '#5E7A5E', // muted sage
-        warning: '#B89A6A', // muted gold
+        warning: '#7A6234', // dark gold: AA for text on light surfaces
         danger: '#A65D57', // warm brick
-        info: '#6F7D8D', // muted slate
+        info: '#5D6A78', // muted slate, darkened for AA body text
 
         // Constraint accents (docs/09-design-system.md § 4)
         'constraint-must': '#5E7A5E',

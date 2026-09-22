@@ -32,6 +32,20 @@ describe('TableList', () => {
     )
   })
 
+  it('flags a full table with the Complète badge', () => {
+    render(
+      <TableList
+        rows={[{ table: T(1, 'Table Ronde', 2), seated: 2 }]}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByText('Complète')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Table Ronde/ })).toHaveTextContent('2/2 placés')
+  })
+
   it('renders nothing when there are no tables', () => {
     const { container } = render(
       <TableList rows={[]} selectedId={null} onSelect={vi.fn()} onRemove={vi.fn()} />,

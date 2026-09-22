@@ -41,7 +41,7 @@ export function GuestSearchInput({ onSearch }: GuestSearchInputProps) {
           type="button"
           onClick={() => setDraft('')}
           aria-label="Effacer la recherche"
-          className="absolute inset-y-0 right-0 flex items-center px-3 text-base text-text-muted transition-colors hover:text-text"
+          className="absolute inset-y-0 right-0 flex min-w-[44px] items-center justify-center px-3 text-base text-text-muted transition-colors hover:text-text"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

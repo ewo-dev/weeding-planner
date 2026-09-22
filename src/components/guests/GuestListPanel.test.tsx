@@ -198,6 +198,29 @@ describe('GuestListPanel', () => {
     expect(screen.queryByRole('button', { name: /^Carol/ })).not.toBeInTheDocument()
   })
 
+  it('resets to the full list via the "Tous" chip', () => {
+    renderPanel()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Non placés' }))
+    expect(screen.queryByRole('button', { name: /^Alice/ })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Tous' }))
+    expect(screen.getByRole('button', { name: /^Alice/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Carol/ })).toBeInTheDocument()
+  })
+
+  it('sorts grouped guests before ungrouped ones via the sort select', () => {
+    renderPanel()
+
+    fireEvent.change(screen.getByLabelText('Trier les invités'), { target: { value: 'group' } })
+    const unseated = screen.getByRole('region', { name: 'Non placés' })
+    const order = [...unseated.querySelectorAll('li')].map((li) => li.textContent ?? '')
+    // Dave (group "Amis") sorts before Carol (no group).
+    expect(order.findIndex((t) => t.includes('Dave'))).toBeLessThan(
+      order.findIndex((t) => t.includes('Carol')),
+    )
+  })
+
   it('groups seated guests by table in "Par table" view', () => {
     renderPanel()
 

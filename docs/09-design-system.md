@@ -69,7 +69,7 @@ We use a small palette organized by role. Tokens are semantic, not raw values.
 | Token             | Usage                       | Light    | Dark     |
 | ----------------- | --------------------------- | -------- | -------- |
 | `text`            | Default body text           | `#2F302B`| `#F2F0EB`|
-| `text-muted`      | Secondary text              | `#77776E`| `#A8A59B`|
+| `text-muted`      | Secondary text              | `#6B6A62`| `#A8A59B`|
 | `text-inverse`    | On dark/colored backgrounds | `#FFFFFF`| `#1C1B18`|
 
 ### Brand
@@ -86,7 +86,7 @@ We use a small palette organized by role. Tokens are semantic, not raw values.
 | Token             | Usage                       | Value (light) |
 | ----------------- | --------------------------- | ------------- |
 | `accent`          | Champagne-gold highlights   | `#C8A978`     |
-| `accent-hover`    | Hover state                 | `#B89868`     |
+| `accent-hover`    | Hover state                 | `#7A6234` |
 | `accent-soft`     | Soft gold backgrounds       | `rgba(200,169,120,0.14)` |
 
 ### Status
@@ -94,9 +94,9 @@ We use a small palette organized by role. Tokens are semantic, not raw values.
 | Token             | Usage                       | Value       |
 | ----------------- | --------------------------- | ----------- |
 | `success`         | Confirmation                | `#5E7A5E`   |
-| `warning`         | Soft warning (preferences)  | `#B89A6A`   |
+| `warning`         | Soft warning (preferences)  | `#7A6234`   |
 | `danger`          | Mandatory conflict          | `#A65D57`   |
-| `info`            | Neutral information         | `#6F7D8D`   |
+| `info`            | Neutral information         | `#5D6A78`   |
 
 ### Constraint accents (used in `ConstraintRow`)
 

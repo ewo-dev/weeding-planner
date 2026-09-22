@@ -125,6 +125,17 @@ describe('TableDetailPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
   })
 
+  it('flags a full table and hides the add-guest action', () => {
+    const full: Plan = {
+      ...fixture(),
+      tables: [{ id: T(1), name: 'Table 1', shape: 'round', capacity: 2, position: { x: 0, y: 0 } }],
+    }
+    renderDetail(full)
+
+    expect(screen.getByText('Complète')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ajouter un invité' })).not.toBeInTheDocument()
+  })
+
   it('renders nothing for an unknown table', () => {
     render(
       <PlanProvider initialPlan={fixture()}>

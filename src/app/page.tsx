@@ -60,7 +60,7 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-16">
       <header className="mb-8 text-center sm:text-left">
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent">Plan de table</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent-hover">Plan de table</p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-text sm:text-4xl">
           Votre mariage, bien assis.
         </h1>
