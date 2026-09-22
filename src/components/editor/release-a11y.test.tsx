@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DndContext } from '@dnd-kit/core'
 import * as repoModule from '@/lib/repo'
@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/Button'
 import { DragGhost } from './DragGhost'
 import { SeatSlot } from './SeatSlot'
 import { TableCard } from './TableCard'
+import { TableDetailSheet } from '@/components/tables/TableDetailSheet'
+import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
+import { GuestRow } from '@/components/guests/GuestRow'
 
 const T = '10000000-0000-4000-8000-000000000001'
 const G = '00000000-0000-4000-8000-000000000001'
@@ -113,5 +116,65 @@ describe('release a11y invariants', () => {
     render(<Button>Enregistrer</Button>)
 
     expect(screen.getByRole('button', { name: 'Enregistrer' })).toHaveClass('h-11')
+  })
+
+  it('exposes the mobile table detail as a named dialog with a labelled close', () => {
+    const seated: Plan = {
+      ...plan(),
+      tables: [{ ...table(), capacity: 2 }],
+      guests: [{ id: G, name: 'Alice' }],
+      assignments: [{ guestId: G, tableId: T, seatIndex: 0 }],
+    }
+    render(
+      <PlanProvider initialPlan={seated}>
+        <TableDetailSheet tableId={T} onClose={vi.fn()} />
+      </PlanProvider>,
+    )
+
+    expect(screen.getByRole('dialog', { name: 'Détails de Table 1' })).toBeInTheDocument()
+    // Backdrop and Fermer both carry the table name for screen readers.
+    expect(screen.getByRole('button', { name: 'Fermer les détails de Table 1' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Fermer' })).toBeInTheDocument()
+  })
+
+  it('exposes the list-driven placement flow with named 44 px targets', () => {
+    const placement: Plan = {
+      ...plan(),
+      tables: [{ ...table(), name: 'Table Ronde', capacity: 3 }],
+      guests: [
+        { id: G, name: 'Alice' },
+        { id: '00000000-0000-4000-8000-000000000002', name: 'Carol' },
+      ],
+      assignments: [{ guestId: G, tableId: T, seatIndex: 0 }],
+    }
+    render(
+      <DndContext>
+        <PlanProvider initialPlan={placement}>
+          <GuestRow
+            guest={{ id: '00000000-0000-4000-8000-000000000002', name: 'Carol' }}
+            tableName={null}
+            selected={false}
+            hasConflict={false}
+            onEdit={vi.fn()}
+            onRemove={vi.fn()}
+            onMove={vi.fn()}
+          />
+          <MoveGuestSheet guestId="00000000-0000-4000-8000-000000000002" onClose={vi.fn()} />
+        </PlanProvider>
+      </DndContext>,
+    )
+
+    // Step 1 of the placement flow: the list entry point and the sheet.
+    const placer = screen.getByRole('button', { name: 'Placer Carol' })
+    expect(placer).toHaveClass('min-h-[44px]')
+    expect(screen.getByRole('dialog', { name: 'Placer Carol' })).toBeInTheDocument()
+    const tableButton = screen.getByRole('button', { name: 'Table Ronde, 1 sur 3' })
+    expect(tableButton).toHaveClass('min-h-[44px]')
+
+    // Step 2: every seat offer is a named 44 px target.
+    fireEvent.click(tableButton)
+    for (const seat of screen.getAllByRole('button', { name: /^Place / })) {
+      expect(seat).toHaveClass('min-h-[44px]')
+    }
   })
 })

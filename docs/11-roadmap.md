@@ -38,7 +38,7 @@ Each step:
 | 18   | Mobile placement flow (list → table → seat)    | Done    | 15, 17        |
 | 19   | Capacity feedback & full-table handling        | Done     | 9, 15, 18     |
 | 20   | Print redesign (A4 blocks + alphabetical index)| Done     | 7, 13         |
-| 21   | Update smoke checks and component tests        | Planned     | 15–20         |
+| 21   | Update smoke checks and component tests        | Done     | 15–20         |
 | 22   | Release validation: mobile, a11y, responsive   | Planned     | 1–21          |
 
 **Note after UX challenge:** Steps 8–10 and 13 are functionally implemented but do not yet satisfy the UX direction in section 6. Steps 15–21 cover the rework and must be completed before release validation.

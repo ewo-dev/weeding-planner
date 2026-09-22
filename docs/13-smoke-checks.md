@@ -39,14 +39,15 @@ Tick every box. Any failure blocks the release.
 
 ## 4. Print
 
-1. `/print` for the active plan renders one clean block per table, black on
-   white, no top bar / side panel / action buttons.
-2. Each table block shows the table name, shape, occupancy (`X / Y`), seated
-   guests with seat numbers, and empty seats.
-3. An alphabetical guest index at the end maps each guest to their table;
-   unseated guests are listed separately.
-4. Browser print preview (A4 + US Letter) shows no clipped tables and no
-   background chrome.
+1. `/print` for the active plan renders one clean block per table in a
+   single column, black on white, no top bar / side panel / action buttons.
+2. Each table block shows the table name, shape, occupancy (`X / Y`), one
+   row per seat (`Place N` + guest name), and empty seats as "Place libre".
+3. An alphabetical guest index at the end maps each guest to their table
+   and seat (`Place N`); unseated guests are marked "Non placé" and also
+   listed in a separate "Non placés" section.
+4. Browser print preview (A4 portrait + US Letter) shows no clipped tables
+   (each block keeps `break-inside-avoid`) and no background chrome.
 
 ## 5. Mobile (touch-only smartphone, portrait + landscape)
 
@@ -101,12 +102,12 @@ npm run typecheck # clean (tsc --noEmit)
 - Tapping "Placer" on a phone opens a bottom sheet; a guest can be seated in three taps without dragging.
 - Tapping a table in the list or canvas opens a detail panel/desktop or bottom sheet/mobile showing seated guests, empty seats, and capacity.
 - A full table shows a "Complète" state; attempting to overfill via drag or sheet shows an explicit message instead of silently snapping back.
-- Reducing a table's capacity below its seated count triggers a clear confirmation and moves surplus guests to unseated.
+- Reducing a table's capacity below its seated count triggers a clear confirmation ("Réduire la capacité ?") warning that surplus guests lose a valid seat; assignments are kept and the user reassigns or unseats them afterwards (undo restores the previous capacity).
 
 ## 10. Print output
 
-- `/print` renders one block per table with name, shape, occupancy, guest list with seat numbers, and empty seats.
-- An alphabetical guest index appears at the end, mapping each guest to their table; unseated guests are marked "Non placé".
+- `/print` renders one block per table with name, shape, occupancy, one row per seat with its number, and empty seats as "Place libre".
+- An alphabetical guest index appears at the end, mapping each guest to their table and seat; unseated guests are marked "Non placé".
 - Browser print preview on A4 portrait shows all table blocks without clipping and hides all UI chrome, shadows, and backgrounds.
 - US Letter preview is also readable without clipped content.
 

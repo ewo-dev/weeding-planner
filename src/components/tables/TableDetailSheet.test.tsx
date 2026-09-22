@@ -25,9 +25,9 @@ function fixture(): Plan {
   }
 }
 
-function renderSheet(onClose: () => void = vi.fn()) {
+function renderSheet(onClose: () => void = vi.fn(), plan: Plan = fixture()) {
   render(
-    <PlanProvider initialPlan={fixture()}>
+    <PlanProvider initialPlan={plan}>
       <TableDetailSheet tableId={T(1)} onClose={onClose} />
     </PlanProvider>,
   )
@@ -51,6 +51,17 @@ describe('TableDetailSheet', () => {
     expect(screen.getByRole('dialog', { name: 'Détails de Table 1' })).toBeInTheDocument()
     expect(screen.getByText(/Alice/)).toBeInTheDocument()
     expect(screen.getByText('Places libres (1)')).toBeInTheDocument()
+  })
+
+  it('flags a full table with the Complète badge', () => {
+    const full: Plan = {
+      ...fixture(),
+      tables: [{ id: T(1), name: 'Table 1', shape: 'round', capacity: 1, position: { x: 0, y: 0 } }],
+    }
+    renderSheet(vi.fn(), full)
+
+    expect(screen.getByRole('dialog', { name: 'Détails de Table 1' })).toBeInTheDocument()
+    expect(screen.getByText('Complète')).toBeInTheDocument()
   })
 
   it('closes via the Fermer button, the backdrop, and Escape', () => {
