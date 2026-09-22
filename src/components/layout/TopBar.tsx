@@ -70,7 +70,7 @@ export function TopBar() {
         type="button"
         onClick={() => router.push('/')}
         aria-label="Retour à l'accueil"
-        className="inline-flex h-10 items-center gap-1 rounded-md px-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
+        className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
         <span className="hidden sm:inline">Accueil</span>

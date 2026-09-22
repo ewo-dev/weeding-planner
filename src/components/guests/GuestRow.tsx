@@ -43,6 +43,8 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         selected ? 'bg-brand-soft border-brand/20' : 'hover:bg-surface-muted hover:border-border'
       }`}
     >
+      {/* touch-pan-y: vertical list scrolling stays native on touch; a
+          horizontal move still activates the 6-px PointerSensor drag. */}
       <button
         ref={setNodeRef}
         type="button"
@@ -50,7 +52,7 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         {...listeners}
         {...attributes}
         aria-pressed={selected}
-        className="flex min-h-[48px] min-w-0 flex-1 touch-none items-center gap-3 px-3 py-1.5 text-left"
+        className="flex min-h-[48px] min-w-0 flex-1 touch-pan-y items-center gap-3 px-3 py-1.5 text-left"
       >
         <span aria-hidden="true" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface border border-border text-sm font-semibold text-text">
           {initial}
@@ -101,7 +103,7 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
         label={`Supprimer ${guest.name}`}
         title={`Supprimer ${guest.name}`}
         icon={<X className="h-5 w-5" />}
-        className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0"
+        className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0 sm:focus:opacity-100 sm:focus-visible:opacity-100"
       />
     </li>
   )
