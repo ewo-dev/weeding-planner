@@ -1,11 +1,12 @@
 import type { ConstraintRef } from '@/lib/engine'
 import { guestById } from '@/lib/plan/selectors'
+import { fr, format } from '@/lib/i18n'
 import type { ConstraintKind, Plan } from '@/types/plan'
 
 export const CONSTRAINT_KIND_LABELS: Record<ConstraintKind, string> = {
-  must_together: 'Ensemble (obligatoire)',
-  prefer_together: 'Ensemble (souhaité)',
-  must_not_together: 'Séparés',
+  must_together: fr.constraints.kindMust,
+  prefer_together: fr.constraints.kindPrefer,
+  must_not_together: fr.constraints.kindNot,
 }
 
 function samePair(a1: string, b1: string, a2: string, b2: string): boolean {
@@ -24,15 +25,15 @@ export function validateConstraintInput(
   a: string,
   b: string,
 ): string | null {
-  if (!guestById(plan, a) || !guestById(plan, b)) return 'Invités inconnus.'
-  if (a === b) return 'Un invité ne peut pas avoir une contrainte avec lui-même.'
+  if (!guestById(plan, a) || !guestById(plan, b)) return fr.constraints.unknownGuests
+  if (a === b) return fr.constraints.selfConstraint
   const pairTaken = (other: ConstraintKind): boolean =>
     plan.constraints.some((c) => c.kind === other && samePair(c.a, c.b, a, b))
-  if (pairTaken(kind)) return 'Cette contrainte existe déjà.'
+  if (pairTaken(kind)) return fr.constraints.duplicate
   const opposite =
     kind === 'must_together' ? 'must_not_together' : kind === 'must_not_together' ? 'must_together' : null
   if (opposite && pairTaken(opposite)) {
-    return '« Ensemble (obligatoire) » et « Séparés » sont incompatibles pour la même paire.'
+    return fr.constraints.incompatible
   }
   return null
 }
@@ -51,14 +52,14 @@ export function violationMessage(ref: ConstraintRef, plan: Plan): string {
   const nameB = guestById(plan, ref.b)?.name ?? '?'
   const kind = plan.constraints.find((c) => c.id === ref.constraintId)?.kind
   if (kind === 'must_not_together') {
-    return `Conflit : ${nameA} ne doit pas être avec ${nameB}, mais ils sont à la même table.`
+    return format(fr.constraints.violationMustNot, { a: nameA, b: nameB })
   }
-  return `Conflit : ${nameA} doit être avec ${nameB}, mais ils sont à des tables différentes.`
+  return format(fr.constraints.violationMust, { a: nameA, b: nameB })
 }
 
 /** Toast copy for a resolved mandatory violation. */
 export function resolutionMessage(ref: ConstraintRef, plan: Plan): string {
   const nameA = guestById(plan, ref.a)?.name ?? '?'
   const nameB = guestById(plan, ref.b)?.name ?? '?'
-  return `Conflit résolu : ${nameA} et ${nameB}.`
+  return format(fr.constraints.resolved, { a: nameA, b: nameB })
 }

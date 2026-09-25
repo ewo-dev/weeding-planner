@@ -2,6 +2,7 @@ import { newId } from '@/lib/id'
 import { getRepository } from '@/lib/repo'
 import { RepoError } from '@/lib/repo/errors'
 import { PlanSchema } from '@/lib/schema/plan'
+import { fr, format } from '@/lib/i18n'
 import type { Plan } from '@/types/plan'
 
 /**
@@ -21,7 +22,7 @@ export async function duplicatePlan(id: string): Promise<Plan> {
     meta: {
       ...plan.meta,
       id: newId(),
-      name: `${plan.meta.name} (copie)`,
+      name: format(fr.planList.copyName, { name: plan.meta.name }),
       createdAt: now,
       updatedAt: now,
     },

@@ -5,6 +5,7 @@ import { CONSTRAINT_KIND_LABELS } from './constraints'
 import { Badge } from '@/components/ui/Badge'
 import type { BadgeTone } from '@/components/ui/Badge'
 import { IconButton } from '@/components/ui/IconButton'
+import { useMessages, format } from '@/lib/i18n'
 import { X } from 'lucide-react'
 
 interface ConstraintRowProps {
@@ -31,6 +32,7 @@ const KIND_BADGE_TONE: Record<Constraint['kind'], BadgeTone> = {
  * preferences get a muted badge.
  */
 export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated, onRemove }: ConstraintRowProps) {
+  const t = useMessages()
   return (
     <li
       className={`group flex items-center gap-2 rounded-xl border border-transparent px-3 py-2 transition-colors ${
@@ -39,15 +41,15 @@ export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated
     >
       <Badge tone={KIND_BADGE_TONE[constraint.kind]}>{CONSTRAINT_KIND_LABELS[constraint.kind]}</Badge>
       <span className="min-w-0 flex-1 truncate text-sm text-text">
-        {nameA} et {nameB}
+        {format(t.constraints.pairLabel, { a: nameA, b: nameB })}
       </span>
-      {violated && <Badge tone="danger-solid">Non respectée</Badge>}
-      {!violated && softViolated && <Badge tone="neutral">Souhait non tenu</Badge>}
+      {violated && <Badge tone="danger-solid">{t.constraints.violatedBadge}</Badge>}
+      {!violated && softViolated && <Badge tone="neutral">{t.constraints.softViolatedBadge}</Badge>}
       <IconButton
         type="button"
         onClick={() => onRemove(constraint.id)}
-        label={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
-        title={`Supprimer la contrainte entre ${nameA} et ${nameB}`}
+        label={format(t.constraints.removeAriaLabel, { a: nameA, b: nameB })}
+        title={format(t.constraints.removeAriaLabel, { a: nameA, b: nameB })}
         icon={<X className="h-5 w-5" />}
         className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0"
       />

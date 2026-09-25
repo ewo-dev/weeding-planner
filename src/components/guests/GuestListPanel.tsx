@@ -16,6 +16,7 @@ import { GuestEditor } from './GuestEditor'
 import { GuestDeleteDialog } from './GuestDeleteDialog'
 import { MoveGuestSheet } from './MoveGuestSheet'
 import { GuestRow } from './GuestRow'
+import { useMessages, format } from '@/lib/i18n'
 import {
   GUEST_FILTERS,
   GUEST_SORTS,
@@ -59,6 +60,7 @@ function GroupedDropzone({ children }: { children: ReactNode }) {
  */
 export function GuestListPanel() {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<GuestFilter>('all')
   const [sort, setSort] = useState<GuestSort>('name')
@@ -180,22 +182,22 @@ export function GuestListPanel() {
   const sectionTitle = 'text-xs font-semibold uppercase tracking-wide text-text-muted'
 
   return (
-    <section aria-label="Invités" className="flex min-h-0 flex-col gap-4 p-4">
+    <section aria-label={t.guests.sectionLabel} className="flex min-h-0 flex-col gap-4 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-xl font-semibold text-text">Invités</h2>
+        <h2 className="font-display text-xl font-semibold text-text">{t.guests.sectionLabel}</h2>
         <span data-testid="guest-count" className="text-sm font-medium text-text-muted">
-          {seatedTotal} / {total} placés
+          {format(t.guests.seatedCount, { seated: seatedTotal, total })}
         </span>
       </div>
 
       <Button type="button" icon={<UserPlus className="h-4 w-4" />} onClick={() => setEditor((current) => (current?.mode === 'create' ? null : { mode: 'create' }))}>
-        Ajouter
+        {t.common.add}
       </Button>
 
       <GuestSearchInput onSearch={handleSearch} />
 
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div role="group" aria-label="Filtrer les invités" className="flex flex-wrap gap-1.5">
+        <div role="group" aria-label={t.guests.filterLabel} className="flex flex-wrap gap-1.5">
           {GUEST_FILTERS.map((option) => (
             <button
               key={option.value}
@@ -213,9 +215,9 @@ export function GuestListPanel() {
           ))}
         </div>
         <label className="flex min-h-[44px] items-center gap-2 text-sm text-text-muted">
-          Trier
+          {t.guests.sortLabel}
           <select
-            aria-label="Trier les invités"
+            aria-label={t.guests.sortAriaLabel}
             value={sort}
             onChange={(event) => setSort(event.target.value as GuestSort)}
             className="min-h-[44px] rounded-md border border-border bg-surface px-2 text-sm text-text"
@@ -231,20 +233,20 @@ export function GuestListPanel() {
 
       {total === 0 && (
         <EmptyState
-          title="Aucun invité pour l’instant"
-          description="Ajoutez votre premier invité ci-dessus."
+          title={t.guests.emptyTitle}
+          description={t.guests.emptyDescription}
         />
       )}
 
       {total > 0 && visible.length === 0 && (
-        <EmptyState title={`Aucun résultat pour « ${query.trim()} ».`} />
+        <EmptyState title={format(t.guests.noResults, { query: query.trim() })} />
       )}
 
       {filter === 'by-table' ? (
         <GroupedDropzone>
           {unseatedSorted.length > 0 && (
-            <section aria-label="Non placés">
-              <h3 className={sectionTitle}>Non placés ({unseatedSorted.length})</h3>
+            <section aria-label={t.guests.unseated}>
+              <h3 className={sectionTitle}>{t.guests.unseated} ({unseatedSorted.length})</h3>
               <ul className="mt-2 space-y-1">{unseatedSorted.map(renderRow)}</ul>
             </section>
           )}

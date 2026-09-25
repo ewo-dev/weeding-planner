@@ -8,6 +8,7 @@ import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
 import { PrintLayout } from '@/components/print/PrintLayout'
 import { PrintTable } from '@/components/print/PrintTable'
 import { Button } from '@/components/ui/Button'
+import { useMessages } from '@/lib/i18n'
 import '../../styles/print.css'
 
 // Print view (docs/06-routing-and-pages.md § 7, roadmap step 20, D-019).
@@ -18,6 +19,7 @@ import '../../styles/print.css'
 
 export default function PrintPage() {
   const router = useRouter()
+  const t = useMessages()
   const [plan, setPlan] = useState<Plan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -54,7 +56,7 @@ export default function PrintPage() {
       <main className="flex min-h-screen flex-col items-center justify-center p-6">
         <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 text-center shadow-sm">
           <h1 className="font-display text-xl font-semibold text-text">
-            Le plan n&apos;a pas pu être chargé.
+            {t.common.loadFailedTitle}
           </h1>
           <p className="mt-2 text-sm text-text-muted">{error}</p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -62,10 +64,10 @@ export default function PrintPage() {
               setError(null)
               setAttempt((n) => n + 1)
             }}>
-              Réessayer
+              {t.common.retry}
             </Button>
             <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
-              Retour à l&apos;accueil
+              {t.common.back}
             </Button>
           </div>
         </div>

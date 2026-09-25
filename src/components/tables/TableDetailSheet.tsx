@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { tableById } from '@/lib/plan/selectors'
 import { TableDetailContent } from './TableDetailPanel'
+import { useMessages, format } from '@/lib/i18n'
 
 interface TableDetailSheetProps {
   tableId: string
@@ -18,6 +19,7 @@ interface TableDetailSheetProps {
  */
 export function TableDetailSheet({ tableId, onClose }: TableDetailSheetProps) {
   const { plan } = usePlan()
+  const t = useMessages()
   const table = tableById(plan, tableId)
 
   useEffect(() => {
@@ -34,14 +36,14 @@ export function TableDetailSheet({ tableId, onClose }: TableDetailSheetProps) {
     <div className="fixed inset-0 z-[80] lg:hidden">
       <button
         type="button"
-        aria-label={`Fermer les détails de ${table.name}`}
+        aria-label={format(t.tables.closeDetailsAriaLabel, { name: table.name })}
         onClick={onClose}
         className="absolute inset-0 bg-text/25 backdrop-blur-[2px]"
       />
       <div
         role="dialog"
         aria-modal="true"
-        aria-label={`Détails de ${table.name}`}
+        aria-label={format(t.tables.detailsAriaLabel, { name: table.name })}
         className="absolute inset-x-0 bottom-0 max-h-[85dvh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface p-5 shadow-lg"
       >
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border" aria-hidden="true" />

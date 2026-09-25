@@ -2,6 +2,7 @@
 
 import type { Assignment, Guest, Table } from '@/types/plan'
 import { SHAPE_LABELS } from '@/components/tables/tables'
+import { fr, useMessages, format } from '@/lib/i18n'
 
 interface PrintTableProps {
   table: Table
@@ -17,7 +18,7 @@ interface SeatRow {
   empty: boolean
 }
 
-const UNKNOWN_GUEST = '(invité inconnu)'
+const UNKNOWN_GUEST = fr.print.unknownGuest
 
 /**
  * One table in the print view (docs/06-routing-and-pages.md § 7,
@@ -27,6 +28,7 @@ const UNKNOWN_GUEST = '(invité inconnu)'
  * single page in print preview.
  */
 export function PrintTable({ table, guests, assignments }: PrintTableProps) {
+  const t = useMessages()
   const byGuest = new Map(guests.map((g) => [g.id, g.name] as const))
   const rows: SeatRow[] = Array.from({ length: table.capacity }, (_, seatIndex) => {
     const assignment = assignments.find((a) => a.tableId === table.id && a.seatIndex === seatIndex)
@@ -46,15 +48,15 @@ export function PrintTable({ table, guests, assignments }: PrintTableProps) {
       </header>
       <p className="mt-0.5 text-xs text-text-muted">{SHAPE_LABELS[table.shape]}</p>
       {allEmpty ? (
-        <p className="mt-2 text-sm text-text-muted">Aucun invité placé.</p>
+        <p className="mt-2 text-sm text-text-muted">{t.print.noneSeated}</p>
       ) : (
         <ol className="mt-2 space-y-0.5 text-sm text-text">
           {rows.map((row) => (
             <li key={row.seatIndex} className="flex items-baseline gap-2">
-              <span className="w-14 shrink-0 text-xs text-text-muted">Place {row.seatIndex + 1}</span>
+              <span className="w-14 shrink-0 text-xs text-text-muted">{format(t.print.placeLabel, { n: row.seatIndex + 1 })}</span>
               <span className="min-w-0 truncate">
                 {row.empty ? (
-                  <span className="italic text-text-muted">Place libre</span>
+                  <span className="italic text-text-muted">{t.print.freeSeat}</span>
                 ) : (
                   row.guestName
                 )}

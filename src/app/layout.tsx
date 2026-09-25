@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: SITE_TITLE,
-    template: '%s — Plan de Table',
+    template: '%s — My Weeding Seats',
   },
   description: SITE_DESCRIPTION,
   alternates: {

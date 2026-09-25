@@ -3,6 +3,7 @@ import { getRepository } from '@/lib/repo'
 import { RepoError } from '@/lib/repo/errors'
 import { PlanSchema } from '@/lib/schema/plan'
 import { CURRENT_VERSION } from '@/lib/schema/migrations'
+import { fr } from '@/lib/i18n'
 import type { Plan } from '@/types/plan'
 
 /**
@@ -19,7 +20,7 @@ export async function createBlankPlan(): Promise<Plan> {
   const plan: Plan = {
     meta: {
       id: newId(),
-      name: 'Plan sans titre',
+      name: fr.planList.untitled,
       createdAt: now,
       updatedAt: now,
       schemaVersion: CURRENT_VERSION,

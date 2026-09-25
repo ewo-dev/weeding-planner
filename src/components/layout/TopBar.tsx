@@ -7,6 +7,7 @@ import { usePlan } from '@/lib/plan/usePlan'
 import { IconButton } from '@/components/ui/IconButton'
 import { Spinner } from '@/components/ui/Spinner'
 import { ProjectActions } from '@/components/persistence/ProjectActions'
+import { useMessages } from '@/lib/i18n'
 
 /**
  * Editor top bar (docs/07-components.md § 5). Reads plan state from context:
@@ -16,6 +17,7 @@ import { ProjectActions } from '@/components/persistence/ProjectActions'
  */
 export function TopBar() {
   const router = useRouter()
+  const t = useMessages()
   const { plan, dispatch, undo, redo, canUndo, canRedo, saveStatus, saveError } = usePlan()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -69,11 +71,11 @@ export function TopBar() {
       <button
         type="button"
         onClick={() => router.push('/')}
-        aria-label="Retour à l'accueil"
+        aria-label={t.common.back}
         className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-        <span className="hidden sm:inline">Accueil</span>
+        <span className="hidden sm:inline">{t.common.home}</span>
       </button>
 
       {editing ? (
@@ -90,14 +92,14 @@ export function TopBar() {
               cancelEdit()
             }
           }}
-          aria-label="Nom du plan"
+          aria-label={t.topBar.planNameAriaLabel}
           className="min-w-0 max-w-[12rem] rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-semibold font-display text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft sm:max-w-xs"
         />
       ) : (
         <button
           type="button"
           onClick={startRename}
-          title="Renommer le plan"
+          title={t.topBar.renamePlan}
           className="flex min-h-[44px] min-w-0 items-center truncate text-lg font-semibold font-display text-text transition-colors hover:text-brand"
         >
           {plan.meta.name}
@@ -107,41 +109,41 @@ export function TopBar() {
       <div className="ml-auto flex flex-wrap items-center gap-x-1 gap-y-1">
         <IconButton
           type="button"
-        label="Annuler la dernière action"
-        title="Annuler"
+        label={t.topBar.undoLabel}
+        title={t.common.undo}
         icon={<Undo2 className="h-5 w-5" />}
         onClick={undo}
         disabled={!canUndo}
       />
       <IconButton
         type="button"
-        label="Rétablir l'action annulée"
-        title="Rétablir"
+        label={t.topBar.redoLabel}
+        title={t.common.redo}
           icon={<Redo2 className="h-5 w-5" />}
           onClick={redo}
           disabled={!canRedo}
         />
         <IconButton
           type="button"
-          label="Imprimer le plan"
-          title="Imprimer"
+          label={t.topBar.printLabel}
+          title={t.common.print}
           icon={<Printer className="h-5 w-5" />}
           onClick={() => router.push('/print')}
         />
         <ProjectActions plan={plan} onImported={() => window.location.reload()} />
 
         {saveStatus === 'saved' && (
-          <span className="ml-1 text-xs font-medium text-success sm:text-sm">Enregistré</span>
+          <span className="ml-1 text-xs font-medium text-success sm:text-sm">{t.topBar.saved}</span>
         )}
         {saveStatus === 'saving' && (
           <span className="ml-1 flex items-center gap-1.5 text-xs text-text-muted sm:text-sm">
             <Spinner className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Enregistrement…</span>
+            <span className="hidden sm:inline">{t.topBar.saving}</span>
           </span>
         )}
         {saveStatus === 'error' && (
           <span className="ml-1 text-xs font-medium text-danger sm:text-sm" title={saveError?.message}>
-            Erreur
+            {t.topBar.error}
           </span>
         )}
       </div>

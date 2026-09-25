@@ -7,14 +7,15 @@ import { GuestListPanel } from '@/components/guests/GuestListPanel'
 import { TablesPanel } from '@/components/tables/TablesPanel'
 import { TableDetailSheet } from '@/components/tables/TableDetailSheet'
 import { TableSelectionProvider, useTableSelection } from '@/components/tables/TableSelection'
+import { fr } from '@/lib/i18n'
 
 type EditorTab = 'guests' | 'tables' | 'plan'
 type AsideTab = 'guests' | 'tables'
 
 const TAB_LABELS: Record<EditorTab, string> = {
-  guests: 'Invités',
-  tables: 'Tables',
-  plan: 'Plan',
+  guests: fr.editor.tabGuests,
+  tables: fr.editor.tabTables,
+  plan: fr.editor.tabPlan,
 }
 
 const TAB_ICONS: Record<EditorTab, ReactNode> = {
@@ -24,8 +25,8 @@ const TAB_ICONS: Record<EditorTab, ReactNode> = {
 }
 
 const ASIDE_LABELS: Record<AsideTab, string> = {
-  guests: 'Invités',
-  tables: 'Tables',
+  guests: fr.editor.tabGuests,
+  tables: fr.editor.tabTables,
 }
 
 /**
@@ -77,7 +78,7 @@ function EditorLayoutInner({ children }: { children: ReactNode }) {
     <div className="flex min-w-0 flex-1 flex-col overflow-x-clip lg:flex-row">
       {/* Side panel (desktop). */}
       <aside className="hidden lg:flex lg:w-80 lg:shrink-0 lg:flex-col lg:border-r lg:border-border bg-surface-raised">
-        <nav aria-label="Panneau latéral" data-testid="aside-tabs" className="flex border-b border-border bg-bg">
+        <nav aria-label={fr.editor.sidePanelLabel} data-testid="aside-tabs" className="flex border-b border-border bg-bg">
           {(Object.keys(ASIDE_LABELS) as AsideTab[]).map((name) => (
             <button
               key={name}
@@ -98,7 +99,7 @@ function EditorLayoutInner({ children }: { children: ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile tab switcher (hidden on lg+). */}
-        <nav aria-label="Panneau" data-testid="mobile-tabs" className="flex border-b border-border bg-surface lg:hidden">
+        <nav aria-label={fr.editor.panelLabel} data-testid="mobile-tabs" className="flex border-b border-border bg-surface lg:hidden">
           {(Object.keys(TAB_LABELS) as EditorTab[]).map((name) => (
             <button
               key={name}

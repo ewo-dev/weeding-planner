@@ -3,6 +3,7 @@
 import { useDraggable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { guestDragId } from '@/components/editor/dnd'
+import { useMessages, format } from '@/lib/i18n'
 import { Button } from '@/components/ui/Button'
 import { IconButton } from '@/components/ui/IconButton'
 import { ArrowRightLeft, X } from 'lucide-react'
@@ -30,6 +31,7 @@ interface GuestRowProps {
  * provided by `<SeatingEditor>`.
  */
 export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRemove, onMove }: GuestRowProps) {
+  const t = useMessages()
   const { setNodeRef, listeners, attributes } = useDraggable({
     id: guestDragId(guest.id),
     data: { kind: 'guest', guestId: guest.id },
@@ -69,8 +71,8 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
       {hasConflict && (
         <span
           role="img"
-          aria-label={`Conflit de placement pour ${guest.name}`}
-          title="Conflit de placement — voir les contraintes"
+          aria-label={format(t.guests.conflictAriaLabel, { name: guest.name })}
+          title={t.guests.conflictTitle}
           className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-danger text-xs font-bold text-white"
         >
           !
@@ -82,26 +84,26 @@ export function GuestRow({ guest, tableName, selected, hasConflict, onEdit, onRe
           variant="secondary"
           size="sm"
           onClick={() => onMove(guest.id)}
-          aria-label={`Placer ${guest.name}`}
-          title={`Placer ${guest.name}`}
+          aria-label={format(t.guests.placeAriaLabel, { name: guest.name })}
+          title={format(t.guests.placeAriaLabel, { name: guest.name })}
           className="min-h-[44px] shrink-0"
         >
-          Placer
+          {t.guests.place}
         </Button>
       ) : (
         <IconButton
           type="button"
           onClick={() => onMove(guest.id)}
-          label={`Déplacer ${guest.name}`}
-          title={`Déplacer ${guest.name}`}
+          label={format(t.guests.moveAriaLabel, { name: guest.name })}
+          title={format(t.guests.moveAriaLabel, { name: guest.name })}
           icon={<ArrowRightLeft className="h-5 w-5" />}
         />
       )}
       <IconButton
         type="button"
         onClick={() => onRemove(guest.id)}
-        label={`Supprimer ${guest.name}`}
-        title={`Supprimer ${guest.name}`}
+        label={format(t.guests.removeAriaLabel, { name: guest.name })}
+        title={format(t.guests.removeAriaLabel, { name: guest.name })}
         icon={<X className="h-5 w-5" />}
         className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0 sm:focus:opacity-100 sm:focus-visible:opacity-100"
       />

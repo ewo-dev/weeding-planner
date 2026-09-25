@@ -9,6 +9,7 @@ import { guestById, tableById } from '@/lib/plan/selectors'
 import type { Table, TableShape } from '@/types/plan'
 import { GenerationReportDialog } from '@/components/plan-status/GenerationReportDialog'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useMessages, format } from '@/lib/i18n'
 import { TablesToolbar } from './TablesToolbar'
 import { TableList } from './TableList'
 import { TableDetailPanel } from './TableDetailPanel'
@@ -43,6 +44,7 @@ interface GenerationPreview {
  */
 export function TablesPanel() {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const { selectedTableId, selectTable } = useTableSelection()
   const [defaults, setDefaults] = useState<{ capacity: number; shape: TableShape }>({
     capacity: DEFAULT_TABLE_CAPACITY,
@@ -115,7 +117,7 @@ export function TablesPanel() {
         setPreview({ report: output.report, seed })
       } catch (err) {
         console.error('Failed to generate a seating plan', err)
-        setGenerateError('La génération a échoué. Vérifiez vos contraintes et réessayez.')
+        setGenerateError(t.generate.failed)
       } finally {
         setGenerating(false)
       }
@@ -159,11 +161,11 @@ export function TablesPanel() {
   const selectedTable = selectedTableId ? (tableById(plan, selectedTableId) ?? null) : null
 
   return (
-    <section aria-label="Tables" className="flex min-h-0 flex-col gap-4 p-4">
+    <section aria-label={t.tables.sectionLabel} className="flex min-h-0 flex-col gap-4 p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-xl font-semibold text-text">Tables</h2>
+        <h2 className="font-display text-xl font-semibold text-text">{t.tables.sectionLabel}</h2>
         <span data-testid="table-count" className="text-sm font-medium text-text-muted">
-          {plan.tables.length} tables · {totalSeats} places
+          {format(t.tables.count, { tables: plan.tables.length, seats: totalSeats })}
         </span>
       </div>
 
@@ -183,8 +185,8 @@ export function TablesPanel() {
 
       {rows.length === 0 ? (
         <EmptyState
-          title="Aucune table pour l’instant"
-          description="Configurez vos tables pour commencer."
+          title={t.tables.emptyTitle}
+          description={t.tables.emptyDescription}
         />
       ) : (
         <TableList

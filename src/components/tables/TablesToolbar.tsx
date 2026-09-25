@@ -2,6 +2,7 @@
 
 import { Plus, Sparkles, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { useMessages } from '@/lib/i18n'
 
 interface TablesToolbarProps {
   onAdd: () => void
@@ -18,10 +19,11 @@ interface TablesToolbarProps {
  * per docs/10-interactions.md § 13).
  */
 export function TablesToolbar({ onAdd, onBulk, onGenerate, canGenerate, generating }: TablesToolbarProps) {
+  const t = useMessages()
   return (
     <div className="flex flex-wrap gap-2">
       <Button type="button" icon={<Plus className="h-4 w-4" />} onClick={onAdd}>
-        Ajouter
+        {t.common.add}
       </Button>
       <Button
         type="button"
@@ -30,12 +32,12 @@ export function TablesToolbar({ onAdd, onBulk, onGenerate, canGenerate, generati
         onClick={onGenerate}
         disabled={!canGenerate}
         loading={generating}
-        title={canGenerate ? 'Générer un plan de table automatique' : 'Ajoutez des tables pour générer un plan'}
+        title={canGenerate ? t.generate.generateTitle : t.generate.generateHint}
       >
-        {generating ? 'Génération…' : 'Générer'}
+        {generating ? t.generate.generating : t.generate.generate}
       </Button>
       <Button type="button" variant="secondary" icon={<Settings2 className="h-4 w-4" />} onClick={onBulk}>
-        Configurer
+        {t.common.configure}
       </Button>
     </div>
   )

@@ -12,3 +12,15 @@ export const messages: Record<Locale, Messages> = { fr }
 export function useMessages(): Messages {
   return fr
 }
+
+// Minimal message formatting: replaces `{name}`-style placeholders with the
+// matching param value. Unknown placeholders are left as-is.
+export function format(
+  message: string,
+  params?: Record<string, string | number>,
+): string {
+  if (!params) return message
+  return message.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in params ? String(params[key]) : match,
+  )
+}

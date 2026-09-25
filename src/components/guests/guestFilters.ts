@@ -1,4 +1,5 @@
 import type { Guest } from '@/types/plan'
+import { fr } from '@/lib/i18n'
 
 /**
  * Guest list filter + sort (roadmap step 17). Pure helpers so the panel
@@ -9,18 +10,18 @@ export type GuestFilter = 'all' | 'unseated' | 'seated' | 'by-table' | 'by-group
 export type GuestSort = 'name' | 'group' | 'table' | 'recent'
 
 export const GUEST_FILTERS: Array<{ value: GuestFilter; label: string }> = [
-  { value: 'all', label: 'Tous' },
-  { value: 'unseated', label: 'Non placés' },
-  { value: 'seated', label: 'Placés' },
-  { value: 'by-table', label: 'Par table' },
-  { value: 'by-group', label: 'Par groupe' },
+  { value: 'all', label: fr.guests.filterAll },
+  { value: 'unseated', label: fr.guests.filterUnseated },
+  { value: 'seated', label: fr.guests.filterSeated },
+  { value: 'by-table', label: fr.guests.filterByTable },
+  { value: 'by-group', label: fr.guests.filterByGroup },
 ]
 
 export const GUEST_SORTS: Array<{ value: GuestSort; label: string }> = [
-  { value: 'name', label: 'Nom' },
-  { value: 'group', label: 'Groupe' },
-  { value: 'table', label: 'Table' },
-  { value: 'recent', label: 'Récemment ajouté' },
+  { value: 'name', label: fr.guests.sortName },
+  { value: 'group', label: fr.guests.sortGroup },
+  { value: 'table', label: fr.guests.sortTable },
+  { value: 'recent', label: fr.guests.sortRecent },
 ]
 
 export interface EnrichedGuest {
@@ -87,7 +88,7 @@ export function groupByTable(seated: EnrichedGuest[], tableOrder: Map<string, nu
     const key = entry.tableId ?? 'unknown'
     const existing = map.get(key)
     if (existing) existing.guests.push(entry)
-    else map.set(key, { tableId: key, tableName: entry.tableName ?? 'Sans table', guests: [entry] })
+    else map.set(key, { tableId: key, tableName: entry.tableName ?? fr.guests.noTableGroup, guests: [entry] })
   }
   return [...map.values()].sort((a, b) => {
     const byName = collator.compare(a.tableName, b.tableName)
@@ -103,11 +104,11 @@ export function groupByGroup(entries: EnrichedGuest[]): GroupGroup[] {
     const key = entry.guest.group ?? ''
     const existing = map.get(key)
     if (existing) existing.guests.push(entry)
-    else map.set(key, { groupName: key === '' ? 'Sans groupe' : key, guests: [entry] })
+    else map.set(key, { groupName: key === '' ? fr.guests.noGroupGroup : key, guests: [entry] })
   }
   return [...map.values()].sort((a, b) => {
-    if (a.groupName === 'Sans groupe') return 1
-    if (b.groupName === 'Sans groupe') return -1
+    if (a.groupName === fr.guests.noGroupGroup) return 1
+    if (b.groupName === fr.guests.noGroupGroup) return -1
     return collator.compare(a.groupName, b.groupName)
   })
 }

@@ -8,6 +8,7 @@ import type { Guest } from '@/types/plan'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { TextArea } from '@/components/ui/TextArea'
+import { useMessages, format } from '@/lib/i18n'
 
 /** Mirrors GuestSchema name bounds (src/lib/schema/plan.ts). */
 const MAX_NAME = 80
@@ -32,6 +33,7 @@ function clean(value: string): string | undefined {
  */
 export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
   const { dispatch } = usePlan()
+  const t = useMessages()
   const [error, setError] = useState<string | null>(null)
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -39,7 +41,7 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
     const data = new FormData(event.currentTarget)
     const name = String(data.get('name') ?? '').trim()
     if (name === '' || name.length > MAX_NAME) {
-      setError(`Le nom est requis (${MAX_NAME} caractères maximum).`)
+      setError(format(t.guests.nameRequired, { max: MAX_NAME }))
       return
     }
     const group = clean(String(data.get('group') ?? ''))
@@ -52,36 +54,36 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <h3 className="font-display text-base font-semibold text-text">
-        {guest ? 'Modifier l’invité' : 'Nouvel invité'}
+        {guest ? t.guests.editTitle : t.guests.createTitle}
       </h3>
 
       <Input
         id="guest-name"
-        label="Nom"
+        label={t.guests.nameLabel}
         name="name"
         type="text"
         defaultValue={guest?.name ?? ''}
         maxLength={MAX_NAME}
         autoFocus={guest === null}
-        placeholder="Marie Dupont"
+        placeholder={t.guests.namePlaceholder}
       />
 
       <Input
         id="guest-group"
-        label="Groupe (optionnel)"
+        label={t.guests.groupLabel}
         name="group"
         type="text"
         defaultValue={guest?.group ?? ''}
-        placeholder="Famille, Amis…"
+        placeholder={t.guests.groupPlaceholder}
       />
 
       <TextArea
         id="guest-notes"
-        label="Notes (optionnel)"
+        label={t.guests.notesLabel}
         name="notes"
         rows={2}
         defaultValue={guest?.notes ?? ''}
-        placeholder="Régime, allergies…"
+        placeholder={t.guests.notesPlaceholder}
       />
 
       {error && (
@@ -91,9 +93,9 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
       )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button type="submit">Enregistrer</Button>
+        <Button type="submit">{t.common.save}</Button>
         <Button type="button" variant="secondary" onClick={onClose}>
-          Annuler
+          {t.common.cancel}
         </Button>
         {guest && (
           <button
@@ -101,7 +103,7 @@ export function GuestEditor({ guest, onClose, onDelete }: GuestEditorProps) {
             onClick={() => onDelete(guest.id)}
             className="ml-auto flex min-h-[44px] items-center rounded-md px-3 py-2 text-sm font-medium text-danger transition-colors hover:bg-danger/10"
           >
-            Supprimer
+            {t.common.delete}
           </button>
         )}
       </div>

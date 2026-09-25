@@ -13,6 +13,7 @@ import {
   serializeProjectFile,
 } from '@/lib/repo/project-file'
 import type { Plan } from '@/types/plan'
+import { fr, useMessages } from '@/lib/i18n'
 
 interface ProjectActionsProps {
   /** When provided, an Export button is shown for that plan. Import is always shown. */
@@ -24,10 +25,10 @@ interface ProjectActionsProps {
 
 function importErrorMessage(err: unknown): string {
   if (err instanceof RepoError) {
-    if (err.code === 'quota') return 'Stockage plein : libérez de l’espace puis réessayez.'
+    if (err.code === 'quota') return fr.project.quota
     if (typeof err.message === 'string' && err.message.length > 0) return err.message
   }
-  return 'Échec de l’import du fichier. Réessayez.'
+  return fr.project.importFailed
 }
 
 /**
@@ -38,6 +39,7 @@ function importErrorMessage(err: unknown): string {
  * malformed, unsupported, or failing imports leave existing plans untouched.
  */
 export function ProjectActions({ plan, onImported, className = '' }: ProjectActionsProps) {
+  const t = useMessages()
   const fileRef = useRef<HTMLInputElement | null>(null)
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
@@ -59,7 +61,7 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
       window.setTimeout(() => URL.revokeObjectURL(url), 0)
     } catch (err) {
       console.error('Failed to export plan', err)
-      setExportError('Échec de l’export. Réessayez.')
+      setExportError(fr.project.exportFailed)
     }
   }
 
@@ -93,10 +95,10 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
           variant="secondary"
           icon={<Download className="h-4 w-4" />}
           onClick={handleExport}
-          aria-label="Exporter le plan (JSON)"
-          title="Exporter"
+          aria-label={t.project.exportAriaLabel}
+          title={t.project.exportTitle}
         >
-          <span className="hidden sm:inline">Exporter</span>
+          <span className="hidden sm:inline">{t.project.exportTitle}</span>
         </Button>
       ) : null}
       <Button
@@ -105,17 +107,17 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
         icon={<Upload className="h-4 w-4" />}
         loading={importing}
         onClick={() => fileRef.current?.click()}
-        aria-label="Importer un plan (JSON)"
-        title="Importer"
+        aria-label={t.project.importAriaLabel}
+        title={t.project.importTitle}
       >
-        <span className="hidden sm:inline">Importer</span>
+        <span className="hidden sm:inline">{t.project.importTitle}</span>
       </Button>
       <input
         ref={fileRef}
         type="file"
         accept=".json,application/json"
         className="hidden"
-        aria-label="Choisir un fichier projet JSON"
+        aria-label={t.project.chooseFile}
         onChange={(event) => {
           const file = event.target.files?.[0]
           if (file) void handleFile(file)

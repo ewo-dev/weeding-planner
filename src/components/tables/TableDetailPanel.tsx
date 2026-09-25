@@ -6,6 +6,7 @@ import { unseatGuest } from '@/lib/plan/actions'
 import { guestById, tableById } from '@/lib/plan/selectors'
 import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
 import { Button } from '@/components/ui/Button'
+import { useMessages, format } from '@/lib/i18n'
 import { SHAPE_LABELS } from './tables'
 import { AddGuestSheet } from './AddGuestSheet'
 import { TableConfigSheet } from './TableConfigSheet'
@@ -25,6 +26,7 @@ interface TableDetailContentProps {
  */
 export function TableDetailContent({ tableId, onClose }: TableDetailContentProps) {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const [moveGuestId, setMoveGuestId] = useState<string | null>(null)
   const [addingGuest, setAddingGuest] = useState(false)
   const [configuring, setConfiguring] = useState(false)
@@ -61,18 +63,18 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
         <div className="min-w-0">
           <h3 className="truncate font-display text-base font-semibold text-text">{table.name}</h3>
           <p className="mt-0.5 text-xs text-text-muted">
-            {SHAPE_LABELS[table.shape]} · {seated.length}/{table.capacity} placés
+            {format(t.tables.occupancy, { shape: SHAPE_LABELS[table.shape], seated: seated.length, capacity: table.capacity })}
           </p>
         </div>
         {full && (
           <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-hover">
-            Complète
+            {t.tables.fullBadge}
           </span>
         )}
       </div>
 
       {seated.length === 0 ? (
-        <p className="text-sm text-text-muted">Aucun invité placé à cette table.</p>
+        <p className="text-sm text-text-muted">{t.tables.noneSeated}</p>
       ) : (
         <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border">
           {seated.map((assignment) => {
@@ -81,7 +83,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
             return (
               <li key={guest.id} className="flex min-h-[44px] items-center gap-2 bg-surface px-3 py-1.5">
                 <span className="min-w-0 flex-1 truncate text-sm text-text">
-                  <span className="font-medium">Place {assignment.seatIndex + 1}</span>
+                  <span className="font-medium">{format(t.tables.placeLabel, { n: assignment.seatIndex + 1 })}</span>
                   <span className="text-text-muted"> — {guest.name}</span>
                 </span>
                 <button
@@ -89,15 +91,15 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
                   onClick={() => setMoveGuestId(guest.id)}
                   className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md px-2 py-2 text-xs font-medium text-brand hover:bg-brand-soft"
                 >
-                  Déplacer
+                  {t.tables.move}
                 </button>
                 <button
                   type="button"
                   onClick={() => dispatch(unseatGuest(guest.id))}
-                  aria-label={`Retirer ${guest.name} de ${table.name}`}
+                  aria-label={format(t.tables.removeAriaLabel, { name: guest.name, table: table.name })}
                   className="inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-md px-2 py-2 text-xs font-medium text-text-muted hover:bg-surface-muted hover:text-text"
                 >
-                  Retirer
+                  {t.tables.remove}
                 </button>
               </li>
             )
@@ -108,7 +110,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
       {emptySeats.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
-            Places libres ({emptySeats.length})
+            {format(t.tables.freeSeats, { n: emptySeats.length })}
           </h4>
           <ul className="mt-1.5 flex flex-wrap gap-1.5">
             {emptySeats.map((seatIndex) => (
@@ -116,7 +118,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
                 key={seatIndex}
                 className="rounded-full border border-dashed border-border px-2.5 py-1 text-xs text-text-muted"
               >
-                Place {seatIndex + 1}
+                {format(t.tables.placeLabel, { n: seatIndex + 1 })}
               </li>
             ))}
           </ul>
@@ -126,14 +128,14 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
       <div className="flex flex-wrap gap-2">
         {!full && (
           <Button type="button" onClick={() => setAddingGuest(true)}>
-            Ajouter un invité
+            {t.tables.addGuest}
           </Button>
         )}
         <Button type="button" variant="secondary" onClick={() => setConfiguring(true)}>
-          Configurer
+          {t.common.configure}
         </Button>
         <Button type="button" variant="ghost" onClick={onClose}>
-          Fermer
+          {t.common.close}
         </Button>
       </div>
 
@@ -156,9 +158,10 @@ interface TableDetailPanelProps {
  */
 export function TableDetailPanel({ tableId, onClose }: TableDetailPanelProps) {
   const { plan } = usePlan()
+  const t = useMessages()
   if (!tableById(plan, tableId)) return null
   return (
-    <section aria-label="Détails de la table" className="rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <section aria-label={t.tables.detailAriaLabel} className="rounded-xl border border-border bg-surface p-4 shadow-sm">
       <TableDetailContent tableId={tableId} onClose={onClose} />
     </section>
   )

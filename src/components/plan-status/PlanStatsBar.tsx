@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { usePlan } from '@/lib/plan/usePlan'
 import { conflicts, seatedCount, unseatedGuests } from '@/lib/plan/selectors'
+import { useMessages } from '@/lib/i18n'
 import { Users, Table2, Armchair, UserX, AlertTriangle } from 'lucide-react'
 
 interface StatTile {
@@ -20,6 +21,7 @@ interface StatTile {
  */
 export function PlanStatsBar() {
   const { plan } = usePlan()
+  const t = useMessages()
 
   const report = useMemo(() => conflicts(plan), [plan])
   const unseatedCount = useMemo(() => unseatedGuests(plan).length, [plan])
@@ -30,15 +32,15 @@ export function PlanStatsBar() {
   const conflictCount = report.mandatoryUnsatisfied.length + report.separationViolations.length
 
   const tiles: StatTile[] = [
-    { testId: 'stat-guests', label: 'Invités', value: plan.guests.length, icon: <Users className="h-3.5 w-3.5" /> },
-    { testId: 'stat-tables', label: 'Tables', value: plan.tables.length, icon: <Table2 className="h-3.5 w-3.5" /> },
-    { testId: 'stat-seats-total', label: 'Places totales', value: totalSeats, icon: <Armchair className="h-3.5 w-3.5" /> },
-    { testId: 'stat-seats-occupied', label: 'Places occupées', value: occupied, icon: <Armchair className="h-3.5 w-3.5" /> },
-    { testId: 'stat-seats-free', label: 'Places libres', value: free, icon: <Armchair className="h-3.5 w-3.5" /> },
-    { testId: 'stat-unseated', label: 'Non placés', value: unseatedCount, icon: <UserX className="h-3.5 w-3.5" /> },
+    { testId: 'stat-guests', label: t.stats.guests, value: plan.guests.length, icon: <Users className="h-3.5 w-3.5" /> },
+    { testId: 'stat-tables', label: t.stats.tables, value: plan.tables.length, icon: <Table2 className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-total', label: t.stats.totalSeats, value: totalSeats, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-occupied', label: t.stats.occupiedSeats, value: occupied, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-seats-free', label: t.stats.freeSeats, value: free, icon: <Armchair className="h-3.5 w-3.5" /> },
+    { testId: 'stat-unseated', label: t.stats.unseated, value: unseatedCount, icon: <UserX className="h-3.5 w-3.5" /> },
     {
       testId: 'stat-conflicts',
-      label: 'Conflits',
+      label: t.stats.conflicts,
       value: conflictCount,
       icon: <AlertTriangle className="h-3.5 w-3.5" />,
       danger: conflictCount > 0,

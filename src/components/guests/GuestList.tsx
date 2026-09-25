@@ -3,6 +3,7 @@
 import { useDroppable } from '@dnd-kit/core'
 import type { Guest } from '@/types/plan'
 import { UNSEAT_DROP_ID } from '@/components/editor/dnd'
+import { useMessages } from '@/lib/i18n'
 import { GuestRow } from './GuestRow'
 
 export interface SeatedGuest {
@@ -32,6 +33,7 @@ interface GuestListProps {
  * `<DndContext>` ancestor — provided by `<SeatingEditor>`.
  */
 export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, onRemove, onMove }: GuestListProps) {
+  const t = useMessages()
   const { setNodeRef, isOver } = useDroppable({
     id: UNSEAT_DROP_ID,
     data: { kind: 'unseat' },
@@ -46,8 +48,8 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
       className={`space-y-5 rounded-xl transition-colors ${isOver ? 'bg-brand-soft ring-2 ring-brand' : ''}`}
     >
       {unseated.length > 0 && (
-        <section aria-label="Non placés">
-          <h3 className={sectionTitle}>Non placés ({unseated.length})</h3>
+        <section aria-label={t.guests.unseated}>
+          <h3 className={sectionTitle}>{t.guests.unseated} ({unseated.length})</h3>
           <ul className="mt-2 space-y-1">
             {unseated.map((guest) => (
               <GuestRow
@@ -66,8 +68,8 @@ export function GuestList({ unseated, seated, selectedId, conflictIds, onEdit, o
       )}
 
       {seated.length > 0 && (
-        <section aria-label="Placés">
-          <h3 className={sectionTitle}>Placés ({seated.length})</h3>
+        <section aria-label={t.guests.seated}>
+          <h3 className={sectionTitle}>{t.guests.seated} ({seated.length})</h3>
           <ul className="mt-2 space-y-1">
             {seated.map(({ guest, tableName }) => (
               <GuestRow

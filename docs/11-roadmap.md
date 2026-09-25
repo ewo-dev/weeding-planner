@@ -356,7 +356,7 @@ Make the app publicly available on Vercel, add a French SEO foundation, and prep
   * Add `sitemap.ts` (home page only) and `robots.ts` (allow all, reference the sitemap).
   * Mark `/editor` and `/print` as `noindex` (private, browser-local surfaces).
   * Add a French Open Graph image and keep visible copy clear about local storage and privacy.
-* **Localization readiness.** Keep French as the only shipped locale (D-011), but centralize UI strings behind a small locale/message layer with French as the default, so a future `/fr` / `/en` split is localized work rather than a rewrite. The entry page and root layout are migrated; the remaining component strings are migrated incrementally (follow-up).
+* **Localization readiness.** Keep French as the only shipped locale (D-011), but centralize UI strings behind a small locale/message layer with French as the default, so a future `/fr` / `/en` split is localized work rather than a rewrite. All user-facing copy now resolves from `src/lib/i18n/fr.ts`.
 
 **Validation gate:** `npm run build` succeeds with `output: 'export'` at the domain root; `npm run lint` and `npm run typecheck` clean; Vitest suite green; `/` metadata, `sitemap.xml`, and `robots.txt` render correctly; `/editor` and `/print` are `noindex`; the localization layer resolves all visible strings from French.
 

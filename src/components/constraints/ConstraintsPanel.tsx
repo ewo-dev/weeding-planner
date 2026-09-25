@@ -6,6 +6,7 @@ import { removeConstraint } from '@/lib/plan/actions'
 import { conflicts, constraintsForGuest, guestById } from '@/lib/plan/selectors'
 import { ConstraintRow } from './ConstraintRow'
 import { AddConstraintMenu } from './AddConstraintMenu'
+import { useMessages, format } from '@/lib/i18n'
 
 interface ConstraintsPanelProps {
   /** Selected guest, or null to show every constraint. */
@@ -20,6 +21,7 @@ interface ConstraintsPanelProps {
  */
 export function ConstraintsPanel({ guestId }: ConstraintsPanelProps) {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
 
   const report = useMemo(() => conflicts(plan), [plan])
   const violatedIds = useMemo(
@@ -39,9 +41,9 @@ export function ConstraintsPanel({ guestId }: ConstraintsPanelProps) {
   const list = guestId ? constraintsForGuest(plan, guestId) : plan.constraints
 
   return (
-    <section aria-label="Contraintes" className="flex min-h-0 flex-col gap-3">
+    <section aria-label={t.constraints.sectionLabel} className="flex min-h-0 flex-col gap-3">
       <h2 className="font-display text-base font-semibold text-text">
-        {guestName ? `Contraintes de ${guestName}` : 'Contraintes'}{' '}
+        {guestName ? format(t.constraints.titleForGuest, { name: guestName }) : t.constraints.title}{' '}
         <span data-testid="constraint-count" className="text-sm font-normal text-text-muted">
           ({list.length})
         </span>
@@ -49,7 +51,7 @@ export function ConstraintsPanel({ guestId }: ConstraintsPanelProps) {
 
       {list.length === 0 ? (
         <p className="text-sm text-text-muted">
-          {guestName ? `Aucune contrainte pour ${guestName}.` : 'Aucune contrainte pour l’instant.'}
+          {guestName ? format(t.constraints.emptyForGuest, { name: guestName }) : t.constraints.empty}
         </p>
       ) : (
         <ul className="space-y-1">

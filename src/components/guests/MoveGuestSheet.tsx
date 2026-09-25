@@ -6,6 +6,7 @@ import { moveGuest, unseatGuest } from '@/lib/plan/actions'
 import { guestById, tableById } from '@/lib/plan/selectors'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
+import { useMessages, format } from '@/lib/i18n'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface MoveGuestSheetProps {
@@ -25,6 +26,7 @@ interface MoveGuestSheetProps {
  */
 export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: MoveGuestSheetProps) {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const [selectedTableId, setSelectedTableId] = useState<string | null>(initialTableId)
   const guest = guestId ? (guestById(plan, guestId) ?? null) : null
 
@@ -64,9 +66,9 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
 
   if (plan.tables.length === 0) {
     return (
-      <Modal open onClose={onClose} title={`Placer ${targetName}`}>
+      <Modal open onClose={onClose} title={format(t.placement.title, { name: targetName })}>
         <p className="text-sm text-text-muted">
-          Aucune table pour l’instant. Ajoutez vos tables depuis l’onglet Tables, puis revenez ici.
+          {t.placement.noTables}
         </p>
       </Modal>
     )
@@ -79,7 +81,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
     const empty = emptySeats(selectedTable.id, selectedTable.capacity)
     const seated = selectedTable.capacity - empty.length
     return (
-      <Modal open onClose={onClose} title={`Placer ${targetName}`}>
+      <Modal open onClose={onClose} title={format(t.placement.title, { name: targetName })}>
         <div className="space-y-4">
           <Button
             type="button"
@@ -88,7 +90,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
             icon={<ChevronLeft className="h-4 w-4" />}
             className="min-h-[44px] self-start px-2"
           >
-            Toutes les tables
+            {t.placement.allTables}
           </Button>
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="truncate text-sm font-semibold text-text">{selectedTable.name}</h3>
@@ -98,7 +100,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
           </div>
           {empty.length === 0 ? (
             <p className="text-sm text-text-muted">
-              Cette table est complète. Retirez un invité ou augmentez la capacité.
+              {t.placement.fullTable}
             </p>
           ) : (
             <>
@@ -107,7 +109,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
                 onClick={() => place(selectedTable.id, empty[0])}
                 className="min-h-[44px] w-full"
               >
-                Placer à la première place libre (Place {empty[0] + 1})
+                {format(t.placement.firstFree, { n: empty[0] + 1 })}
               </Button>
               <ul className="grid grid-cols-3 gap-2">
                 {empty.map((seatIndex) => (
@@ -117,7 +119,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
                       onClick={() => place(selectedTable.id, seatIndex)}
                       className="flex min-h-[44px] w-full items-center justify-center rounded-md border border-border bg-surface px-3 py-2 text-sm font-medium text-text transition-colors hover:bg-surface-muted active:bg-surface-muted"
                     >
-                      Place {seatIndex + 1}
+                      {format(t.placement.seat, { n: seatIndex + 1 })}
                     </button>
                   </li>
                 ))}
@@ -126,7 +128,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
           )}
           {current && (
             <Button type="button" variant="secondary" onClick={unseat} className="w-full">
-              Retirer de la table
+              {t.placement.removeFromTable}
             </Button>
           )}
         </div>
@@ -136,11 +138,11 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
 
   // Step 1 — tables with occupancy.
   return (
-    <Modal open onClose={onClose} title={`Placer ${targetName}`}>
+    <Modal open onClose={onClose} title={format(t.placement.title, { name: targetName })}>
       <div className="space-y-4">
         {currentTable && (
           <p className="text-xs text-text-muted">
-            Actuellement à {currentTable.name} (Place {(current?.seatIndex ?? 0) + 1}).
+            {format(t.placement.currentlyAt, { table: currentTable.name, n: (current?.seatIndex ?? 0) + 1 })}
           </p>
         )}
         <ul className="space-y-2">
@@ -153,15 +155,20 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
                   type="button"
                   disabled={full}
                   onClick={() => setSelectedTableId(table.id)}
-                  aria-label={`${table.name}, ${seated} sur ${table.capacity}${full ? ', complète' : ''}`}
-                  title={full ? 'Cette table est complète.' : undefined}
+                  aria-label={format(t.placement.tableAriaLabel, {
+                    table: table.name,
+                    seated,
+                    capacity: table.capacity,
+                    full: full ? t.placement.tableAriaFull : '',
+                  })}
+                  title={full ? t.placement.fullTableShort : undefined}
                   className="flex min-h-[44px] w-full items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-left transition-colors hover:bg-surface-muted active:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-text">{table.name}</span>
                     <span className="block text-xs text-text-muted">
                       {seated}/{table.capacity}
-                      {full ? ' · Complète' : ' placés'}
+                      {full ? ` · ${t.placement.fullBadge}` : ` ${t.placement.seatedSuffix}`}
                     </span>
                   </span>
                   {!full && <ChevronRight aria-hidden="true" className="h-4 w-4 shrink-0 text-text-muted" />}
@@ -172,7 +179,7 @@ export function MoveGuestSheet({ guestId, initialTableId = null, onClose }: Move
         </ul>
         {current && (
           <Button type="button" variant="secondary" onClick={unseat} className="w-full">
-            Retirer de la table
+            {t.placement.removeFromTable}
           </Button>
         )}
       </div>

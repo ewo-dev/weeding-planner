@@ -7,6 +7,7 @@ import type { Assignment, Guest, Plan, Table } from '@/types/plan'
 import { Button } from '@/components/ui/Button'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 import { SHAPE_LABELS } from '@/components/tables/tables'
+import { useMessages, format } from '@/lib/i18n'
 
 interface PrintLayoutProps {
   plan: Plan
@@ -33,6 +34,7 @@ interface IndexEntry {
  */
 export function PrintLayout({ plan, children }: PrintLayoutProps) {
   const router = useRouter()
+  const t = useMessages()
   const seatedCount = plan.assignments.length
   const totalGuests = plan.guests.length
   const unseatedCount = totalGuests - seatedCount
@@ -49,21 +51,21 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
     <main className="print-sheet mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap gap-2 print:hidden">
         <Button type="button" variant="secondary" icon={<ArrowLeft className="h-4 w-4" />} onClick={() => router.push('/editor')}>
-          Retour à l’éditeur
+          {t.print.backToEditor}
         </Button>
         <Button type="button" icon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>
-          Imprimer
+          {t.common.print}
         </Button>
       </div>
 
       <header className="text-center sm:text-left">
         <h1 className="font-display text-3xl font-semibold text-text">{plan.meta.name}</h1>
         <p className="mt-1 text-sm text-text-muted">
-          Imprimé le {dateFormatter.format(new Date())} · {seatedCount} / {totalGuests} invités placés
+          {format(t.print.printedOn, { date: dateFormatter.format(new Date()), seated: seatedCount, total: totalGuests })}
         </p>
         {unseatedCount > 0 && (
           <p className="mt-0.5 text-sm text-text-muted">
-            {unseatedCount === 1 ? '1 invité non placé.' : `${unseatedCount} invités non placés.`}
+            {unseatedCount === 1 ? t.print.unseatedOne : format(t.print.unseatedMany, { n: unseatedCount })}
           </p>
         )}
       </header>
@@ -73,9 +75,9 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
       <div className="mt-6 flex flex-col gap-4">{children}</div>
 
       {unseatedCount > 0 && (
-        <section aria-label="Non placés" className="mt-8 break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
+        <section aria-label={t.print.unseatedSection} className="mt-8 break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
           <h2 className="font-display text-base font-semibold text-text">
-            Non placés ({unseatedCount})
+            {format(t.print.unseatedCount, { n: unseatedCount })}
           </h2>
           <ul className="mt-2 list-disc space-y-0.5 pl-5 text-sm text-text">
             {plan.guests
@@ -88,10 +90,10 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
         </section>
       )}
 
-      <section aria-label="Index alphabétique" className="mt-8 break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
-        <h2 className="font-display text-base font-semibold text-text">Index alphabétique</h2>
+      <section aria-label={t.print.indexSection} className="mt-8 break-inside-avoid rounded-xl border border-border bg-surface p-4 shadow-sm">
+        <h2 className="font-display text-base font-semibold text-text">{t.print.indexSection}</h2>
         {index.length === 0 ? (
-          <p className="mt-2 text-sm text-text-muted">Aucun invité.</p>
+          <p className="mt-2 text-sm text-text-muted">{t.print.noGuests}</p>
         ) : (
           <ul className="mt-2 grid grid-cols-1 gap-x-6 gap-y-0.5 text-sm text-text sm:grid-cols-2">
             {index.map(({ guest, table, seatIndex }) => (
@@ -101,10 +103,10 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
                   {table ? (
                     <>
                       {table.name}
-                      {seatIndex !== null ? ` · Place ${seatIndex + 1}` : ''}
+                      {seatIndex !== null ? ` · ${format(t.print.placeLabel, { n: seatIndex + 1 })}` : ''}
                     </>
                   ) : (
-                    'Non placé'
+                    t.print.unplaced
                   )}
                 </span>
               </li>

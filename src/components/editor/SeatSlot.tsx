@@ -6,6 +6,7 @@ import type { Guest } from '@/types/plan'
 import { seatDropId } from './dnd'
 import { GuestChip } from './GuestChip'
 import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
+import { useMessages, format } from '@/lib/i18n'
 
 interface SeatSlotProps {
   tableId: string
@@ -23,6 +24,7 @@ interface SeatSlotProps {
  * seat-to-seat moves.
  */
 export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps) {
+  const t = useMessages()
   const { setNodeRef, isOver } = useDroppable({
     id: seatDropId(tableId, seatIndex),
     data: { kind: 'seat', tableId, seatIndex },
@@ -32,7 +34,11 @@ export function SeatSlot({ tableId, tableName, seatIndex, guest }: SeatSlotProps
   const [moveGuestId, setMoveGuestId] = useState<string | null>(null)
 
   // Human-facing seat numbers are 1-based; the DnD id stays 0-based (§ 4).
-  const label = `Place ${seatIndex + 1} de ${tableName}, ${guest ? guest.name : 'vide'}`
+  const label = format(t.editor.seatAriaLabel, {
+    n: seatIndex + 1,
+    table: tableName,
+    state: guest ? guest.name : t.editor.seatEmpty,
+  })
 
   return (
     <div

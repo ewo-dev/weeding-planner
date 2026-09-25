@@ -3,6 +3,7 @@
 import type { Table } from '@/types/plan'
 import { SHAPE_LABELS } from './tables'
 import { IconButton } from '@/components/ui/IconButton'
+import { useMessages, format } from '@/lib/i18n'
 import { X, Circle, Square } from 'lucide-react'
 
 interface TableRowProps {
@@ -19,6 +20,7 @@ interface TableRowProps {
  * parent per docs/10-interactions.md § 12).
  */
 export function TableRow({ table, seated, selected, onSelect, onRemove }: TableRowProps) {
+  const t = useMessages()
   const ShapeIcon = table.shape === 'round' ? Circle : Square
   const full = seated >= table.capacity
 
@@ -40,20 +42,20 @@ export function TableRow({ table, seated, selected, onSelect, onRemove }: TableR
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-text">{table.name}</span>
           <span className="block truncate text-xs text-text-muted">
-            {SHAPE_LABELS[table.shape]} · {seated}/{table.capacity} placés
+            {format(t.tables.occupancy, { shape: SHAPE_LABELS[table.shape], seated, capacity: table.capacity })}
           </span>
         </span>
         {full && (
           <span className="shrink-0 rounded-full bg-accent-soft px-2 py-0.5 text-xs font-medium text-accent-hover">
-            Complète
+            {t.tables.fullBadge}
           </span>
         )}
       </button>
       <IconButton
         type="button"
         onClick={() => onRemove(table.id)}
-        label={`Supprimer ${table.name}`}
-        title={`Supprimer ${table.name}`}
+        label={format(t.tables.removeAria, { name: table.name })}
+        title={format(t.tables.removeAria, { name: table.name })}
         icon={<X className="h-5 w-5" />}
         className="opacity-100 transition-opacity group-hover:opacity-100 sm:opacity-0"
       />

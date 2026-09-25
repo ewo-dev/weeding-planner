@@ -4,6 +4,7 @@ import { PlanSchema } from '@/lib/schema/plan'
 import type { Constraint, Plan } from '@/lib/schema/plan'
 import { RepoError } from '@/lib/repo/errors'
 import { newId } from '@/lib/id'
+import { fr, format } from '@/lib/i18n'
 
 /**
  * Versioned JSON project envelope (docs/05-persistence.md § 6,
@@ -68,7 +69,7 @@ export function serializeProjectFile(plan: Plan, exportedAt = new Date().toISOSt
     meta: { ...canonical.meta, schemaVersion: CURRENT_VERSION },
   })
   if (!result.success) {
-    throw new RepoError('corrupt', 'Le plan est invalide et ne peut pas être exporté.', result.error)
+    throw new RepoError('corrupt', fr.project.invalidPlan, result.error)
   }
   const envelope: ProjectEnvelope = {
     format: PROJECT_FILE_FORMAT,
@@ -85,7 +86,7 @@ export function parseProjectFileText(text: string): Plan {
   try {
     raw = JSON.parse(text)
   } catch (err) {
-    throw new RepoError('corrupt', 'Fichier illisible : ce n’est pas un fichier JSON valide.', err)
+    throw new RepoError('corrupt', fr.project.unreadable, err)
   }
   return parseProjectFileJson(raw)
 }
@@ -96,7 +97,7 @@ export function parseProjectFileJson(raw: unknown): Plan {
   if (!envelope.success) {
     throw new RepoError(
       'corrupt',
-      'Fichier invalide : l’enveloppe du projet est illisible.',
+      fr.project.invalidEnvelope,
       envelope.error,
     )
   }
@@ -104,18 +105,18 @@ export function parseProjectFileJson(raw: unknown): Plan {
   if (envelope.data.format !== PROJECT_FILE_FORMAT) {
     throw new RepoError(
       'corrupt',
-      `Format de fichier non reconnu : « ${envelope.data.format} ».`,
+      format(fr.project.unknownFormat, { format: envelope.data.format }),
     )
   }
 
   const { formatVersion } = envelope.data
   if (!Number.isInteger(formatVersion) || formatVersion < 1) {
-    throw new RepoError('corrupt', 'Fichier invalide : version du format illisible.')
+    throw new RepoError('corrupt', fr.project.invalidVersion)
   }
   if (formatVersion > PROJECT_FILE_VERSION) {
     throw new RepoError(
       'corrupt',
-      'Ce fichier vient d’une version plus récente de l’application. Mettez à jour l’application pour l’importer.',
+      fr.project.newerVersion,
     )
   }
   // Format migrations run sequentially (forward-only). Only v1 exists today,
@@ -133,16 +134,16 @@ export function parseProjectFileJson(raw: unknown): Plan {
     if (message.includes('future')) {
       throw new RepoError(
         'corrupt',
-        'Ce fichier vient d’une version plus récente de l’application. Mettez à jour l’application pour l’importer.',
+        fr.project.newerVersion,
         err,
       )
     }
-    throw new RepoError('corrupt', 'Fichier invalide : le plan est corrompu.', err)
+    throw new RepoError('corrupt', fr.project.corruptPlan, err)
   }
 
   const result = PlanSchema.safeParse(migrated)
   if (!result.success) {
-    throw new RepoError('corrupt', 'Fichier invalide : le plan ne respecte pas les règles.', result.error)
+    throw new RepoError('corrupt', fr.project.invalidRules, result.error)
   }
   return canonicalizePlan(result.data)
 }
@@ -169,7 +170,7 @@ export function prepareImportedPlan(plan: Plan, now = new Date().toISOString()):
   }
   const result = PlanSchema.safeParse(imported)
   if (!result.success) {
-    throw new RepoError('corrupt', 'Fichier invalide : le plan ne respecte pas les règles.', result.error)
+    throw new RepoError('corrupt', fr.project.invalidRules, result.error)
   }
   return result.data
 }

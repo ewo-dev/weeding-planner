@@ -6,6 +6,7 @@ import { guestById } from '@/lib/plan/selectors'
 import type { Plan } from '@/types/plan'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { useMessages, format } from '@/lib/i18n'
 
 interface GenerationReportDialogProps {
   report: GenerationReport
@@ -37,6 +38,7 @@ export function GenerationReportDialog({
   onRegenerate,
   onDiscard,
 }: GenerationReportDialogProps) {
+  const t = useMessages()
   const mandatoryTotal = report.mandatorySatisfied.length + report.mandatoryUnsatisfied.length
   const preferenceTotal = report.preferenceSatisfied.length + report.preferenceUnsatisfied.length
   const hasMandatoryProblems =
@@ -51,51 +53,53 @@ export function GenerationReportDialog({
       open
       onClose={onDiscard}
       size="lg"
-      title={hasMandatoryProblems ? 'Plan généré avec des conflits' : 'Plan généré'}
+      title={hasMandatoryProblems ? t.generate.titleConflict : t.generate.titleSuccess}
     >
       {/* Generation reports are assertive live regions (design § 15). */}
       <div role="alert" className="space-y-2">
         <p className="text-sm text-text">
-          {report.seatedGuests === 1 ? '1 invité placé.' : `${report.seatedGuests} invités placés.`}
+          {report.seatedGuests === 1
+            ? t.generate.seatedOne
+            : format(t.generate.seatedMany, { n: report.seatedGuests })}
         </p>
 
         {mandatoryTotal === 0 ? (
           <p className={mutedLine}>
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Aucune contrainte obligatoire définie.
+            {t.generate.noMandatory}
           </p>
         ) : report.mandatoryUnsatisfied.length === 0 ? (
           <p className={successLine}>
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Toutes les relations obligatoires sont respectées.
+            {t.generate.allMandatoryOk}
           </p>
         ) : (
           <p className={dangerLine}>
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.mandatoryUnsatisfied.length === 1
-              ? '1 contrainte obligatoire n’a pas pu être respectée.'
-              : `${report.mandatoryUnsatisfied.length} contraintes obligatoires n’ont pas pu être respectées.`}
+              ? t.generate.mandatoryOne
+              : format(t.generate.mandatoryMany, { n: report.mandatoryUnsatisfied.length })}
           </p>
         )}
 
         {report.separationViolations.length === 0 ? (
           <p className={successLine}>
             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Aucune contrainte de séparation violée.
+            {t.generate.noSeparation}
           </p>
         ) : (
           <p className={dangerLine}>
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.separationViolations.length === 1
-              ? '1 contrainte de séparation violée.'
-              : `${report.separationViolations.length} contraintes de séparation violées.`}
+              ? t.generate.separationOne
+              : format(t.generate.separationMany, { n: report.separationViolations.length })}
           </p>
         )}
 
         {preferenceTotal === 0 ? (
           <p className={mutedLine}>
             <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Aucune préférence définie.
+            {t.generate.noPreference}
           </p>
         ) : (
           <p className={report.preferenceUnsatisfied.length === 0 ? successLine : mutedLine}>
@@ -105,7 +109,10 @@ export function GenerationReportDialog({
             {report.preferenceUnsatisfied.length > 0 && (
               <Info className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             )}
-            {report.preferenceSatisfied.length} / {preferenceTotal} préférences respectées.
+            {format(t.generate.preferences, {
+              satisfied: report.preferenceSatisfied.length,
+              total: preferenceTotal,
+            })}
           </p>
         )}
 
@@ -113,27 +120,27 @@ export function GenerationReportDialog({
           <p className={dangerLine}>
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
             {report.unseatedGuests === 1
-              ? '1 invité n’a pas pu être placé.'
-              : `${report.unseatedGuests} invités n’ont pas pu être placés.`}
+              ? t.generate.unseatedOne
+              : format(t.generate.unseatedMany, { n: report.unseatedGuests })}
           </p>
         )}
         {report.overflow && (
           <p className={dangerLine}>
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-            Pas assez de places — ajoutez des tables ou réduisez les invités.
+            {t.generate.overflow}
           </p>
         )}
       </div>
 
       {hasMandatoryProblems && (
         <div className="mt-4 rounded-xl border border-danger/30 bg-danger/10 p-4">
-          <h3 className="font-display text-sm font-semibold text-danger">Conflits à revoir</h3>
+          <h3 className="font-display text-sm font-semibold text-danger">{t.generate.conflictsTitle}</h3>
           <ul className="mt-2 space-y-1.5 text-sm text-text">
             {report.mandatoryUnsatisfied.map((ref) => {
               const [nameA, nameB] = names(ref, plan)
               return (
                 <li key={ref.constraintId}>
-                  {nameA} doit être avec {nameB}, mais aucune table valide n’était disponible.
+                  {format(t.generate.mustDetail, { a: nameA, b: nameB })}
                 </li>
               )
             })}
@@ -141,7 +148,7 @@ export function GenerationReportDialog({
               const [nameA, nameB] = names(ref, plan)
               return (
                 <li key={ref.constraintId}>
-                  {nameA} ne doit pas être avec {nameB}, mais ils sont à la même table.
+                  {format(t.generate.separationDetail, { a: nameA, b: nameB })}
                 </li>
               )
             })}
@@ -151,13 +158,13 @@ export function GenerationReportDialog({
 
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <Button variant="ghost" onClick={onDiscard}>
-          Abandonner
+          {t.generate.discard}
         </Button>
         <Button variant="secondary" loading={regenerating} onClick={onRegenerate}>
-          {regenerating ? 'Régénération…' : 'Régénérer'}
+          {regenerating ? t.generate.regenerating : t.generate.regenerate}
         </Button>
         <Button variant="primary" disabled={regenerating} onClick={onApply}>
-          Appliquer
+          {t.common.apply}
         </Button>
       </div>
     </Modal>

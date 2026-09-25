@@ -8,6 +8,7 @@ import { updateTable } from '@/lib/plan/actions'
 import type { Guest, Table } from '@/types/plan'
 import { tableDragId } from './dnd'
 import { TABLE_MAX_NAME } from '@/components/tables/tables'
+import { useMessages, format } from '@/lib/i18n'
 import { SeatSlot } from './SeatSlot'
 
 interface TableCardProps {
@@ -34,6 +35,7 @@ const SEAT = 44
  */
 export function TableCard({ table, guests, selected = false, onSelect }: TableCardProps) {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
   // Guards against committing the same rename twice (Enter + the blur that
@@ -99,7 +101,7 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
           cancelRename()
         }
       }}
-      aria-label="Nom de la table"
+      aria-label={t.editor.tableNameAriaLabel}
       maxLength={TABLE_MAX_NAME}
       className="w-full min-w-0 rounded border border-brand bg-surface px-1.5 py-0.5 text-center text-sm font-semibold text-text"
     />
@@ -107,7 +109,7 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
     <button
       type="button"
       onClick={startRename}
-      title="Renommer la table"
+      title={t.editor.renameTable}
       className="min-w-0 truncate text-sm font-semibold text-text transition-colors hover:text-brand"
     >
       {table.name}
@@ -115,7 +117,11 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
   )
 
   // Screen-reader name for the table group (design § 15: tables expose names).
-  const cardLabel = `Table ${table.name}, ${guests.length} sur ${table.capacity} placés`
+  const cardLabel = format(t.editor.tableAriaLabel, {
+    name: table.name,
+    seated: guests.length,
+    capacity: table.capacity,
+  })
 
   const surfaceBase =
     'bg-surface shadow-sm ring-1 ring-inset ring-border transition-shadow'
@@ -165,7 +171,7 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
           ref={setNodeRef}
           {...listeners}
           {...attributes}
-          aria-label={`Déplacer ${table.name}`}
+          aria-label={format(t.editor.moveTableAriaLabel, { name: table.name })}
           aria-pressed={selected}
           data-selected={selected || undefined}
           onClick={handleSurfaceClick}
@@ -198,7 +204,7 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
         ref={setNodeRef}
         {...listeners}
         {...attributes}
-        aria-label={`Déplacer ${table.name}`}
+        aria-label={format(t.editor.moveTableAriaLabel, { name: table.name })}
         aria-pressed={selected}
         data-selected={selected || undefined}
         onClick={handleSurfaceClick}

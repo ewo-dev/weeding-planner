@@ -7,6 +7,7 @@ import { usePlan } from '@/lib/plan/usePlan'
 import { guestById, tableById } from '@/lib/plan/selectors'
 import { EditorLayout } from '@/components/layout/EditorLayout'
 import { useToast } from '@/components/ui/ToastProvider'
+import { useMessages } from '@/lib/i18n'
 import { arrowKeyboardCoordinates, parseDndId, type ActiveDrag, type DragKind } from './dnd'
 import { isFullTableDrop, resolveGuestDrop, resolveTableDrop } from './dropLogic'
 import { DragGhost } from './DragGhost'
@@ -62,6 +63,7 @@ function parseTable(id: string): string | null {
 export function SeatingEditor() {
   const { plan, dispatch } = usePlan()
   const { notify } = useToast()
+  const t = useMessages()
   const [activeDrag, setActiveDrag] = useState<ActiveDrag | null>(null)
   const workspaceRef = useRef<HTMLDivElement | null>(null)
 
@@ -92,7 +94,7 @@ export function SeatingEditor() {
       if (isFullTableDrop(plan, overId)) {
         notify({
           kind: 'warning',
-          message: 'Cette table est complète. Retirez un invité ou augmentez la capacité.',
+          message: t.placement.fullTable,
         })
       }
       return

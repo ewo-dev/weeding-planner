@@ -9,10 +9,11 @@ import { TABLE_MAX_CAPACITY, TABLE_MAX_NAME, TABLE_MIN_CAPACITY } from './tables
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
+import { fr, useMessages, format } from '@/lib/i18n'
 
 const SHAPE_OPTIONS = [
-  { value: 'round', label: 'Ronde' },
-  { value: 'rectangle', label: 'Rectangulaire' },
+  { value: 'round', label: fr.tables.shapeRound },
+  { value: 'rectangle', label: fr.tables.shapeRectangle },
 ]
 
 interface TableConfigSheetProps {
@@ -39,6 +40,7 @@ interface PendingUpdate {
  */
 export function TableConfigSheet({ table, seated, takenNames, onClose }: TableConfigSheetProps) {
   const { dispatch } = usePlan()
+  const t = useMessages()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState<PendingUpdate | null>(null)
 
@@ -46,21 +48,21 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
     const data = new FormData(form)
     const name = String(data.get('name') ?? '').trim()
     if (name === '' || name.length > TABLE_MAX_NAME) {
-      setError(`Le nom est requis (${TABLE_MAX_NAME} caractères maximum).`)
+      setError(format(t.tables.nameRequired, { max: TABLE_MAX_NAME }))
       return null
     }
     if (name !== table.name && takenNames.includes(name)) {
-      setError('Ce nom est déjà utilisé par une autre table.')
+      setError(t.tables.nameTaken)
       return null
     }
     const shape = String(data.get('shape') ?? '') as TableShape
     if (shape !== 'round' && shape !== 'rectangle') {
-      setError('Choisissez une forme valide.')
+      setError(t.tables.shapeInvalid)
       return null
     }
     const capacity = Number(String(data.get('capacity') ?? ''))
     if (!Number.isInteger(capacity) || capacity < TABLE_MIN_CAPACITY || capacity > TABLE_MAX_CAPACITY) {
-      setError(`La capacité doit être un nombre entier entre ${TABLE_MIN_CAPACITY} et ${TABLE_MAX_CAPACITY}.`)
+      setError(format(t.tables.capacityRange, { min: TABLE_MIN_CAPACITY, max: TABLE_MAX_CAPACITY }))
       return null
     }
     return { name, shape, capacity }
@@ -92,18 +94,18 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
     const orphaned = seated - pending.capacity
     return (
       <div className="space-y-3">
-        <h3 className="font-display text-base font-semibold text-text">Réduire la capacité ?</h3>
+        <h3 className="font-display text-base font-semibold text-text">{t.tables.reduceTitle}</h3>
         <p className="text-sm leading-relaxed text-text-muted">
-          « {table.name} » passera à {pending.capacity} places alors que {seated} invités y sont
-          placés. {orphaned === 1 ? '1 invité n’aura' : `${orphaned} invités n’auront`} plus de place
-          assise valide.
+          {format(t.tables.reduceBody, { name: table.name, capacity: pending.capacity, seated })}{' '}
+          {orphaned === 1 ? t.tables.reduceOne : format(t.tables.reduceMany, { n: orphaned })}
+          {t.tables.reduceRest}
         </p>
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant="danger" onClick={() => apply(pending)}>
-            Réduire quand même
+            {t.tables.reduceAnyway}
           </Button>
           <Button type="button" variant="secondary" onClick={() => setPending(null)}>
-            Annuler
+            {t.common.cancel}
           </Button>
         </div>
       </div>
@@ -112,11 +114,11 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h3 className="font-display text-base font-semibold text-text">Configurer la table</h3>
+      <h3 className="font-display text-base font-semibold text-text">{t.tables.configTableTitle}</h3>
 
       <Input
         id="table-name"
-        label="Nom"
+        label={t.tables.nameLabel}
         name="name"
         type="text"
         defaultValue={table.name}
@@ -127,7 +129,7 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
         <div className="flex-1">
           <Select
             id="table-shape"
-            label="Forme"
+            label={t.tables.shapeLabel}
             name="shape"
             options={SHAPE_OPTIONS}
             defaultValue={table.shape}
@@ -137,7 +139,7 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
         <div className="w-28">
           <Input
             id="table-capacity"
-            label="Places"
+            label={t.tables.placesLabel}
             name="capacity"
             type="number"
             defaultValue={table.capacity}
@@ -155,9 +157,9 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
       )}
 
       <div className="flex flex-wrap gap-2">
-        <Button type="submit">Enregistrer</Button>
+        <Button type="submit">{t.common.save}</Button>
         <Button type="button" variant="secondary" onClick={onClose}>
-          Annuler
+          {t.common.cancel}
         </Button>
       </div>
     </form>

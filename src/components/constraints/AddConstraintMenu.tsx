@@ -9,6 +9,7 @@ import type { ConstraintKind, Guest } from '@/types/plan'
 import { CONSTRAINT_KIND_LABELS, validateConstraintInput } from './constraints'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
+import { useMessages, format } from '@/lib/i18n'
 import { Plus, Minus } from 'lucide-react'
 
 interface AddConstraintMenuProps {
@@ -26,6 +27,7 @@ const KINDS: ConstraintKind[] = ['must_together', 'prefer_together', 'must_not_t
  */
 export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
   const { plan, dispatch } = usePlan()
+  const t = useMessages()
   const [open, setOpen] = useState(false)
   const [kind, setKind] = useState<ConstraintKind>('must_together')
   const [targetA, setTargetA] = useState('')
@@ -36,7 +38,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
 
   if (plan.guests.length < 2) {
     return (
-      <p className="text-sm text-text-muted">Ajoutez au moins deux invités pour créer une contrainte.</p>
+      <p className="text-sm text-text-muted">{t.constraints.needTwoGuests}</p>
     )
   }
 
@@ -49,7 +51,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
     const a = freeMode ? targetA : sourceGuestId
     const b = freeMode ? targetB : targetA
     if (!a || !b) {
-      setError('Choisissez les deux invités.')
+      setError(t.constraints.chooseBoth)
       return
     }
     const problem = validateConstraintInput(plan, kind, a, b)
@@ -66,7 +68,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
     plan.guests.filter((guest) => guest.id !== exclude)
 
   const pickerOptions = (guests: Guest[]) =>
-    [{ value: '', label: 'Choisir…' }, ...guests.map((guest) => ({ value: guest.id, label: guest.name }))]
+    [{ value: '', label: t.constraints.choosePlaceholder }, ...guests.map((guest) => ({ value: guest.id, label: guest.name }))]
 
   return (
     <div>
@@ -80,14 +82,14 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
         }}
         aria-expanded={open}
       >
-        {open ? 'Masquer' : 'Ajouter une contrainte'}
+        {open ? t.constraints.hideButton : t.constraints.addButton}
       </Button>
 
       {open && (
         <form onSubmit={handleSubmit} className="mt-3 space-y-3 rounded-xl border border-border bg-surface p-4 shadow-sm">
           {!freeMode && (
             <p className="text-sm text-text-muted">
-              Pour <span className="font-medium text-text">{sourceName}</span> avec :
+              {format(t.constraints.forGuest, { name: sourceName })}
             </p>
           )}
 
@@ -95,7 +97,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
             <div className="flex flex-col gap-3 sm:flex-row">
               <div className="flex-1">
                 <Select
-                  label="Invité A"
+                  label={t.constraints.guestALabel}
                   value={targetA}
                   onChange={(event) => setTargetA(event.target.value)}
                   options={pickerOptions(plan.guests)}
@@ -103,7 +105,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
               </div>
               <div className="flex-1">
                 <Select
-                  label="Invité B"
+                  label={t.constraints.guestBLabel}
                   value={targetB}
                   onChange={(event) => setTargetB(event.target.value)}
                   options={pickerOptions(plan.guests)}
@@ -113,7 +115,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
           ) : (
             <div className="block">
               <Select
-                label="Avec"
+                label={t.constraints.withLabel}
                 value={targetA}
                 onChange={(event) => setTargetA(event.target.value)}
                 options={pickerOptions(others(sourceGuestId))}
@@ -123,7 +125,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
 
           <div className="block">
             <Select
-              label="Relation"
+              label={t.constraints.relationLabel}
               value={kind}
               onChange={(event) => setKind(event.target.value as ConstraintKind)}
               options={KINDS.map((option) => ({ value: option, label: CONSTRAINT_KIND_LABELS[option] }))}
@@ -136,7 +138,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
             </p>
           )}
 
-          <Button type="submit">Ajouter</Button>
+          <Button type="submit">{t.common.add}</Button>
         </form>
       )}
     </div>

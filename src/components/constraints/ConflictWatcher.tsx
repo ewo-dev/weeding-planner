@@ -5,6 +5,7 @@ import type { ConstraintRef } from '@/lib/engine'
 import { usePlan } from '@/lib/plan/usePlan'
 import { conflicts } from '@/lib/plan/selectors'
 import { useToast } from '@/components/ui/ToastProvider'
+import { useMessages, format } from '@/lib/i18n'
 import { resolutionMessage, violationKey, violationMessage } from './constraints'
 
 /**
@@ -20,6 +21,7 @@ import { resolutionMessage, violationKey, violationMessage } from './constraints
 export function ConflictWatcher() {
   const { plan, undo } = usePlan()
   const { notify } = useToast()
+  const t = useMessages()
   // Null until the first run establishes the silent baseline.
   const seenRef = useRef<Map<string, ConstraintRef> | null>(null)
 
@@ -45,25 +47,25 @@ export function ConflictWatcher() {
         kind: 'warning',
         message: violationMessage(fresh[0], plan),
         actions: [
-          { label: 'Annuler', onAction: undo },
-          { label: 'Garder' },
+          { label: t.common.undo, onAction: undo },
+          { label: t.constraints.keep },
         ],
       })
     } else if (fresh.length > 1) {
       notify({
         kind: 'warning',
-        message: `Conflits : ${fresh.length} nouvelles relations à revoir.`,
+        message: format(t.constraints.multipleConflicts, { n: fresh.length }),
         actions: [
-          { label: 'Annuler', onAction: undo },
-          { label: 'Garder' },
+          { label: t.common.undo, onAction: undo },
+          { label: t.constraints.keep },
         ],
       })
     } else if (resolved.length === 1) {
       notify({ kind: 'success', message: resolutionMessage(resolved[0], plan) })
     } else if (resolved.length > 1) {
-      notify({ kind: 'success', message: `${resolved.length} conflits résolus.` })
+      notify({ kind: 'success', message: format(t.constraints.multipleResolved, { n: resolved.length }) })
     }
-  }, [report, plan, notify, undo])
+  }, [report, plan, notify, undo, t])
 
   return null
 }

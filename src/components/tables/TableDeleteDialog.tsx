@@ -3,6 +3,7 @@
 import { AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
+import { useMessages, format } from '@/lib/i18n'
 
 interface TableDeleteDialogProps {
   tableName: string
@@ -20,18 +21,19 @@ interface TableDeleteDialogProps {
  * no dialog.
  */
 export function TableDeleteDialog({ tableName, guestNames, onConfirm, onCancel }: TableDeleteDialogProps) {
+  const t = useMessages()
   return (
-    <Modal open onClose={onCancel} title="Supprimer cette table ?">
+    <Modal open onClose={onCancel} title={t.tables.deleteTitle}>
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger/10 text-danger">
           <AlertTriangle className="h-5 w-5" aria-hidden="true" />
         </div>
         <div className="flex-1">
           <p className="text-sm leading-relaxed text-text-muted">
-            La table « {tableName} » sera définitivement supprimée.{' '}
+            {format(t.tables.deleteBody, { name: tableName })}{' '}
             {guestNames.length === 1
-              ? '1 invité retournera aux non placés :'
-              : `${guestNames.length} invités retourneront aux non placés :`}
+              ? t.tables.deleteReturnOne
+              : format(t.tables.deleteReturnMany, { n: guestNames.length })}
           </p>
           <ul className="mt-2 max-h-32 list-disc overflow-y-auto pl-5 text-sm text-text">
             {guestNames.map((name) => (
@@ -42,10 +44,10 @@ export function TableDeleteDialog({ tableName, guestNames, onConfirm, onCancel }
       </div>
       <div className="mt-5 flex flex-wrap justify-end gap-2">
         <Button variant="secondary" onClick={onCancel}>
-          Annuler
+          {t.common.cancel}
         </Button>
         <Button variant="danger" onClick={onConfirm}>
-          Supprimer
+          {t.common.delete}
         </Button>
       </div>
     </Modal>

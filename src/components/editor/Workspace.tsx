@@ -8,6 +8,7 @@ import { WORKSPACE_DROP_ID } from './dnd'
 import { TableCard } from './TableCard'
 import { useTableSelection } from '@/components/tables/TableSelection'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { useMessages } from '@/lib/i18n'
 
 /**
  * Droppable canvas surface (`workspace`) holding the table cards
@@ -26,6 +27,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
  */
 export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElement | null) => void }) {
   const { plan } = usePlan()
+  const t = useMessages()
   const { selectedTableId, selectTable } = useTableSelection()
   const { setNodeRef, isOver } = useDroppable({
     id: WORKSPACE_DROP_ID,
@@ -64,7 +66,7 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
         ref={setRefs}
         data-testid="workspace"
         role="group"
-        aria-label="Plan des tables"
+        aria-label={t.editor.workspaceAriaLabel}
         data-over={isOver || undefined}
         onClick={(event) => {
           if (event.target === event.currentTarget) selectTable(null)
@@ -75,8 +77,8 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
         {plan.tables.length === 0 ? (
           <div className="absolute left-1/2 top-1/3 w-full max-w-sm -translate-x-1/2 px-4">
             <EmptyState
-              title="Aucune table pour l’instant"
-              description="Ajoutez vos tables depuis l’onglet Tables, puis glissez-déposez vos invités."
+              title={t.editor.workspaceEmptyTitle}
+              description={t.editor.workspaceEmptyDescription}
             />
           </div>
         ) : (

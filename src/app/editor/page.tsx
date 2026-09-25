@@ -12,6 +12,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { PlanStatsBar } from '@/components/plan-status/PlanStatsBar'
 import { SeatingEditor } from '@/components/editor/SeatingEditor'
 import { Button } from '@/components/ui/Button'
+import { useMessages } from '@/lib/i18n'
 
 // Editor route (docs/06-routing-and-pages.md § 6). Reads the active plan id
 // from localStorage, loads it via the repository, and mounts the editor
@@ -20,6 +21,7 @@ import { Button } from '@/components/ui/Button'
 
 export default function EditorPage() {
   const router = useRouter()
+  const t = useMessages()
   const [plan, setPlan] = useState<Plan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -59,7 +61,7 @@ export default function EditorPage() {
             <AlertTriangle className="h-6 w-6" aria-hidden="true" />
           </div>
           <h1 className="font-display text-xl font-semibold text-text">
-            Le plan n&apos;a pas pu être chargé.
+            {t.common.loadFailedTitle}
           </h1>
           <p className="mt-2 text-sm text-text-muted">{error}</p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -67,10 +69,10 @@ export default function EditorPage() {
               setError(null)
               setAttempt((n) => n + 1)
             }}>
-              Réessayer
+              {t.common.retry}
             </Button>
             <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
-              Retour à l&apos;accueil
+              {t.common.back}
             </Button>
           </div>
         </div>
