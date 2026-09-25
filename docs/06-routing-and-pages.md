@@ -23,7 +23,7 @@ The architecture itself is described in `02-architecture.md`. The data model in 
 * Server components are the default; `"use client"` is added only when needed.
 * Browser-only client routes fetch plan data via `PlanRepository` and pass plain props down.
 * Each route's data loading is colocated in its `page.tsx`.
-* Page-level metadata (`export const metadata`) is defined for the SEO-friendly entry route. The editor itself is a private app surface and does not need SEO metadata.
+* Page-level metadata (`export const metadata`) is defined in the root layout for the SEO-friendly entry route; `/editor` and `/print` define their own `noindex` metadata in nested layouts. The editor itself is a private app surface and does not need SEO metadata.
 
 ---
 
@@ -33,12 +33,16 @@ The application is statically exported (D-019). The route tree has no dynamic ro
 
 ```text
 src/app/
-  layout.tsx                    # Root layout (server, pre-rendered)
+  layout.tsx                    # Root layout (server, pre-rendered) + global metadata
   page.tsx                      # Entry / plan list (/, client, hydrates from IndexedDB)
   not-found.tsx                 # 404
+  sitemap.ts                    # Sitemap (home page only)
+  robots.ts                     # robots.txt (allow /, disallow /editor & /print)
   editor/
+    layout.tsx                  # noindex metadata (private surface)
     page.tsx                    # Editor (/editor, client; reads active plan from IndexedDB)
   print/
+    layout.tsx                  # noindex metadata (private surface)
     page.tsx                    # Print view (/print, client; reads active plan from IndexedDB)
 ```
 
@@ -248,9 +252,10 @@ There are no server actions. All mutations are client-side calls into `IndexedDb
 
 ## 12. SEO and Metadata
 
-* `/` sets `metadata` with title and description.
-* `/editor` and `/print` set `metadata: { robots: { index: false, follow: false } }` — private content.
-* Open Graph and Twitter cards are out of scope for MVP.
+* `/` inherits the root layout's `metadata`, which sets a descriptive French `title` / `description`, a `metadataBase` (from `src/lib/site.ts`), a canonical URL, and Open Graph / Twitter cards with an image (`public/og-image.png`).
+* `sitemap.ts` lists only the public home page; `robots.ts` allows `/`, disallows `/editor` and `/print`, and references `sitemap.xml`.
+* `/editor` and `/print` set `metadata: { robots: { index: false, follow: false } }` in their own server layouts — private, browser-local surfaces.
+* The production URL defaults to the Vercel domain (`NEXT_PUBLIC_SITE_URL`) and must be updated when a custom domain is added.
 
 ---
 

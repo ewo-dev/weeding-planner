@@ -1,10 +1,9 @@
 import type { NextConfig } from "next";
 
-// Static export to GitHub Pages.
-// See docs/08-decisions.md (D-019) for the rationale.
+// Static export to Vercel (docs/08-decisions.md D-024).
+// No basePath: the app is served from the Vercel domain root.
 const nextConfig: NextConfig = {
   output: "export",
-  basePath: "/weeding-planner",
   trailingSlash: true,
   images: {
     unoptimized: true,

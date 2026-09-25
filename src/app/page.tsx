@@ -10,9 +10,11 @@ import { ProjectActions } from '@/components/persistence/ProjectActions'
 import { createBlankPlan } from '@/components/layout/createBlankPlan'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 import { getRepository } from '@/lib/repo'
+import { useMessages } from '@/lib/i18n'
 import type { PlanSummary } from '@/lib/repo/types'
 
 export default function HomePage() {
+  const t = useMessages()
   const router = useRouter()
   const [summaries, setSummaries] = useState<PlanSummary[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -33,13 +35,13 @@ export default function HomePage() {
       .catch((err: unknown) => {
         if (cancelled) return
         console.error('Failed to list plans', err)
-        setListError('Impossible de charger vos plans. Réessayez.')
+        setListError(t.home.listError)
         setStatus('error')
       })
     return () => {
       cancelled = true
     }
-  }, [reloadKey])
+  }, [reloadKey, t])
 
   const reload = () => setReloadKey((key) => key + 1)
 
@@ -51,7 +53,7 @@ export default function HomePage() {
       router.push('/editor')
     } catch (err) {
       console.error('Failed to create a blank plan', err)
-      setCreateError('Impossible de créer un plan. Réessayez.')
+      setCreateError(t.home.createError)
     } finally {
       setCreating(false)
     }
@@ -60,11 +62,11 @@ export default function HomePage() {
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-16">
       <header className="mb-8 text-center sm:text-left">
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent-hover">Plan de table</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-accent-hover">{t.home.eyebrow}</p>
         <h1 className="mt-2 font-display text-3xl font-semibold text-text sm:text-4xl">
-          Votre mariage, bien assis.
+          {t.home.title}
         </h1>
-        <p className="mt-2 text-text-muted">Créez et organisez votre plan de table en toute simplicité.</p>
+        <p className="mt-2 text-text-muted">{t.home.subtitle}</p>
       </header>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -75,7 +77,7 @@ export default function HomePage() {
           icon={<Sparkles className="h-4 w-4" />}
           className="w-full sm:w-auto"
         >
-          Nouveau plan
+          {t.home.newPlan}
         </Button>
         <ProjectActions onImported={reload} />
       </div>
@@ -96,16 +98,16 @@ export default function HomePage() {
         <div role="alert" className="mt-10 rounded-xl border border-border bg-surface p-5 text-center shadow-sm">
           <p className="text-text">{listError}</p>
           <Button type="button" variant="secondary" onClick={reload} className="mt-3">
-            Réessayer
+            {t.home.retry}
           </Button>
         </div>
       )}
 
       {status === 'ready' && summaries.length === 0 && (
         <div className="mt-10 rounded-xl border border-dashed border-border bg-surface p-8 text-center">
-          <p className="font-display text-lg font-semibold text-text">Aucun plan pour l&apos;instant</p>
+          <p className="font-display text-lg font-semibold text-text">{t.home.emptyTitle}</p>
           <p className="mt-1 text-sm text-text-muted">
-            Créez votre premier plan de table pour commencer.
+            {t.home.emptySubtitle}
           </p>
         </div>
       )}
@@ -116,7 +118,7 @@ export default function HomePage() {
 
       <BotanicalDivider className="mt-12" />
       <p className="mt-6 text-center text-xs text-text-muted">
-        Tout reste sur votre appareil — vos données ne sont pas envoyées en ligne.
+        {t.home.privacyNote}
       </p>
     </main>
   )

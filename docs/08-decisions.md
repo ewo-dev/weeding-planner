@@ -446,7 +446,7 @@ Export a complete `plan-de-table-project` envelope with `formatVersion`, `export
 
 ### D-023 — GitHub Pages static deployment (2026-09-21)
 
-**Status:** Accepted. Supersedes the cloud assumptions in D-019.
+**Status:** Superseded by D-024.
 
 **Context**
 The application is fully client-side and has no server runtime requirement. GitHub Pages is sufficient for the initial deployment and keeps hosting simple.
@@ -458,3 +458,34 @@ Build with Next.js static export and deploy to GitHub Pages via GitHub Actions. 
 * Hosting and deployment are simple and inexpensive.
 * No SSR, server actions, API routes, or server-side data access.
 * A future hosting migration remains possible because application logic is not coupled to GitHub APIs.
+
+### D-024 — Vercel static deployment (2026-09-25)
+
+**Status:** Accepted. Supersedes D-023.
+
+**Context**
+The application is fully client-side and local-first (D-020) with no server runtime, so it deploys as a plain static export. The product will launch publicly, and Vercel is the chosen host for a root-domain URL with a straightforward import-and-deploy workflow.
+
+**Decision**
+Deploy the Next.js static export (`output: 'export'`) to Vercel, served from the domain root. Remove the GitHub Pages `basePath: '/weeding-planner'` from `next.config.ts`. Launch on the Vercel-generated `*.vercel.app` domain; a future custom domain is configured via the `NEXT_PUBLIC_SITE_URL` environment variable (read by `src/lib/site.ts`) and a Vercel project domain.
+
+**Consequences**
+* Hosting and deployment remain simple; the app loads from a clean root URL.
+* No SSR, server actions, API routes, or server-side data access (unchanged from D-019/D-023).
+* SEO assets (`sitemap.xml`, `robots.txt`, canonical, Open Graph) resolve against the Vercel URL and must be updated when a custom domain is added.
+* Application logic stays independent of any hosting vendor.
+
+### D-025 — Localization readiness via message catalog (2026-09-25)
+
+**Status:** Accepted.
+
+**Context**
+The MVP is French-only (D-011), but a public SEO launch makes a future second language more likely. Rewriting hardcoded strings later would be costly, while a lightweight message layer makes adding a locale additive.
+
+**Decision**
+Centralize user-facing copy in a typed message catalog (`src/lib/i18n/fr.ts`) with a `Locale` type and a `messages` registry. Components consume copy via `useMessages()`, which returns the French catalog for now. French remains the only shipped locale; no route prefixes or translations are introduced.
+
+**Consequences**
+* Adding a locale later is additive: add `en.ts` mirroring `fr.ts`, register it in `messages`, and swap `useMessages()` to read the active locale.
+* Hardcoded strings in remaining components are migrated incrementally; the entry page and root layout are already migrated.
+* No i18n dependency or runtime translation machinery is introduced.

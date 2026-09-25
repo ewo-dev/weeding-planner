@@ -40,6 +40,7 @@ Each step:
 | 20   | Print redesign (A4 blocks + alphabetical index)| Done     | 7, 13         |
 | 21   | Update smoke checks and component tests        | Done     | 15–20         |
 | 22   | Release validation: mobile, a11y, responsive   | Planned     | 1–21          |
+| 23   | Vercel deploy + SEO + localization prep        | **Next**     | 1–22          |
 
 **Note after UX challenge:** Steps 8–10 and 13 are functionally implemented but do not yet satisfy the UX direction in section 6. Steps 15–21 cover the rework and must be completed before release validation.
 
@@ -344,6 +345,23 @@ Reflect the new flows in tests and the manual checklist.
 
 ---
 
+### Step 23 — Vercel deploy + SEO + localization prep
+
+Make the app publicly available on Vercel, add a French SEO foundation, and prepare the codebase for future localization. This step supersedes the GitHub Pages deployment choice (D-019 / D-023).
+
+* **Public access.** Keep the app anonymous and local-first (D-020): anyone can open and use it without an account; each visitor's plans stay in their own browser (IndexedDB). No shared plans, sync, or accounts are added.
+* **Vercel root deployment.** Remove the GitHub Pages `basePath: '/weeding-planner'` so assets and routes load from the Vercel domain root. Keep `output: 'export'`. Deploy the repository to Vercel and use its generated `*.vercel.app` domain for launch.
+* **SEO foundation (French).** The home page (`/`) is the only search-facing surface.
+  * Set a descriptive French `title` / `description` and a `metadataBase` pointing at the production URL, with `canonical` and Open Graph / Twitter metadata.
+  * Add `sitemap.ts` (home page only) and `robots.ts` (allow all, reference the sitemap).
+  * Mark `/editor` and `/print` as `noindex` (private, browser-local surfaces).
+  * Add a French Open Graph image and keep visible copy clear about local storage and privacy.
+* **Localization readiness.** Keep French as the only shipped locale (D-011), but centralize UI strings behind a small locale/message layer with French as the default, so a future `/fr` / `/en` split is localized work rather than a rewrite. The entry page and root layout are migrated; the remaining component strings are migrated incrementally (follow-up).
+
+**Validation gate:** `npm run build` succeeds with `output: 'export'` at the domain root; `npm run lint` and `npm run typecheck` clean; Vitest suite green; `/` metadata, `sitemap.xml`, and `robots.txt` render correctly; `/editor` and `/print` are `noindex`; the localization layer resolves all visible strings from French.
+
+---
+
 ## 4. Dependency Graph
 
 ```text
@@ -395,6 +413,8 @@ Reflect the new flows in tests and the manual checklist.
 [14 JSON import/export] ──> additive to [2], [5], and [6]
 
 [22 Release validation] ──> validates 1–21
+
+[23 Vercel deploy + SEO + localization] ──> additive to [6], [22]
 ```
 
 ---
