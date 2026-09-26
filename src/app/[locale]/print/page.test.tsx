@@ -57,7 +57,7 @@ describe('PrintPage', () => {
   it('redirects to / when no active plan key is set', async () => {
     render(<PrintPage />)
 
-    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/fr'))
     expect(loadSpy).not.toHaveBeenCalled()
   })
 
@@ -67,7 +67,7 @@ describe('PrintPage', () => {
 
     render(<PrintPage />)
 
-    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/fr'))
     expect(loadSpy).toHaveBeenCalledWith('plan-id')
   })
 

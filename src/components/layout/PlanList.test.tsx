@@ -97,7 +97,7 @@ describe('PlanList', () => {
     await user.click(screen.getByRole('button', { name: 'Ouvrir' }))
 
     expect(localStorage.getItem(ACTIVE_PLAN_KEY)).toBe(summary.id)
-    expect(pushMock).toHaveBeenCalledWith('/editor')
+    expect(pushMock).toHaveBeenCalledWith('/fr/editor')
   })
 
   it('renames a plan on Enter', async () => {

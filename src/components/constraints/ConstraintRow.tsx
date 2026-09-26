@@ -1,7 +1,7 @@
 'use client'
 
 import type { Constraint } from '@/types/plan'
-import { CONSTRAINT_KIND_LABELS } from './constraints'
+import { constraintKindLabel } from './constraints'
 import { Badge } from '@/components/ui/Badge'
 import type { BadgeTone } from '@/components/ui/Badge'
 import { IconButton } from '@/components/ui/IconButton'
@@ -39,7 +39,7 @@ export function ConstraintRow({ constraint, nameA, nameB, violated, softViolated
         violated ? 'border-danger/30 bg-danger/10' : 'hover:bg-surface-muted hover:border-border'
       }`}
     >
-      <Badge tone={KIND_BADGE_TONE[constraint.kind]}>{CONSTRAINT_KIND_LABELS[constraint.kind]}</Badge>
+      <Badge tone={KIND_BADGE_TONE[constraint.kind]}>{constraintKindLabel(constraint.kind, t)}</Badge>
       <span className="min-w-0 flex-1 truncate text-sm text-text">
         {format(t.constraints.pairLabel, { a: nameA, b: nameB })}
       </span>

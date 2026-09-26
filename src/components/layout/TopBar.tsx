@@ -7,7 +7,7 @@ import { usePlan } from '@/lib/plan/usePlan'
 import { IconButton } from '@/components/ui/IconButton'
 import { Spinner } from '@/components/ui/Spinner'
 import { ProjectActions } from '@/components/persistence/ProjectActions'
-import { useMessages } from '@/lib/i18n'
+import { useMessages, useLocale, localePath } from '@/lib/i18n'
 
 /**
  * Editor top bar (docs/07-components.md § 5). Reads plan state from context:
@@ -18,6 +18,7 @@ import { useMessages } from '@/lib/i18n'
 export function TopBar() {
   const router = useRouter()
   const t = useMessages()
+  const locale = useLocale()
   const { plan, dispatch, undo, redo, canUndo, canRedo, saveStatus, saveError } = usePlan()
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -70,7 +71,7 @@ export function TopBar() {
     <header className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-surface px-3 py-2.5 sm:px-4">
       <button
         type="button"
-        onClick={() => router.push('/')}
+        onClick={() => router.push(localePath(locale, '/'))}
         aria-label={t.common.back}
         className="inline-flex min-h-[44px] items-center gap-1 rounded-md px-2 text-sm font-medium text-text-muted transition-colors hover:bg-surface-muted hover:text-text"
       >
@@ -128,7 +129,7 @@ export function TopBar() {
           label={t.topBar.printLabel}
           title={t.common.print}
           icon={<Printer className="h-5 w-5" />}
-          onClick={() => router.push('/print')}
+          onClick={() => router.push(localePath(locale, '/print'))}
         />
         <ProjectActions plan={plan} onImported={() => window.location.reload()} />
 

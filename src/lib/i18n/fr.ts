@@ -3,6 +3,11 @@
 // locale is added (e.g. `en.ts`), mirror this shape and register it in
 // `src/lib/i18n/index.ts`.
 export const fr = {
+  meta: {
+    title: 'My Weeding Seats — Créez votre plan de table de mariage',
+    description:
+      'Créez, organisez et imprimez le plan de table de votre mariage. Placez vos invités autour de vos tables en quelques minutes, gratuitement, sans compte et sans envoyer vos données en ligne.',
+  },
   a11y: {
     skipToContent: 'Aller au contenu',
   },
@@ -193,6 +198,7 @@ export const fr = {
     defaultName: 'Table {n}',
   },
   editor: {
+    pageTitle: 'Éditeur',
     workspaceAriaLabel: 'Plan des tables',
     workspaceEmptyTitle: 'Aucune table pour l’instant',
     workspaceEmptyDescription: 'Ajoutez vos tables depuis l’onglet Tables, puis glissez-déposez vos invités.',
@@ -302,6 +308,6 @@ export const fr = {
     placeLabel: 'Place {n}',
     freeSeat: 'Place libre',
   },
-} as const
+}
 
 export type Messages = typeof fr

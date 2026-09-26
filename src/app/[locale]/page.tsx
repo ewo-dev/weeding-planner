@@ -10,11 +10,12 @@ import { ProjectActions } from '@/components/persistence/ProjectActions'
 import { createBlankPlan } from '@/components/layout/createBlankPlan'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 import { getRepository } from '@/lib/repo'
-import { useMessages } from '@/lib/i18n'
+import { useMessages, useLocale, localePath } from '@/lib/i18n'
 import type { PlanSummary } from '@/lib/repo/types'
 
 export default function HomePage() {
   const t = useMessages()
+  const locale = useLocale()
   const router = useRouter()
   const [summaries, setSummaries] = useState<PlanSummary[]>([])
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
@@ -49,8 +50,8 @@ export default function HomePage() {
     setCreating(true)
     setCreateError(null)
     try {
-      await createBlankPlan()
-      router.push('/editor')
+      await createBlankPlan(t)
+      router.push(localePath(locale, '/editor'))
     } catch (err) {
       console.error('Failed to create a blank plan', err)
       setCreateError(t.home.createError)

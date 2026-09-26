@@ -50,6 +50,6 @@ describe('HomePage', () => {
     await waitFor(() => expect(saveSpy).toHaveBeenCalledTimes(1))
     const plan = saveSpy.mock.calls[0][0]
     expect(localStorage.getItem(ACTIVE_PLAN_KEY)).toBe(plan.meta.id)
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/editor'))
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith('/fr/editor'))
   })
 })

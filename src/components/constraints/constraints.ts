@@ -1,12 +1,17 @@
 import type { ConstraintRef } from '@/lib/engine'
 import { guestById } from '@/lib/plan/selectors'
-import { fr, format } from '@/lib/i18n'
+import { fr, format, type Messages } from '@/lib/i18n'
 import type { ConstraintKind, Plan } from '@/types/plan'
 
-export const CONSTRAINT_KIND_LABELS: Record<ConstraintKind, string> = {
-  must_together: fr.constraints.kindMust,
-  prefer_together: fr.constraints.kindPrefer,
-  must_not_together: fr.constraints.kindNot,
+export function constraintKindLabel(kind: ConstraintKind, messages: Messages = fr): string {
+  switch (kind) {
+    case 'must_together':
+      return messages.constraints.kindMust
+    case 'prefer_together':
+      return messages.constraints.kindPrefer
+    case 'must_not_together':
+      return messages.constraints.kindNot
+  }
 }
 
 function samePair(a1: string, b1: string, a2: string, b2: string): boolean {
@@ -24,16 +29,17 @@ export function validateConstraintInput(
   kind: ConstraintKind,
   a: string,
   b: string,
+  messages: Messages = fr,
 ): string | null {
-  if (!guestById(plan, a) || !guestById(plan, b)) return fr.constraints.unknownGuests
-  if (a === b) return fr.constraints.selfConstraint
+  if (!guestById(plan, a) || !guestById(plan, b)) return messages.constraints.unknownGuests
+  if (a === b) return messages.constraints.selfConstraint
   const pairTaken = (other: ConstraintKind): boolean =>
     plan.constraints.some((c) => c.kind === other && samePair(c.a, c.b, a, b))
-  if (pairTaken(kind)) return fr.constraints.duplicate
+  if (pairTaken(kind)) return messages.constraints.duplicate
   const opposite =
     kind === 'must_together' ? 'must_not_together' : kind === 'must_not_together' ? 'must_together' : null
   if (opposite && pairTaken(opposite)) {
-    return fr.constraints.incompatible
+    return messages.constraints.incompatible
   }
   return null
 }
@@ -47,19 +53,19 @@ export function violationKey(ref: ConstraintRef): string {
  * Toast copy for a fresh mandatory violation (docs/10-interactions.md § 14).
  * Falls back to the must_together wording when the constraint vanished.
  */
-export function violationMessage(ref: ConstraintRef, plan: Plan): string {
+export function violationMessage(ref: ConstraintRef, plan: Plan, messages: Messages = fr): string {
   const nameA = guestById(plan, ref.a)?.name ?? '?'
   const nameB = guestById(plan, ref.b)?.name ?? '?'
   const kind = plan.constraints.find((c) => c.id === ref.constraintId)?.kind
   if (kind === 'must_not_together') {
-    return format(fr.constraints.violationMustNot, { a: nameA, b: nameB })
+    return format(messages.constraints.violationMustNot, { a: nameA, b: nameB })
   }
-  return format(fr.constraints.violationMust, { a: nameA, b: nameB })
+  return format(messages.constraints.violationMust, { a: nameA, b: nameB })
 }
 
 /** Toast copy for a resolved mandatory violation. */
-export function resolutionMessage(ref: ConstraintRef, plan: Plan): string {
+export function resolutionMessage(ref: ConstraintRef, plan: Plan, messages: Messages = fr): string {
   const nameA = guestById(plan, ref.a)?.name ?? '?'
   const nameB = guestById(plan, ref.b)?.name ?? '?'
-  return format(fr.constraints.resolved, { a: nameA, b: nameB })
+  return format(messages.constraints.resolved, { a: nameA, b: nameB })
 }

@@ -94,7 +94,7 @@ describe('PrintLayout', () => {
     renderLayout()
 
     fireEvent.click(screen.getByRole('button', { name: 'Retour à l’éditeur' }))
-    expect(pushMock).toHaveBeenCalledWith('/editor')
+    expect(pushMock).toHaveBeenCalledWith('/fr/editor')
 
     fireEvent.click(screen.getByRole('button', { name: 'Imprimer' }))
     expect(window.print).toHaveBeenCalledTimes(1)

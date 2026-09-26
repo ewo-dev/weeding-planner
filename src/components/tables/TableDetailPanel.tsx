@@ -7,7 +7,7 @@ import { guestById, tableById } from '@/lib/plan/selectors'
 import { MoveGuestSheet } from '@/components/guests/MoveGuestSheet'
 import { Button } from '@/components/ui/Button'
 import { useMessages, format } from '@/lib/i18n'
-import { SHAPE_LABELS } from './tables'
+import { shapeLabel } from './tables'
 import { AddGuestSheet } from './AddGuestSheet'
 import { TableConfigSheet } from './TableConfigSheet'
 
@@ -63,7 +63,7 @@ export function TableDetailContent({ tableId, onClose }: TableDetailContentProps
         <div className="min-w-0">
           <h3 className="truncate font-display text-base font-semibold text-text">{table.name}</h3>
           <p className="mt-0.5 text-xs text-text-muted">
-            {format(t.tables.occupancy, { shape: SHAPE_LABELS[table.shape], seated: seated.length, capacity: table.capacity })}
+            {format(t.tables.occupancy, { shape: shapeLabel(table.shape, t), seated: seated.length, capacity: table.capacity })}
           </p>
         </div>
         {full && (

@@ -13,7 +13,7 @@ import {
   serializeProjectFile,
 } from '@/lib/repo/project-file'
 import type { Plan } from '@/types/plan'
-import { fr, useMessages } from '@/lib/i18n'
+import { useMessages, type Messages } from '@/lib/i18n'
 
 interface ProjectActionsProps {
   /** When provided, an Export button is shown for that plan. Import is always shown. */
@@ -23,12 +23,12 @@ interface ProjectActionsProps {
   className?: string
 }
 
-function importErrorMessage(err: unknown): string {
+function importErrorMessage(err: unknown, messages: Messages): string {
   if (err instanceof RepoError) {
-    if (err.code === 'quota') return fr.project.quota
+    if (err.code === 'quota') return messages.project.quota
     if (typeof err.message === 'string' && err.message.length > 0) return err.message
   }
-  return fr.project.importFailed
+  return messages.project.importFailed
 }
 
 /**
@@ -49,7 +49,7 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
     if (!plan) return
     setExportError(null)
     try {
-      const text = serializeProjectFile(plan)
+      const text = serializeProjectFile(plan, undefined, t)
       const blob = new Blob([text], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
@@ -61,7 +61,7 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
       window.setTimeout(() => URL.revokeObjectURL(url), 0)
     } catch (err) {
       console.error('Failed to export plan', err)
-      setExportError(fr.project.exportFailed)
+      setExportError(t.project.exportFailed)
     }
   }
 
@@ -70,15 +70,15 @@ export function ProjectActions({ plan, onImported, className = '' }: ProjectActi
     setImportError(null)
     try {
       const text = await file.text()
-      const parsed = parseProjectFileText(text)
-      const imported = prepareImportedPlan(parsed)
+      const parsed = parseProjectFileText(text, t)
+      const imported = prepareImportedPlan(parsed, undefined, t)
       await getRepository().save(imported)
       // Activate only after the write succeeds.
       localStorage.setItem(ACTIVE_PLAN_KEY, imported.meta.id)
       onImported?.(imported)
     } catch (err) {
       console.error('Failed to import project file', err)
-      setImportError(importErrorMessage(err))
+      setImportError(importErrorMessage(err, t))
     } finally {
       setImporting(false)
       if (fileRef.current) fileRef.current.value = ''
