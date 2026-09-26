@@ -1,0 +1,142 @@
+name: OpenCode Code Review
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  review:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      pr_number: ${{ steps.find-pr.outputs.number }}
+    steps:
+      - name: Checkout trusted default branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Find open pull request for this CI commit
+        id: find-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          if [[ ! "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Unexpected CI head SHA" >&2
+            exit 1
+          fi
+
+          pr_number="$(jq -r --arg sha "$HEAD_SHA" \
+            '[.workflow_run.pull_requests[]? | select(.head.sha == $sha) | .number][0] // empty' \
+            "$GITHUB_EVENT_PATH")"
+
+          if [[ -z "$pr_number" ]]; then
+            pr_number="$(gh api "repos/$GITHUB_REPOSITORY/commits/$HEAD_SHA/pulls" \
+              --jq '[.[] | select(.head.sha == env.HEAD_SHA) | .number][0] // empty')"
+          fi
+
+          if [[ ! "$pr_number" =~ ^[0-9]+$ ]]; then
+            echo "No associated pull request found; skipping review."
+            echo "number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          pr_json="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr_number")"
+          if ! jq -e --arg sha "$HEAD_SHA" \
+            '.state == "open" and .head.sha == $sha and .base.repo.full_name == env.GITHUB_REPOSITORY' \
+            <<< "$pr_json" >/dev/null; then
+            echo "Pull request is closed or has moved to a newer commit; skipping review."
+            echo "number=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          base_sha="$(jq -r '.base.sha' <<< "$pr_json")"
+          if [[ ! "$base_sha" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Unexpected pull request base SHA" >&2
+            exit 1
+          fi
+
+          echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$base_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout pull request base for read-only context
+        if: steps.find-pr.outputs.number != ''
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.find-pr.outputs.base_sha }}
+          path: .review-base
+          persist-credentials: false
+
+      - name: Setup Node.js for OpenCode CLI
+        if: steps.find-pr.outputs.number != ''
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Fetch pull request diff
+        if: steps.find-pr.outputs.number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.find-pr.outputs.number }}
+        run: gh pr diff "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" > "$RUNNER_TEMP/pull-request.diff"
+
+      - name: Install pinned OpenCode CLI
+        if: steps.find-pr.outputs.number != ''
+        run: npm install --global opencode-ai@1.18.32
+
+      - name: Review pull request diff
+        if: steps.find-pr.outputs.number != ''
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_DISABLE_DEFAULT_PLUGINS: "true"
+        run: >-
+          opencode run
+          --agent code-reviewer
+          --file "$RUNNER_TEMP/pull-request.diff"
+          "Review the attached pull request diff. Use .review-base/ only for necessary context. Follow the configured output format exactly."
+          > "$RUNNER_TEMP/code-review.md"
+
+      - name: Prepare review artifact
+        if: steps.find-pr.outputs.number != ''
+        env:
+          PR_NUMBER: ${{ steps.find-pr.outputs.number }}
+        run: printf '%s\n' "$PR_NUMBER" > "$RUNNER_TEMP/pr-number.txt"
+
+      - name: Upload review report
+        if: steps.find-pr.outputs.number != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/code-review.md
+            ${{ runner.temp }}/pr-number.txt
+          if-no-files-found: error
+          retention-days: 14
+
+  publish-review:
+    needs: review
+    if: needs.review.outputs.pr_number != ''
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download review report
+        uses: actions/download-artifact@v4
+        with:
+          name: code-review-${{ github.run_id }}
+
+      - name: Publish review on pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ needs.review.outputs.pr_number }}
+        run: gh pr review "$PR_NUMBER" --comment --body-file code-review.md --repo "$GITHUB_REPOSITORY"

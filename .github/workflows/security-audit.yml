@@ -1,0 +1,135 @@
+name: Security Audit
+
+on:
+  schedule:
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch || 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch || 'main' }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        id: install-dependencies
+        run: |
+          if npm ci; then
+            exit_code=0
+          else
+            exit_code=$?
+          fi
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Audit dependencies
+        id: npm-audit
+        run: |
+          if npm audit --json > "$RUNNER_TEMP/npm-audit.json" 2> "$RUNNER_TEMP/npm-audit.stderr"; then
+            exit_code=0
+          else
+            exit_code=$?
+          fi
+
+          if [[ ! -s "$RUNNER_TEMP/npm-audit.json" ]]; then
+            printf '{"error":{"summary":"npm audit produced no JSON output"}}\n' > "$RUNNER_TEMP/npm-audit.json"
+          fi
+
+          echo "exit_code=$exit_code" >> "$GITHUB_OUTPUT"
+
+      - name: Install pinned OpenCode CLI
+        id: install-opencode
+        continue-on-error: true
+        run: npm install --global opencode-ai@1.18.32
+
+      - name: Run security auditor
+        id: opencode
+        if: steps.install-opencode.outcome == 'success'
+        continue-on-error: true
+        env:
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_DISABLE_AUTOUPDATE: "true"
+          OPENCODE_DISABLE_DEFAULT_PLUGINS: "true"
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          audit_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          opencode run \
+            --agent security-auditor \
+            --file "$RUNNER_TEMP/npm-audit.json" \
+            "Create the complete security audit report. Use UTC date $audit_date and commit $COMMIT_SHA. Be explicit about incomplete dependency checks and distinguish confirmed vulnerabilities from probable issues, potential risks, and recommendations." \
+            > "$RUNNER_TEMP/security-report.md"
+
+      - name: Prepare report if OpenCode could not complete
+        if: always()
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+          NPM_CI_EXIT_CODE: ${{ steps.install-dependencies.outputs.exit_code }}
+          NPM_AUDIT_EXIT_CODE: ${{ steps.npm-audit.outputs.exit_code }}
+          OPENCODE_INSTALL_OUTCOME: ${{ steps.install-opencode.outcome }}
+          OPENCODE_OUTCOME: ${{ steps.opencode.outcome }}
+        run: |
+          if [[ ! -s "$RUNNER_TEMP/security-report.md" ]]; then
+            cat > "$RUNNER_TEMP/security-report.md" <<EOF
+          # Security Audit
+
+          Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          Commit: $COMMIT_SHA
+
+          ## Summary
+
+          Critical: Unknown
+          High: Unknown
+          Medium: Unknown
+          Low: Unknown
+          Informational: Unknown
+
+          ## Findings
+
+          OpenCode did not produce findings. This audit is incomplete; see Additional observations and the workflow logs.
+
+          ## Dependency Audit
+
+          npm ci exit code: $NPM_CI_EXIT_CODE
+          npm audit exit code: $NPM_AUDIT_EXIT_CODE
+          Raw npm audit output is included in this artifact.
+
+          ## Additional observations
+
+          OpenCode installation outcome: $OPENCODE_INSTALL_OUTCOME
+          OpenCode audit outcome: $OPENCODE_OUTCOME
+          EOF
+          fi
+
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/security-report.md
+            ${{ runner.temp }}/npm-audit.json
+            ${{ runner.temp }}/npm-audit.stderr
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Enforce audit threshold
+        if: always()
+        env:
+          NPM_CI_EXIT_CODE: ${{ steps.install-dependencies.outputs.exit_code }}
+          NPM_AUDIT_EXIT_CODE: ${{ steps.npm-audit.outputs.exit_code }}
+          OPENCODE_INSTALL_OUTCOME: ${{ steps.install-opencode.outcome }}
+          OPENCODE_OUTCOME: ${{ steps.opencode.outcome }}
+        run: node scripts/check-security-report.mjs "$RUNNER_TEMP/security-report.md" "$RUNNER_TEMP/npm-audit.json"
