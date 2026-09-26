@@ -2,14 +2,14 @@ import { newId } from '@/lib/id'
 import { getRepository } from '@/lib/repo'
 import { RepoError } from '@/lib/repo/errors'
 import { PlanSchema } from '@/lib/schema/plan'
-import { fr, format } from '@/lib/i18n'
+import { fr, format, type Messages } from '@/lib/i18n'
 import type { Plan } from '@/types/plan'
 
 /**
  * Loads the plan, clones it with a fresh id and a " (copie)" suffix, and saves it.
  * Re-uses the same validation path as `createBlankPlan`.
  */
-export async function duplicatePlan(id: string): Promise<Plan> {
+export async function duplicatePlan(id: string, messages: Messages = fr): Promise<Plan> {
   const repo = getRepository()
   const plan = await repo.load(id)
   if (!plan) {
@@ -22,7 +22,7 @@ export async function duplicatePlan(id: string): Promise<Plan> {
     meta: {
       ...plan.meta,
       id: newId(),
-      name: format(fr.planList.copyName, { name: plan.meta.name }),
+      name: format(messages.planList.copyName, { name: plan.meta.name }),
       createdAt: now,
       updatedAt: now,
     },

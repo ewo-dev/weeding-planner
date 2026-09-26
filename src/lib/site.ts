@@ -6,8 +6,3 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? 'https://weeding-planner.vercel.app'
 
 export const SITE_NAME = 'My Weeding Seats'
-
-export const SITE_DESCRIPTION =
-  'Créez, organisez et imprimez le plan de table de votre mariage. Placez vos invités autour de vos tables en quelques minutes, gratuitement, sans compte et sans envoyer vos données en ligne.'
-
-export const SITE_TITLE = 'My Weeding Seats — Créez votre plan de table de mariage'

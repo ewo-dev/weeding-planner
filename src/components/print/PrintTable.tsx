@@ -1,8 +1,8 @@
 'use client'
 
 import type { Assignment, Guest, Table } from '@/types/plan'
-import { SHAPE_LABELS } from '@/components/tables/tables'
-import { fr, useMessages, format } from '@/lib/i18n'
+import { shapeLabel } from '@/components/tables/tables'
+import { useMessages, format } from '@/lib/i18n'
 
 interface PrintTableProps {
   table: Table
@@ -18,8 +18,6 @@ interface SeatRow {
   empty: boolean
 }
 
-const UNKNOWN_GUEST = fr.print.unknownGuest
-
 /**
  * One table in the print view (docs/06-routing-and-pages.md § 7,
  * docs/11-roadmap.md step 20). Shows the table name, shape, occupancy,
@@ -34,7 +32,7 @@ export function PrintTable({ table, guests, assignments }: PrintTableProps) {
     const assignment = assignments.find((a) => a.tableId === table.id && a.seatIndex === seatIndex)
     if (!assignment) return { seatIndex, guestName: null, empty: true }
     const knownName = byGuest.get(assignment.guestId)
-    return { seatIndex, guestName: knownName ?? UNKNOWN_GUEST, empty: false }
+    return { seatIndex, guestName: knownName ?? t.print.unknownGuest, empty: false }
   })
   const seated = rows.filter((row) => !row.empty).length
   const occupancyLabel = `${seated} / ${table.capacity}`
@@ -46,7 +44,7 @@ export function PrintTable({ table, guests, assignments }: PrintTableProps) {
         <h2 className="font-display text-lg font-semibold text-text">{table.name}</h2>
         <span className="shrink-0 text-xs text-text-muted">{occupancyLabel}</span>
       </header>
-      <p className="mt-0.5 text-xs text-text-muted">{SHAPE_LABELS[table.shape]}</p>
+      <p className="mt-0.5 text-xs text-text-muted">{shapeLabel(table.shape, t)}</p>
       {allEmpty ? (
         <p className="mt-2 text-sm text-text-muted">{t.print.noneSeated}</p>
       ) : (

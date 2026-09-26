@@ -89,7 +89,7 @@ export function TablesPanel() {
 
   function handleAdd(): void {
     dispatch(
-      addTable({ name: nextTableName(plan.tables), shape: defaults.shape, capacity: defaults.capacity }),
+      addTable({ name: nextTableName(plan.tables, t), shape: defaults.shape, capacity: defaults.capacity }),
     )
   }
 

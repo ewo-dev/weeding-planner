@@ -7,26 +7,15 @@ import { GuestListPanel } from '@/components/guests/GuestListPanel'
 import { TablesPanel } from '@/components/tables/TablesPanel'
 import { TableDetailSheet } from '@/components/tables/TableDetailSheet'
 import { TableSelectionProvider, useTableSelection } from '@/components/tables/TableSelection'
-import { fr } from '@/lib/i18n'
+import { useMessages } from '@/lib/i18n'
 
 type EditorTab = 'guests' | 'tables' | 'plan'
 type AsideTab = 'guests' | 'tables'
-
-const TAB_LABELS: Record<EditorTab, string> = {
-  guests: fr.editor.tabGuests,
-  tables: fr.editor.tabTables,
-  plan: fr.editor.tabPlan,
-}
 
 const TAB_ICONS: Record<EditorTab, ReactNode> = {
   guests: <Users className="h-4 w-4" aria-hidden="true" />,
   tables: <Table2 className="h-4 w-4" aria-hidden="true" />,
   plan: <LayoutTemplate className="h-4 w-4" aria-hidden="true" />,
-}
-
-const ASIDE_LABELS: Record<AsideTab, string> = {
-  guests: fr.editor.tabGuests,
-  tables: fr.editor.tabTables,
 }
 
 /**
@@ -68,8 +57,19 @@ function MobileTableDetailSheet() {
 }
 
 function EditorLayoutInner({ children }: { children: ReactNode }) {
+  const t = useMessages()
   const [tab, setTab] = useState<EditorTab>('plan')
   const [asideTab, setAsideTab] = useState<AsideTab>('guests')
+
+  const TAB_LABELS: Record<EditorTab, string> = {
+    guests: t.editor.tabGuests,
+    tables: t.editor.tabTables,
+    plan: t.editor.tabPlan,
+  }
+  const ASIDE_LABELS: Record<AsideTab, string> = {
+    guests: t.editor.tabGuests,
+    tables: t.editor.tabTables,
+  }
 
   const asideButton =
     'flex-1 min-h-[44px] px-3 py-2 text-sm font-medium transition-colors rounded-t-md data-[active=true]:bg-surface data-[active=true]:text-text data-[active=false]:text-text-muted data-[active=false]:hover:text-text'
@@ -78,7 +78,7 @@ function EditorLayoutInner({ children }: { children: ReactNode }) {
     <div className="flex min-w-0 flex-1 flex-col overflow-x-clip lg:flex-row">
       {/* Side panel (desktop). */}
       <aside className="hidden lg:flex lg:w-80 lg:shrink-0 lg:flex-col lg:border-r lg:border-border bg-surface-raised">
-        <nav aria-label={fr.editor.sidePanelLabel} data-testid="aside-tabs" className="flex border-b border-border bg-bg">
+        <nav aria-label={t.editor.sidePanelLabel} data-testid="aside-tabs" className="flex border-b border-border bg-bg">
           {(Object.keys(ASIDE_LABELS) as AsideTab[]).map((name) => (
             <button
               key={name}
@@ -99,7 +99,7 @@ function EditorLayoutInner({ children }: { children: ReactNode }) {
 
       <div className="flex min-h-0 flex-1 flex-col">
         {/* Mobile tab switcher (hidden on lg+). */}
-        <nav aria-label={fr.editor.panelLabel} data-testid="mobile-tabs" className="flex border-b border-border bg-surface lg:hidden">
+        <nav aria-label={t.editor.panelLabel} data-testid="mobile-tabs" className="flex border-b border-border bg-surface lg:hidden">
           {(Object.keys(TAB_LABELS) as EditorTab[]).map((name) => (
             <button
               key={name}

@@ -45,7 +45,7 @@ export function ConflictWatcher() {
     if (fresh.length === 1) {
       notify({
         kind: 'warning',
-        message: violationMessage(fresh[0], plan),
+        message: violationMessage(fresh[0], plan, t),
         actions: [
           { label: t.common.undo, onAction: undo },
           { label: t.constraints.keep },
@@ -61,7 +61,7 @@ export function ConflictWatcher() {
         ],
       })
     } else if (resolved.length === 1) {
-      notify({ kind: 'success', message: resolutionMessage(resolved[0], plan) })
+      notify({ kind: 'success', message: resolutionMessage(resolved[0], plan, t) })
     } else if (resolved.length > 1) {
       notify({ kind: 'success', message: format(t.constraints.multipleResolved, { n: resolved.length }) })
     }

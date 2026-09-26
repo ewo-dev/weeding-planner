@@ -489,3 +489,19 @@ Centralize user-facing copy in a typed message catalog (`src/lib/i18n/fr.ts`) wi
 * Adding a locale later is additive: add `en.ts` mirroring `fr.ts`, register it in `messages`, and swap `useMessages()` to read the active locale.
 * Hardcoded strings in remaining components are migrated incrementally; the entry page and root layout are already migrated.
 * No i18n dependency or runtime translation machinery is introduced.
+
+### D-026 — next-intl routing + three shipped locales (2026-09-25)
+
+**Status:** Accepted. Supersedes the "no i18n dependency" clause of D-025.
+
+**Context**
+A launch with automatic language selection required locale-prefixed URLs and per-locale SEO. The static export (`output: 'export'`) has no server runtime, so language must be negotiated in the browser.
+
+**Decision**
+Add `next-intl` for routing configuration (`defineRouting`, `hasLocale`) and statically generate a `[locale]` segment for three locales — French (default), English, and Spanish (`src/lib/i18n/routing.ts`). Keep the typed message catalog from D-025 as the source of truth (`src/lib/i18n/{fr,en,es}.ts`) and reuse its `useMessages()`/`format()` helpers rather than `useTranslations`. `LocaleProvider` (a client context defaulting to French) supplies the active locale; `localePath()` builds prefixed paths. The root `/` page detects `navigator.languages` and redirects to the best supported locale.
+
+**Consequences**
+* All routes are locale-prefixed (`/fr`, `/en`, `/es`) because no middleware runs in a static export.
+* Browser language detection happens client-side at `/`; an explicit locale in the URL always wins.
+* Pure message/catalog helpers live in `src/lib/i18n/catalog.ts` (importable from Server Components); React context/hooks live in `src/lib/i18n/index.ts` (`"use client"`).
+* The sitemap lists each localized home page; editor/print remain `noindex`.

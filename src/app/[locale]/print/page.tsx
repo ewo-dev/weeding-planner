@@ -8,8 +8,8 @@ import { ACTIVE_PLAN_KEY } from '@/components/layout/createBlankPlan'
 import { PrintLayout } from '@/components/print/PrintLayout'
 import { PrintTable } from '@/components/print/PrintTable'
 import { Button } from '@/components/ui/Button'
-import { useMessages } from '@/lib/i18n'
-import '../../styles/print.css'
+import { useMessages, useLocale, localePath } from '@/lib/i18n'
+import '../../../styles/print.css'
 
 // Print view (docs/06-routing-and-pages.md § 7, roadmap step 20, D-019).
 // Reads the active plan id from localStorage, loads it via the repository,
@@ -20,6 +20,7 @@ import '../../styles/print.css'
 export default function PrintPage() {
   const router = useRouter()
   const t = useMessages()
+  const locale = useLocale()
   const [plan, setPlan] = useState<Plan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -28,7 +29,7 @@ export default function PrintPage() {
     let cancelled = false
     const activeId = localStorage.getItem(ACTIVE_PLAN_KEY)
     if (!activeId) {
-      router.replace('/')
+      router.replace(localePath(locale, '/'))
       return
     }
     getRepository()
@@ -36,7 +37,7 @@ export default function PrintPage() {
       .then((loaded) => {
         if (cancelled) return
         if (!loaded) {
-          router.replace('/')
+          router.replace(localePath(locale, '/'))
           return
         }
         setPlan(loaded)
@@ -49,7 +50,7 @@ export default function PrintPage() {
     return () => {
       cancelled = true
     }
-  }, [router, attempt])
+  }, [router, attempt, locale])
 
   if (error) {
     return (
@@ -66,7 +67,7 @@ export default function PrintPage() {
             }}>
               {t.common.retry}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
+            <Button type="button" variant="ghost" onClick={() => router.replace(localePath(locale, '/'))}>
               {t.common.back}
             </Button>
           </div>

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/site'
+import { locales } from '@/lib/i18n/catalog'
 
 export const dynamic = 'force-static'
 
@@ -8,7 +9,10 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/editor', '/print'],
+      disallow: locales.flatMap((locale) => [
+        `/${locale}/editor`,
+        `/${locale}/print`,
+      ]),
     },
     sitemap: `${SITE_URL}/sitemap.xml`,
   }

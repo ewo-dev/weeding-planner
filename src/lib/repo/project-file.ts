@@ -4,7 +4,7 @@ import { PlanSchema } from '@/lib/schema/plan'
 import type { Constraint, Plan } from '@/lib/schema/plan'
 import { RepoError } from '@/lib/repo/errors'
 import { newId } from '@/lib/id'
-import { fr, format } from '@/lib/i18n'
+import { fr, format, type Messages } from '@/lib/i18n'
 
 /**
  * Versioned JSON project envelope (docs/05-persistence.md § 6,
@@ -62,14 +62,14 @@ export function canonicalizePlan(plan: Plan): Plan {
  * Build the deterministic JSON text for a plan. Validates first so a corrupt
  * in-memory plan can never produce a corrupt file.
  */
-export function serializeProjectFile(plan: Plan, exportedAt = new Date().toISOString()): string {
+export function serializeProjectFile(plan: Plan, exportedAt = new Date().toISOString(), messages: Messages = fr): string {
   const canonical = canonicalizePlan(plan)
   const result = PlanSchema.safeParse({
     ...canonical,
     meta: { ...canonical.meta, schemaVersion: CURRENT_VERSION },
   })
   if (!result.success) {
-    throw new RepoError('corrupt', fr.project.invalidPlan, result.error)
+    throw new RepoError('corrupt', messages.project.invalidPlan, result.error)
   }
   const envelope: ProjectEnvelope = {
     format: PROJECT_FILE_FORMAT,
@@ -81,23 +81,23 @@ export function serializeProjectFile(plan: Plan, exportedAt = new Date().toISOSt
 }
 
 /** Parse + validate + migrate raw JSON text. Throws `RepoError('corrupt')`. */
-export function parseProjectFileText(text: string): Plan {
+export function parseProjectFileText(text: string, messages: Messages = fr): Plan {
   let raw: unknown
   try {
     raw = JSON.parse(text)
   } catch (err) {
-    throw new RepoError('corrupt', fr.project.unreadable, err)
+    throw new RepoError('corrupt', messages.project.unreadable, err)
   }
-  return parseProjectFileJson(raw)
+  return parseProjectFileJson(raw, messages)
 }
 
 /** Parse + validate + migrate an already-parsed JSON value. */
-export function parseProjectFileJson(raw: unknown): Plan {
+export function parseProjectFileJson(raw: unknown, messages: Messages = fr): Plan {
   const envelope = ProjectEnvelopeSchema.safeParse(raw)
   if (!envelope.success) {
     throw new RepoError(
       'corrupt',
-      fr.project.invalidEnvelope,
+      messages.project.invalidEnvelope,
       envelope.error,
     )
   }
@@ -105,18 +105,18 @@ export function parseProjectFileJson(raw: unknown): Plan {
   if (envelope.data.format !== PROJECT_FILE_FORMAT) {
     throw new RepoError(
       'corrupt',
-      format(fr.project.unknownFormat, { format: envelope.data.format }),
+      format(messages.project.unknownFormat, { format: envelope.data.format }),
     )
   }
 
   const { formatVersion } = envelope.data
   if (!Number.isInteger(formatVersion) || formatVersion < 1) {
-    throw new RepoError('corrupt', fr.project.invalidVersion)
+    throw new RepoError('corrupt', messages.project.invalidVersion)
   }
   if (formatVersion > PROJECT_FILE_VERSION) {
     throw new RepoError(
       'corrupt',
-      fr.project.newerVersion,
+      messages.project.newerVersion,
     )
   }
   // Format migrations run sequentially (forward-only). Only v1 exists today,
@@ -134,16 +134,16 @@ export function parseProjectFileJson(raw: unknown): Plan {
     if (message.includes('future')) {
       throw new RepoError(
         'corrupt',
-        fr.project.newerVersion,
+        messages.project.newerVersion,
         err,
       )
     }
-    throw new RepoError('corrupt', fr.project.corruptPlan, err)
+    throw new RepoError('corrupt', messages.project.corruptPlan, err)
   }
 
   const result = PlanSchema.safeParse(migrated)
   if (!result.success) {
-    throw new RepoError('corrupt', fr.project.invalidRules, result.error)
+    throw new RepoError('corrupt', messages.project.invalidRules, result.error)
   }
   return canonicalizePlan(result.data)
 }
@@ -158,7 +158,7 @@ function migrateProjectFormat(planRaw: unknown): unknown {
  * overwritten, timestamps refreshed, schema version pinned to current.
  * Entity ids are preserved (assignments reference them).
  */
-export function prepareImportedPlan(plan: Plan, now = new Date().toISOString()): Plan {
+export function prepareImportedPlan(plan: Plan, now = new Date().toISOString(), messages: Messages = fr): Plan {
   const imported: Plan = {
     ...canonicalizePlan(plan),
     meta: {
@@ -170,7 +170,7 @@ export function prepareImportedPlan(plan: Plan, now = new Date().toISOString()):
   }
   const result = PlanSchema.safeParse(imported)
   if (!result.success) {
-    throw new RepoError('corrupt', fr.project.invalidRules, result.error)
+    throw new RepoError('corrupt', messages.project.invalidRules, result.error)
   }
   return result.data
 }

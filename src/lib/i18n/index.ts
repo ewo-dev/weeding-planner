@@ -1,26 +1,30 @@
-import type { Locale } from './types'
-import { fr, type Messages } from './fr'
+'use client'
 
-export type { Locale, Messages }
-export { fr }
+import { createContext, createElement, useContext, type ReactNode } from 'react'
+import { getMessages } from './catalog'
+import { defaultLocale } from './catalog'
+import type { Locale, Messages } from './catalog'
 
-export const messages: Record<Locale, Messages> = { fr }
+export * from './catalog'
 
-// Returns the messages for the current locale. The MVP ships French only
-// (D-011); a future locale switch (route prefix or cookie) returns
-// `messages[locale]` here instead of the hardcoded `fr`.
-export function useMessages(): Messages {
-  return fr
+const LocaleContext = createContext<Locale>(defaultLocale)
+
+export function LocaleProvider({
+  locale,
+  children,
+}: {
+  locale: Locale
+  children: ReactNode
+}) {
+  return createElement(LocaleContext.Provider, { value: locale }, children)
 }
 
-// Minimal message formatting: replaces `{name}`-style placeholders with the
-// matching param value. Unknown placeholders are left as-is.
-export function format(
-  message: string,
-  params?: Record<string, string | number>,
-): string {
-  if (!params) return message
-  return message.replace(/\{(\w+)\}/g, (match, key: string) =>
-    key in params ? String(params[key]) : match,
-  )
+/** Returns the active locale, defaulting to French outside a provider. */
+export function useLocale(): Locale {
+  return useContext(LocaleContext)
+}
+
+/** Returns the messages for the active locale (provided by `LocaleProvider`). */
+export function useMessages(): Messages {
+  return getMessages(useLocale())
 }

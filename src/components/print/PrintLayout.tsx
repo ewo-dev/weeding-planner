@@ -6,8 +6,7 @@ import { ArrowLeft, Printer } from 'lucide-react'
 import type { Assignment, Guest, Plan, Table } from '@/types/plan'
 import { Button } from '@/components/ui/Button'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
-import { SHAPE_LABELS } from '@/components/tables/tables'
-import { useMessages, format } from '@/lib/i18n'
+import { useMessages, useLocale, format, localePath } from '@/lib/i18n'
 
 interface PrintLayoutProps {
   plan: Plan
@@ -35,6 +34,7 @@ interface IndexEntry {
 export function PrintLayout({ plan, children }: PrintLayoutProps) {
   const router = useRouter()
   const t = useMessages()
+  const locale = useLocale()
   const seatedCount = plan.assignments.length
   const totalGuests = plan.guests.length
   const unseatedCount = totalGuests - seatedCount
@@ -50,7 +50,7 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
   return (
     <main className="print-sheet mx-auto w-full max-w-3xl px-4 py-8 sm:px-6">
       <div className="mb-6 flex flex-wrap gap-2 print:hidden">
-        <Button type="button" variant="secondary" icon={<ArrowLeft className="h-4 w-4" />} onClick={() => router.push('/editor')}>
+        <Button type="button" variant="secondary" icon={<ArrowLeft className="h-4 w-4" />} onClick={() => router.push(localePath(locale, '/editor'))}>
           {t.print.backToEditor}
         </Button>
         <Button type="button" icon={<Printer className="h-4 w-4" />} onClick={() => window.print()}>
@@ -117,7 +117,3 @@ export function PrintLayout({ plan, children }: PrintLayoutProps) {
     </main>
   )
 }
-
-// Re-export shape labels for PrintTable without forcing it to re-import the
-// table module from the editor side.
-export { SHAPE_LABELS as PRINT_SHAPE_LABELS }

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Table } from '@/types/plan'
-import { SHAPE_LABELS } from './tables'
+import { shapeLabel } from './tables'
 import { IconButton } from '@/components/ui/IconButton'
 import { useMessages, format } from '@/lib/i18n'
 import { X, Circle, Square } from 'lucide-react'
@@ -42,7 +42,7 @@ export function TableRow({ table, seated, selected, onSelect, onRemove }: TableR
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-text">{table.name}</span>
           <span className="block truncate text-xs text-text-muted">
-            {format(t.tables.occupancy, { shape: SHAPE_LABELS[table.shape], seated, capacity: table.capacity })}
+            {format(t.tables.occupancy, { shape: shapeLabel(table.shape, t), seated, capacity: table.capacity })}
           </span>
         </span>
         {full && (

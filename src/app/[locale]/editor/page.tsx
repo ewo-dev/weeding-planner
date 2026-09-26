@@ -12,7 +12,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { PlanStatsBar } from '@/components/plan-status/PlanStatsBar'
 import { SeatingEditor } from '@/components/editor/SeatingEditor'
 import { Button } from '@/components/ui/Button'
-import { useMessages } from '@/lib/i18n'
+import { useMessages, useLocale, localePath } from '@/lib/i18n'
 
 // Editor route (docs/06-routing-and-pages.md § 6). Reads the active plan id
 // from localStorage, loads it via the repository, and mounts the editor
@@ -22,6 +22,7 @@ import { useMessages } from '@/lib/i18n'
 export default function EditorPage() {
   const router = useRouter()
   const t = useMessages()
+  const locale = useLocale()
   const [plan, setPlan] = useState<Plan | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
@@ -30,7 +31,7 @@ export default function EditorPage() {
     let cancelled = false
     const activeId = localStorage.getItem(ACTIVE_PLAN_KEY)
     if (!activeId) {
-      router.replace('/')
+      router.replace(localePath(locale, '/'))
       return
     }
     getRepository()
@@ -38,7 +39,7 @@ export default function EditorPage() {
       .then((loaded) => {
         if (cancelled) return
         if (!loaded) {
-          router.replace('/')
+          router.replace(localePath(locale, '/'))
           return
         }
         setPlan(loaded)
@@ -51,7 +52,7 @@ export default function EditorPage() {
     return () => {
       cancelled = true
     }
-  }, [router, attempt])
+  }, [router, attempt, locale])
 
   if (error) {
     return (
@@ -71,7 +72,7 @@ export default function EditorPage() {
             }}>
               {t.common.retry}
             </Button>
-            <Button type="button" variant="ghost" onClick={() => router.replace('/')}>
+            <Button type="button" variant="ghost" onClick={() => router.replace(localePath(locale, '/'))}>
               {t.common.back}
             </Button>
           </div>

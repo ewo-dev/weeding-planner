@@ -63,7 +63,7 @@ describe('EditorPage', () => {
   it('redirects to / when no active plan key is set', async () => {
     renderPage()
 
-    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/fr'))
     expect(loadSpy).not.toHaveBeenCalled()
   })
 
@@ -73,7 +73,7 @@ describe('EditorPage', () => {
 
     renderPage()
 
-    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/'))
+    await waitFor(() => expect(replaceMock).toHaveBeenCalledWith('/fr'))
     expect(loadSpy).toHaveBeenCalledWith('plan-id')
   })
 

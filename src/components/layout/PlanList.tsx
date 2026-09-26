@@ -8,7 +8,7 @@ import { ACTIVE_PLAN_KEY } from './createBlankPlan'
 import { duplicatePlan } from './duplicatePlan'
 import { PlanListDeleteDialog } from './PlanListDeleteDialog'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
-import { useMessages, format } from '@/lib/i18n'
+import { useMessages, useLocale, format, localePath } from '@/lib/i18n'
 
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -25,6 +25,7 @@ interface PlanListProps {
 export function PlanList({ summaries, onChanged }: PlanListProps) {
   const router = useRouter()
   const t = useMessages()
+  const locale = useLocale()
   const [editingId, setEditingId] = useState<string | null>(null)
   const [draftName, setDraftName] = useState('')
   const [deleting, setDeleting] = useState<PlanSummary | null>(null)
@@ -38,7 +39,7 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
   function openPlan(id: string): void {
     try {
       localStorage.setItem(ACTIVE_PLAN_KEY, id)
-      router.push('/editor')
+      router.push(localePath(locale, '/editor'))
     } catch (err) {
       console.error('Failed to set the active plan', err)
       setRowError({ id, message: t.planList.openFailed })
@@ -81,7 +82,7 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
 
   async function handleDuplicate(id: string): Promise<void> {
     try {
-      await duplicatePlan(id)
+      await duplicatePlan(id, t)
       onChanged()
     } catch (err) {
       console.error('Failed to duplicate plan', err)

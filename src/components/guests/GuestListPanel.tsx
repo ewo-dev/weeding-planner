@@ -18,8 +18,8 @@ import { MoveGuestSheet } from './MoveGuestSheet'
 import { GuestRow } from './GuestRow'
 import { useMessages, format } from '@/lib/i18n'
 import {
-  GUEST_FILTERS,
-  GUEST_SORTS,
+  getGuestFilters,
+  getGuestSorts,
   groupByGroup,
   groupByTable,
   sortEnriched,
@@ -118,8 +118,8 @@ export function GuestListPanel() {
   )
 
   const tableOrder = useMemo(() => new Map(plan.tables.map((t, i) => [t.id, i] as const)), [plan.tables])
-  const byTableGroups = useMemo(() => groupByTable(seatedSorted, tableOrder), [seatedSorted, tableOrder])
-  const byGroupGroups = useMemo(() => groupByGroup(sortEnriched(visible, sort)), [visible, sort])
+  const byTableGroups = useMemo(() => groupByTable(seatedSorted, tableOrder, t), [seatedSorted, tableOrder, t])
+  const byGroupGroups = useMemo(() => groupByGroup(sortEnriched(visible, sort), t), [visible, sort, t])
 
   const total = plan.guests.length
   const seatedTotal = seatedCount(plan)
@@ -198,7 +198,7 @@ export function GuestListPanel() {
 
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div role="group" aria-label={t.guests.filterLabel} className="flex flex-wrap gap-1.5">
-          {GUEST_FILTERS.map((option) => (
+          {getGuestFilters(t).map((option) => (
             <button
               key={option.value}
               type="button"
@@ -222,7 +222,7 @@ export function GuestListPanel() {
             onChange={(event) => setSort(event.target.value as GuestSort)}
             className="min-h-[44px] rounded-md border border-border bg-surface px-2 text-sm text-text"
           >
-            {GUEST_SORTS.map((option) => (
+            {getGuestSorts(t).map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
               </option>

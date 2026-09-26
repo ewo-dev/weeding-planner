@@ -1,5 +1,5 @@
 import type { Guest } from '@/types/plan'
-import { fr } from '@/lib/i18n'
+import { fr, type Messages } from '@/lib/i18n'
 
 /**
  * Guest list filter + sort (roadmap step 17). Pure helpers so the panel
@@ -9,20 +9,24 @@ import { fr } from '@/lib/i18n'
 export type GuestFilter = 'all' | 'unseated' | 'seated' | 'by-table' | 'by-group'
 export type GuestSort = 'name' | 'group' | 'table' | 'recent'
 
-export const GUEST_FILTERS: Array<{ value: GuestFilter; label: string }> = [
-  { value: 'all', label: fr.guests.filterAll },
-  { value: 'unseated', label: fr.guests.filterUnseated },
-  { value: 'seated', label: fr.guests.filterSeated },
-  { value: 'by-table', label: fr.guests.filterByTable },
-  { value: 'by-group', label: fr.guests.filterByGroup },
-]
+export function getGuestFilters(messages: Messages = fr): Array<{ value: GuestFilter; label: string }> {
+  return [
+    { value: 'all', label: messages.guests.filterAll },
+    { value: 'unseated', label: messages.guests.filterUnseated },
+    { value: 'seated', label: messages.guests.filterSeated },
+    { value: 'by-table', label: messages.guests.filterByTable },
+    { value: 'by-group', label: messages.guests.filterByGroup },
+  ]
+}
 
-export const GUEST_SORTS: Array<{ value: GuestSort; label: string }> = [
-  { value: 'name', label: fr.guests.sortName },
-  { value: 'group', label: fr.guests.sortGroup },
-  { value: 'table', label: fr.guests.sortTable },
-  { value: 'recent', label: fr.guests.sortRecent },
-]
+export function getGuestSorts(messages: Messages = fr): Array<{ value: GuestSort; label: string }> {
+  return [
+    { value: 'name', label: messages.guests.sortName },
+    { value: 'group', label: messages.guests.sortGroup },
+    { value: 'table', label: messages.guests.sortTable },
+    { value: 'recent', label: messages.guests.sortRecent },
+  ]
+}
 
 export interface EnrichedGuest {
   guest: Guest
@@ -82,13 +86,13 @@ export interface GroupGroup {
  * table id to its position in `plan.tables` as a stable tiebreak for
  * tables sharing a name.
  */
-export function groupByTable(seated: EnrichedGuest[], tableOrder: Map<string, number>): TableGroup[] {
+export function groupByTable(seated: EnrichedGuest[], tableOrder: Map<string, number>, messages: Messages = fr): TableGroup[] {
   const map = new Map<string, TableGroup>()
   for (const entry of seated) {
     const key = entry.tableId ?? 'unknown'
     const existing = map.get(key)
     if (existing) existing.guests.push(entry)
-    else map.set(key, { tableId: key, tableName: entry.tableName ?? fr.guests.noTableGroup, guests: [entry] })
+    else map.set(key, { tableId: key, tableName: entry.tableName ?? messages.guests.noTableGroup, guests: [entry] })
   }
   return [...map.values()].sort((a, b) => {
     const byName = collator.compare(a.tableName, b.tableName)
@@ -98,17 +102,17 @@ export function groupByTable(seated: EnrichedGuest[], tableOrder: Map<string, nu
 }
 
 /** Group guests by `guest.group`, alphabetical with "Sans groupe" last. */
-export function groupByGroup(entries: EnrichedGuest[]): GroupGroup[] {
+export function groupByGroup(entries: EnrichedGuest[], messages: Messages = fr): GroupGroup[] {
   const map = new Map<string, GroupGroup>()
   for (const entry of entries) {
     const key = entry.guest.group ?? ''
     const existing = map.get(key)
     if (existing) existing.guests.push(entry)
-    else map.set(key, { groupName: key === '' ? fr.guests.noGroupGroup : key, guests: [entry] })
+    else map.set(key, { groupName: key === '' ? messages.guests.noGroupGroup : key, guests: [entry] })
   }
   return [...map.values()].sort((a, b) => {
-    if (a.groupName === fr.guests.noGroupGroup) return 1
-    if (b.groupName === fr.guests.noGroupGroup) return -1
+    if (a.groupName === messages.guests.noGroupGroup) return 1
+    if (b.groupName === messages.guests.noGroupGroup) return -1
     return collator.compare(a.groupName, b.groupName)
   })
 }

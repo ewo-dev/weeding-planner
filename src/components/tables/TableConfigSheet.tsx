@@ -9,12 +9,7 @@ import { TABLE_MAX_CAPACITY, TABLE_MAX_NAME, TABLE_MIN_CAPACITY } from './tables
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/Select'
-import { fr, useMessages, format } from '@/lib/i18n'
-
-const SHAPE_OPTIONS = [
-  { value: 'round', label: fr.tables.shapeRound },
-  { value: 'rectangle', label: fr.tables.shapeRectangle },
-]
+import { useMessages, format } from '@/lib/i18n'
 
 interface TableConfigSheetProps {
   table: Table
@@ -131,7 +126,10 @@ export function TableConfigSheet({ table, seated, takenNames, onClose }: TableCo
             id="table-shape"
             label={t.tables.shapeLabel}
             name="shape"
-            options={SHAPE_OPTIONS}
+            options={[
+              { value: 'round', label: t.tables.shapeRound },
+              { value: 'rectangle', label: t.tables.shapeRectangle },
+            ]}
             defaultValue={table.shape}
           />
         </div>

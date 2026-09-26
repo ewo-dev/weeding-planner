@@ -6,7 +6,7 @@ import { usePlan } from '@/lib/plan/usePlan'
 import { addConstraint } from '@/lib/plan/actions'
 import { guestById } from '@/lib/plan/selectors'
 import type { ConstraintKind, Guest } from '@/types/plan'
-import { CONSTRAINT_KIND_LABELS, validateConstraintInput } from './constraints'
+import { constraintKindLabel, validateConstraintInput } from './constraints'
 import { Button } from '@/components/ui/Button'
 import { Select } from '@/components/ui/Select'
 import { useMessages, format } from '@/lib/i18n'
@@ -54,7 +54,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
       setError(t.constraints.chooseBoth)
       return
     }
-    const problem = validateConstraintInput(plan, kind, a, b)
+    const problem = validateConstraintInput(plan, kind, a, b, t)
     if (problem) {
       setError(problem)
       return
@@ -128,7 +128,7 @@ export function AddConstraintMenu({ sourceGuestId }: AddConstraintMenuProps) {
               label={t.constraints.relationLabel}
               value={kind}
               onChange={(event) => setKind(event.target.value as ConstraintKind)}
-              options={KINDS.map((option) => ({ value: option, label: CONSTRAINT_KIND_LABELS[option] }))}
+              options={KINDS.map((option) => ({ value: option, label: constraintKindLabel(option, t) }))}
             />
           </div>
 
