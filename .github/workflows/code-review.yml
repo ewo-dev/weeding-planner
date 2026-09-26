@@ -99,12 +99,14 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           OPENCODE_DISABLE_AUTOUPDATE: "true"
           OPENCODE_DISABLE_DEFAULT_PLUGINS: "true"
-        run: >-
-          opencode run
-          --agent code-reviewer
-          --file "$RUNNER_TEMP/pull-request.diff"
-          "Review the attached pull request diff. Use .review-base/ only for necessary context. Follow the configured output format exactly."
-          > "$RUNNER_TEMP/code-review.md"
+        run: |
+          # --file accepts multiple paths, so send the prompt on stdin instead of as another argument.
+          printf '%s\n' \
+            "Review the attached pull request diff. Use .review-base/ only for necessary context. Follow the configured output format exactly." \
+            | opencode run \
+              --agent code-reviewer \
+              --file "$RUNNER_TEMP/pull-request.diff" \
+              > "$RUNNER_TEMP/code-review.md"
 
       - name: Prepare review artifact
         if: steps.find-pr.outputs.number != ''

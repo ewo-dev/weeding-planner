@@ -66,10 +66,12 @@ jobs:
           COMMIT_SHA: ${{ github.sha }}
         run: |
           audit_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          opencode run \
+          # --file accepts multiple paths, so send the prompt on stdin instead of as another argument.
+          printf '%s\n' \
+            "Create the complete security audit report. Use UTC date $audit_date and commit $COMMIT_SHA. Be explicit about incomplete dependency checks and distinguish confirmed vulnerabilities from probable issues, potential risks, and recommendations." \
+            | opencode run \
             --agent security-auditor \
             --file "$RUNNER_TEMP/npm-audit.json" \
-            "Create the complete security audit report. Use UTC date $audit_date and commit $COMMIT_SHA. Be explicit about incomplete dependency checks and distinguish confirmed vulnerabilities from probable issues, potential risks, and recommendations." \
             > "$RUNNER_TEMP/security-report.md"
 
       - name: Prepare report if OpenCode could not complete
