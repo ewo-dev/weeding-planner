@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { hasLocale } from 'next-intl'
 import { Inter, Cormorant_Garamond } from 'next/font/google'
 import { ToastProvider } from '@/components/ui/ToastProvider'
@@ -90,7 +90,7 @@ export default async function LocaleLayout({
   params: Promise<{ locale: string }>
 }) {
   const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  if (!hasLocale(routing.locales, locale)) redirect('/')
 
   const t = getMessages(locale as Locale)
 
