@@ -7,6 +7,7 @@ import type { PlanSummary } from '@/lib/repo/types'
 import { ACTIVE_PLAN_KEY } from './createBlankPlan'
 import { duplicatePlan } from './duplicatePlan'
 import { PlanListDeleteDialog } from './PlanListDeleteDialog'
+import { PreviewSheet } from './PreviewSheet'
 import { BotanicalDivider } from '@/components/ui/BotanicalDivider'
 import { useMessages, useLocale, format, localePath } from '@/lib/i18n'
 
@@ -110,8 +111,10 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
             key={summary.id}
             className="flex flex-col gap-4 rounded-xl border border-border bg-surface p-4 shadow-sm transition-shadow hover:shadow sm:flex-row sm:items-center sm:justify-between"
           >
-            <div className="min-w-0 flex-1">
-              {editingId === summary.id ? (
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <PreviewSheet planId={summary.id} />
+              <div className="min-w-0 flex-1">
+                {editingId === summary.id ? (
                 <input
                   autoFocus
                   value={draftName}
@@ -125,15 +128,16 @@ export function PlanList({ summaries, onChanged }: PlanListProps) {
                       cancelEdit()
                     }
                   }}
-                  className="w-full rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-display font-semibold text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
+                  className="w-full rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-text-display font-semibold text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft"
                   aria-label={t.planList.nameAriaLabel}
                 />
               ) : (
                 <div className="min-w-0">
-                  <p className="truncate text-base font-medium font-display text-text">{summary.name}</p>
+                  <p className="truncate font-text-display text-lg font-semibold tracking-tight text-text">{summary.name}</p>
                   <p className="text-sm text-text-muted">{format(t.planList.modified, { date: formatDate(summary.updatedAt) })}</p>
                 </div>
               )}
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">

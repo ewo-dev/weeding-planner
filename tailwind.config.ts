@@ -11,6 +11,11 @@ const config: Config = {
         'surface-raised': { DEFAULT: '#FDFCFA', dark: '#2A2926' }, // warm white | dark surface
         'surface-muted': { DEFAULT: '#F5F3EE', dark: '#32312E' }, // hover/soft backgrounds
         border: { DEFAULT: '#E5E1D8', dark: '#3D3C38' }, // warm border
+        'border-strong': { DEFAULT: '#D8D2C4', dark: '#46443E' }, // emphasized hairline
+        canvas: { DEFAULT: '#EFEAE0', dark: '#1C1B18' }, // venue plan floor
+        cloth: { DEFAULT: '#FBFAF7', dark: '#26251F' }, // dressed-table fill
+        linen: { DEFAULT: '#FDFCF9', dark: '#2A2926' }, // place-card fill
+        'paper-noise': { DEFAULT: 'rgba(120, 113, 100, 0.05)', dark: 'rgba(240, 236, 226, 0.045)' },
 
         // Text (docs/09-design-system.md § 4)
         text: { DEFAULT: '#2F302B', dark: '#F2F0EB' }, // charcoal | ivory
@@ -56,6 +61,8 @@ const config: Config = {
         sm: '0 1px 2px 0 rgba(47, 48, 43, 0.04)',
         DEFAULT: '0 2px 8px -2px rgba(47, 48, 43, 0.06)',
         lg: '0 8px 24px -4px rgba(47, 48, 43, 0.08)',
+        // Generated documents (print sheet, plan cards) get a longer ink shadow.
+        plan: '0 16px 40px -12px rgba(47, 48, 43, 0.16)',
       },
       fontFamily: {
         // docs/09-design-system.md § 3

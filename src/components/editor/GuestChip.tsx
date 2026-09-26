@@ -46,9 +46,19 @@ export function GuestChip({ guest, variant, onSelect }: GuestChipProps) {
         onClick={() => onSelect?.(guest.id)}
         {...listeners}
         {...attributes}
-        className="flex h-11 w-11 touch-none items-center justify-center rounded-full bg-brand text-sm font-semibold text-text-inverse shadow-sm transition-transform active:scale-95"
+        // 44-px touch target (docs/09-design-system.md § 15); the visible
+        // place card is inset inside the target (docs/09 § 12 elevated look).
+        className="flex h-11 w-11 touch-none items-center justify-center transition-transform active:scale-95"
       >
-        {initial}
+        <span className="relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-[6px] border border-border-strong bg-linen shadow-sm">
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-[5px] border-b border-border bg-surface-muted/70"
+          />
+          <span className="relative -mt-px font-text-display text-sm font-semibold leading-none text-text">
+            {initial}
+          </span>
+        </span>
       </button>
     )
   }

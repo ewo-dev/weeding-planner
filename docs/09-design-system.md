@@ -63,6 +63,11 @@ We use a small palette organized by role. Tokens are semantic, not raw values.
 | `surface-raised`  | Modals, popovers, sidebars  | `#FDFCFA`     | `#2A2926`    |
 | `surface-muted`   | Hover/soft backgrounds      | `#F5F3EE`     | `#32312E`    |
 | `border`          | Hairlines                   | `#E5E1D8`     | `#3D3C38`    |
+| `border-strong`   | Emphasized hairlines        | `#D8D2C4`     | `#46443E`    |
+| `canvas`          | Editor canvas floor         | `#EFEAE0`     | `#1C1B18`    |
+| `cloth`           | Table-cloth fill (canvas)   | `#FBFAF7`     | `#26251F`    |
+| `linen`           | Place-card fill (canvas)    | `#FDFCF9`     | `#2A2926`    |
+| `paper-noise`     | Global grain overlay        | `rgba(120, 113, 100, 0.05)` | `rgba(240, 236, 226, 0.045)` |
 
 ### Text
 
@@ -138,7 +143,14 @@ Two families:
 * **Sans** — `Inter` (or the system sans fallback).
 * **Display** — `Cormorant Garamond` for elegant headings.
 
-### Scale
+### Plain-body text styling
+
+* Gradient-text effects are forbidden. Headings, table headers, stats, and empty-state
+  titles are solid-color serif (`text-text`, never `text-transparent` + `bg-clip-text`).
+* Titles never sit on gradient backgrounds — headings read through hairline rules,
+  italic gold accents, or simple centered blocks, per the stationery system.
+
+## Scale
 
 | Token        | Size / line-height | Usage                          |
 | ------------ | ------------------ | ------------------------------ |
@@ -156,6 +168,12 @@ Rules:
 * Never use `text-xs` for primary information.
 * Long names (guest, table) truncate with `text-ellipsis` after 1 line in compact contexts.
 * Display headings use a slightly lighter weight and refined tracking.
+* Never render raw default-font headings on canvas or panel surfaces — headings
+  always use the display serif with refined tracking.
+* Empty-state titles use `text-2xl` or larger (not `text-lg`) for presence, with
+  an italic serif `text-accent-hover` tagline underneath.
+* Canvas card names (table names) use display serif at 600 with tight tracking,
+  not bold sans.
 
 ---
 
@@ -298,6 +316,41 @@ The canvas is the most visual surface. Specific rules:
 * Drag overlay: 1.05x scale, `shadow-lg`, slight rotation (1-2 degrees) for feel.
 * Touch dragging must preserve scroll access, use a visible active state, and never rely on hover to reveal a drop target.
 * Provide action-based alternatives for assigning a guest or moving a table when canvas precision is poor on a phone.
+
+### Canvas floor (elevated look)
+
+The canvas reads as a **venue floor plan**, not an abstract dot grid:
+
+* Background: `canvas` token (`#EFEAE0`) with a floor-plan grid — 24px cell
+  hairlines (`border` color, ~35% alpha) every 24px and heavier major lines
+  (`border-strong`, ~55% alpha) every 120px. Implemented as two layered
+  `linear-gradient` patterns in `Workspace` while keeping the existing droppable
+  behavior and coordinates unchanged.
+* A fixed full-canvas noise overlay (SVG `feTurbulence` data URI, `mix-blend-multiply`
+  at 4% opacity, `pointer-events-none`), driven by the `paper-noise` token, gives
+  the whole app its paper material. The overlay sits on top of scrolling content.
+
+### Tables as objects (elevated look)
+
+Tables physically read as dressed tables, not cards:
+
+* Round tables: two 1-px concentric hairline rings (`border` + `border-strong`,
+  3 px apart) plus a 6-px `accent-soft` rim blush on the circular surface;
+  fill uses `cloth` instead of `surface`.
+* Rectangle tables: same two-hairline top border with a hanging runner strip
+  (40% `accent-soft`, 8px x height 12px, `rounded-full`) on the surface.
+* Occupancy on round-table surfaces renders as a thin SVG progress ring
+  (stroke `accent`, track `accent-soft`, rounded linecap) behind the name.
+* Seat slots: 64-px circular pads (touch target unchanged at 44px inner).
+  Positioned seats render a **place card**: a small `linen` rounded square with
+  the guest's initial and a hairline fold across the top — not a plain dot.
+* Drop-over state lights the whole pad with `bg-accent-soft` + `ring-2 ring-accent/30`.
+
+### Typography on canvas
+
+* Table headers and workspace empty-state titles use `font-text-display`
+  (Cormorant Garamond, 600) so the plan reads as place cards / stationery.
+* Numerals (occupancy, stats) keep serif style with `tabular-nums` for stability.
 
 ---
 
