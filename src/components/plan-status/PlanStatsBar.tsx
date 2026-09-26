@@ -59,7 +59,7 @@ export function PlanStatsBar() {
           }`}
         >
           {tile.icon}
-          <span className={`${tile.danger ? 'font-semibold' : 'font-medium text-text'}`}>{tile.value}</span>
+          <span className={`font-text-display text-base font-semibold tabular-nums ${tile.danger ? 'text-danger' : 'text-text'}`}>{tile.value}</span>
           <span className="hidden sm:inline">{tile.label}</span>
         </span>
       ))}
