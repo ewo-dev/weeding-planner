@@ -94,14 +94,14 @@ export function TopBar() {
             }
           }}
           aria-label={t.topBar.planNameAriaLabel}
-          className="min-w-0 max-w-[12rem] rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-semibold font-display text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft sm:max-w-xs"
+          className="min-w-0 max-w-[12rem] rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-base font-semibold font-text-display text-text focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand-soft sm:max-w-xs"
         />
       ) : (
         <button
           type="button"
           onClick={startRename}
           title={t.topBar.renamePlan}
-          className="flex min-h-[44px] min-w-0 items-center truncate text-lg font-semibold font-display text-text transition-colors hover:text-brand"
+          className="flex min-h-[44px] min-w-0 items-center truncate font-text-display text-xl font-semibold tracking-tight text-text transition-colors hover:text-brand"
         >
           {plan.meta.name}
         </button>

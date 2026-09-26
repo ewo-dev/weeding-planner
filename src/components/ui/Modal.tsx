@@ -74,7 +74,7 @@ export function Modal({ open, onClose, title, size = 'md', children }: ModalProp
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-text/25 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
+      className="fixed inset-0 z-[100] flex items-end justify-center overflow-y-auto bg-text/25 p-0 backdrop-blur-[1.5px] sm:items-center sm:p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onCloseRef.current()
       }}

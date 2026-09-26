@@ -103,14 +103,14 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
       }}
       aria-label={t.editor.tableNameAriaLabel}
       maxLength={TABLE_MAX_NAME}
-      className="w-full min-w-0 rounded border border-brand bg-surface px-1.5 py-0.5 text-center text-sm font-semibold text-text"
+      className="w-full min-w-0 rounded border border-brand bg-surface px-1.5 py-0.5 text-center font-text-display text-[17px] font-semibold leading-tight tracking-tight text-text"
     />
   ) : (
     <button
       type="button"
       onClick={startRename}
       title={t.editor.renameTable}
-      className="min-w-0 truncate text-sm font-semibold text-text transition-colors hover:text-brand"
+      className="min-w-0 truncate font-text-display text-[17px] font-semibold leading-tight tracking-tight text-text transition-colors hover:text-brand"
     >
       {table.name}
     </button>
@@ -124,7 +124,7 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
   })
 
   const surfaceBase =
-    'bg-surface shadow-sm ring-1 ring-inset ring-border transition-shadow'
+    'bg-cloth shadow-sm ring-1 ring-inset ring-border-strong transition-shadow'
   const selectedRing = selected ? 'ring-2 ring-brand ring-offset-2 ring-offset-bg shadow-md' : ''
   const draggingStyles = isDragging ? 'z-10 opacity-95 shadow-lg' : ''
 
@@ -175,10 +175,31 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
           aria-pressed={selected}
           data-selected={selected || undefined}
           onClick={handleSurfaceClick}
-          className={`absolute left-1/2 top-1/2 flex h-[8.5rem] w-[8.5rem] -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 rounded-full ${surfaceBase} ${selectedRing}`}
+          className={`absolute left-1/2 top-1/2 flex h-[8.5rem] w-[8.5rem] -translate-x-1/2 -translate-y-1/2 touch-none flex-col items-center justify-center gap-0.5 bg-cloth ring-inset rounded-full ${surfaceBase} ${selectedRing}`}
         >
+          {/* Occupancy ring behind the name. */}
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 100 100"
+            className="pointer-events-none absolute inset-0 h-full w-full"
+          >
+            <circle
+              cx="50" cy="50" r="47" fill="none"
+              stroke="rgba(200,169,120,0.18)"
+              strokeWidth="2.5"
+            />
+            <circle
+              cx="50" cy="50" r="47" fill="none"
+              stroke="#C8A978"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeDasharray={`${(guests.length / table.capacity) * 2 * Math.PI * 47} ${2 * Math.PI * 47}`}
+              transform="rotate(-90 50 50)"
+              className="transition-[stroke-dasharray] duration-500"
+            />
+          </svg>
           {headerName}
-          <span className="text-xs font-medium text-text-muted">
+          <span className="text-xs font-medium text-text-muted tabular-nums">
             {guests.length}/{table.capacity}
           </span>
         </div>
@@ -208,10 +229,15 @@ export function TableCard({ table, guests, selected = false, onSelect }: TableCa
         aria-pressed={selected}
         data-selected={selected || undefined}
         onClick={handleSurfaceClick}
-        className={`flex min-h-[52px] touch-none items-center justify-between gap-2 rounded-xl ${surfaceBase} ${selectedRing} px-4 py-2.5`}
+        className={`relative flex min-h-[52px] touch-none items-center justify-between gap-2 overflow-hidden rounded-xl ${surfaceBase} ${selectedRing} px-4 py-2.5`}
       >
-        <span className="min-w-0 flex-1 text-center">{headerName}</span>
-        <span className="shrink-0 text-xs font-medium text-text-muted">
+        {/* Runner detail (docs/09-design-system.md § 12: tables as objects). */}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-1/2 w-8 -translate-x-1/2 bg-accent-soft"
+        />
+        <span className="relative min-w-0 flex-1 text-center">{headerName}</span>
+        <span className="relative shrink-0 text-xs font-medium text-text-muted tabular-nums">
           {guests.length}/{table.capacity}
         </span>
       </div>

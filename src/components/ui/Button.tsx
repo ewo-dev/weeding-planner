@@ -22,8 +22,9 @@ const SIZES: Record<ButtonSize, string> = {
 }
 
 const VARIANTS: Record<ButtonVariant, string> = {
+  // Primary reads as a wax seal: deep sage, slight letter-spacing lift.
   primary:
-    'bg-brand text-text-inverse shadow-sm hover:bg-brand-hover hover:shadow active:bg-brand-hover',
+    'bg-brand text-text-inverse shadow-sm tracking-wide hover:bg-brand-hover hover:shadow active:bg-brand-hover',
   secondary:
     'border border-border bg-surface text-text shadow-sm hover:bg-surface-muted hover:border-border active:bg-surface-muted',
   ghost:

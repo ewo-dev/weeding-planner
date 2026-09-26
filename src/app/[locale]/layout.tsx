@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { hasLocale } from 'next-intl'
 import { Inter, Cormorant_Garamond } from 'next/font/google'
 import { ToastProvider } from '@/components/ui/ToastProvider'
+import { PaperTexture } from '@/components/ui/PaperTexture'
 import { SITE_URL, SITE_NAME } from '@/lib/site'
 import { LocaleProvider } from '@/lib/i18n'
 import { getMessages } from '@/lib/i18n/catalog'
@@ -106,6 +107,7 @@ export default async function LocaleLayout({
         </a>
         <LocaleProvider locale={locale as Locale}>
           <ToastProvider>
+            <PaperTexture />
             <div id="contenu">{children}</div>
           </ToastProvider>
         </LocaleProvider>

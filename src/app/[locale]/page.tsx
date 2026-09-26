@@ -62,12 +62,12 @@ export default function HomePage() {
 
   return (
     <main className="mx-auto w-full max-w-xl px-4 py-10 sm:py-16">
-      <header className="mb-8 text-center sm:text-left">
-        <p className="text-xs font-semibold uppercase tracking-widest text-accent-hover">{t.home.eyebrow}</p>
-        <h1 className="mt-2 font-display text-3xl font-semibold text-text sm:text-4xl">
+      <header className="mb-10 text-center sm:text-left">
+        <p className="font-text-display text-[15px] italic text-accent-hover">{t.home.eyebrow}</p>
+        <h1 className="mt-2 font-text-display text-4xl font-semibold tracking-tight text-text sm:text-5xl">
           {t.home.title}
         </h1>
-        <p className="mt-2 text-text-muted">{t.home.subtitle}</p>
+        <p className="mt-3 font-text-display text-lg italic text-text-muted">{t.home.subtitle}</p>
       </header>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
@@ -105,9 +105,9 @@ export default function HomePage() {
       )}
 
       {status === 'ready' && summaries.length === 0 && (
-        <div className="mt-10 rounded-xl border border-dashed border-border bg-surface p-8 text-center">
-          <p className="font-display text-lg font-semibold text-text">{t.home.emptyTitle}</p>
-          <p className="mt-1 text-sm text-text-muted">
+        <div className="mt-10 rounded-xl border border-dashed border-border-strong bg-surface p-8 text-center">
+          <p className="font-text-display text-2xl font-semibold tracking-tight text-text">{t.home.emptyTitle}</p>
+          <p className="mt-2 text-sm text-text-muted italic">
             {t.home.emptySubtitle}
           </p>
         </div>

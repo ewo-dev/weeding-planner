@@ -26,8 +26,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Visible keyboard focus baseline (docs/09-design-system.md § 15):
-   2 px brand ring with 2 px offset for every natively focusable element,
-   * including raw <button>/<a>/<input> that don't go through Button. */
+   2 px focus ring with 2 px offset for every natively focusable element. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid #68745D;
   outline-offset: 2px;

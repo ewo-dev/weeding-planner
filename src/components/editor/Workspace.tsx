@@ -60,7 +60,16 @@ export function Workspace({ contentRef }: { contentRef?: (element: HTMLDivElemen
   return (
     <div
       data-testid="workspace-scroll"
-      className="min-h-0 flex-1 overflow-auto bg-bg bg-[radial-gradient(circle,rgb(229_225_216/0.85)_1px,transparent_1px)] bg-[size:24px_24px]"
+      className="min-h-0 flex-1 overflow-auto bg-canvas"
+      style={{
+        backgroundImage: [
+          'linear-gradient(to right, rgba(216,210,196,0.55) 1px, transparent 1px)',
+          'linear-gradient(to bottom, rgba(216,210,196,0.55) 1px, transparent 1px)',
+          'linear-gradient(to right, rgba(229,225,216,0.35) 1px, transparent 1px)',
+          'linear-gradient(to bottom, rgba(229,225,216,0.35) 1px, transparent 1px)',
+        ].join(', '),
+        backgroundSize: '120px 120px, 120px 120px, 24px 24px, 24px 24px',
+      }}
     >
       <div
         ref={setRefs}
